@@ -9,5 +9,9 @@ sealed interface ImeUiState {
 
     data class Result(val text: String) : ImeUiState
 
+    data class Refining(val original: String) : ImeUiState
+
+    data class Refined(val original: String, val refined: String) : ImeUiState
+
     data class Error(val message: String) : ImeUiState
 }
