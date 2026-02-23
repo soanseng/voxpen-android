@@ -3,6 +3,7 @@ package com.voxink.app.data.local
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
@@ -33,6 +34,11 @@ class PreferencesManager
                 RecordingMode.valueOf(modeStr)
             }
 
+        val refinementEnabledFlow: Flow<Boolean> =
+            context.dataStore.data.map { prefs ->
+                prefs[REFINEMENT_ENABLED_KEY] ?: DEFAULT_REFINEMENT_ENABLED
+            }
+
         suspend fun setLanguage(language: SttLanguage) {
             context.dataStore.edit { prefs ->
                 prefs[LANGUAGE_KEY] = languageToKey(language)
@@ -45,12 +51,20 @@ class PreferencesManager
             }
         }
 
+        suspend fun setRefinementEnabled(enabled: Boolean) {
+            context.dataStore.edit { prefs ->
+                prefs[REFINEMENT_ENABLED_KEY] = enabled
+            }
+        }
+
         companion object {
             val DEFAULT_LANGUAGE: SttLanguage = SttLanguage.Auto
             val DEFAULT_RECORDING_MODE: RecordingMode = RecordingMode.TAP_TO_TOGGLE
+            const val DEFAULT_REFINEMENT_ENABLED: Boolean = true
 
             private val LANGUAGE_KEY = stringPreferencesKey("stt_language")
             private val RECORDING_MODE_KEY = stringPreferencesKey("recording_mode")
+            private val REFINEMENT_ENABLED_KEY = booleanPreferencesKey("refinement_enabled")
 
             fun languageFromKey(key: String): SttLanguage =
                 when (key) {

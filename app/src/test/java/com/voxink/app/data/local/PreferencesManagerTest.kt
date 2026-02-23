@@ -32,4 +32,9 @@ class PreferencesManagerTest {
         assertThat(PreferencesManager.languageToKey(SttLanguage.English)).isEqualTo("en")
         assertThat(PreferencesManager.languageToKey(SttLanguage.Japanese)).isEqualTo("ja")
     }
+
+    @Test
+    fun `should have correct default refinement enabled`() {
+        assertThat(PreferencesManager.DEFAULT_REFINEMENT_ENABLED).isTrue()
+    }
 }
