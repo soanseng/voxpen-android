@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -30,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.voxink.app.R
+import com.voxink.app.ads.BannerAdView
 import com.voxink.app.ui.settings.SettingsViewModel
 
 object HomeScreen
@@ -68,10 +71,50 @@ fun HomeScreenContent(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             WelcomeHeader()
-            Spacer(Modifier.height(32.dp))
+            Spacer(Modifier.height(24.dp))
+            if (!state.proStatus.isPro) {
+                UsageSummaryCard(state)
+                Spacer(Modifier.height(16.dp))
+            }
             SetupChecklist(isKeyboardEnabled, state.isApiKeyConfigured, hasMicPerm)
             Spacer(Modifier.height(24.dp))
             HomeActions(isKeyboardEnabled, onNavigateToSettings, onNavigateToTranscription)
+            if (!state.proStatus.isPro) {
+                Spacer(Modifier.height(16.dp))
+                BannerAdView()
+            }
+        }
+    }
+}
+
+@Composable
+private fun UsageSummaryCard(state: com.voxink.app.ui.settings.SettingsUiState) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                stringResource(R.string.pro_status_free),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                stringResource(R.string.usage_voice_remaining, state.remainingVoiceInputs),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Text(
+                stringResource(R.string.usage_refinement_remaining, state.remainingRefinements),
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Text(
+                stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptions),
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
 }

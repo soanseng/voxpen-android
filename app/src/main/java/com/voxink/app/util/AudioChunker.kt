@@ -1,6 +1,5 @@
 package com.voxink.app.util
 
-import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
@@ -8,7 +7,10 @@ object AudioChunker {
     private const val WAV_HEADER_SIZE = 44
     private const val DEFAULT_MAX_CHUNK_BYTES = 25 * 1024 * 1024 // 25MB
 
-    fun chunk(data: ByteArray, maxChunkBytes: Int = DEFAULT_MAX_CHUNK_BYTES): List<ByteArray> {
+    fun chunk(
+        data: ByteArray,
+        maxChunkBytes: Int = DEFAULT_MAX_CHUNK_BYTES,
+    ): List<ByteArray> {
         if (data.size <= maxChunkBytes) return listOf(data)
         val chunks = mutableListOf<ByteArray>()
         var offset = 0
@@ -20,7 +22,10 @@ object AudioChunker {
         return chunks
     }
 
-    fun chunkWav(wavBytes: ByteArray, maxChunkBytes: Int = DEFAULT_MAX_CHUNK_BYTES): List<ByteArray> {
+    fun chunkWav(
+        wavBytes: ByteArray,
+        maxChunkBytes: Int = DEFAULT_MAX_CHUNK_BYTES,
+    ): List<ByteArray> {
         if (wavBytes.size <= maxChunkBytes) return listOf(wavBytes)
         if (!isWav(wavBytes)) return chunk(wavBytes, maxChunkBytes)
 

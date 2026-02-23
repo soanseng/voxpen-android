@@ -397,6 +397,22 @@ Whisper does NOT officially support Taiwanese Hokkien (nan-tw). However:
 
 ## Phase 7: Monetization — Free + Pro + Ads (Post-Launch)
 
+**Status: CODE COMPLETE** (feature/phase7-monetization)
+- ProStatus sealed interface + DailyUsage model
+- UsageLimiter: daily counters (20 voice/5 refine/2 transcription), midnight reset, rewarded ad bonus
+- BillingManager: Google Play Billing one-time IAP for "voxink_pro"
+- AdManager: AdMob init with test IDs + UMP consent
+- BannerAdView: Compose wrapper for Settings/Home/Transcription (Free only)
+- InterstitialAdLoader: frequency control (5-min gap, 3/day, 3-day grace)
+- RewardedAdLoader: bonus voice inputs
+- IME: RecordingController gates voice input and refinement by ProStatus
+- Settings: Pro status card, upgrade/restore buttons, usage counters, banner ad
+- Home: usage summary card, banner ad (Free)
+- Transcription: file transcription limits, banner ad, share gated to Pro
+- ProGuard rules for Billing + AdMob
+- 30+ bilingual strings (en + zh-TW)
+- 11 new test files, full quality pipeline green
+
 ### 7.1 Free vs Pro 功能分級
 
 | 功能 | Free | Pro |

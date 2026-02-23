@@ -2,6 +2,8 @@ package com.voxink.app.ui.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.RecordingMode
@@ -20,6 +22,8 @@ class SettingsViewModel
     constructor(
         private val apiKeyManager: ApiKeyManager,
         private val preferencesManager: PreferencesManager,
+        private val billingManager: BillingManager,
+        private val usageLimiter: UsageLimiter,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SettingsUiState())
         val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -29,6 +33,9 @@ class SettingsViewModel
                 it.copy(
                     isApiKeyConfigured = apiKeyManager.isGroqKeyConfigured(),
                     apiKeyDisplay = maskApiKey(apiKeyManager.getGroqApiKey()),
+                    remainingVoiceInputs = usageLimiter.remainingVoiceInputs(),
+                    remainingRefinements = usageLimiter.remainingRefinements(),
+                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
                 )
             }
             viewModelScope.launch {
@@ -44,6 +51,11 @@ class SettingsViewModel
             viewModelScope.launch {
                 preferencesManager.refinementEnabledFlow.collect { enabled ->
                     _uiState.update { it.copy(refinementEnabled = enabled) }
+                }
+            }
+            viewModelScope.launch {
+                billingManager.proStatus.collect { status ->
+                    _uiState.update { it.copy(proStatus = status) }
                 }
             }
         }
@@ -68,6 +80,20 @@ class SettingsViewModel
 
         fun setRefinementEnabled(enabled: Boolean) {
             viewModelScope.launch { preferencesManager.setRefinementEnabled(enabled) }
+        }
+
+        fun restorePurchases() {
+            billingManager.restorePurchases()
+        }
+
+        fun refreshUsage() {
+            _uiState.update {
+                it.copy(
+                    remainingVoiceInputs = usageLimiter.remainingVoiceInputs(),
+                    remainingRefinements = usageLimiter.remainingRefinements(),
+                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
+                )
+            }
         }
 
         private fun maskApiKey(key: String?): String {

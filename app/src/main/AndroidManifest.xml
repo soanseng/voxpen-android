@@ -13,6 +13,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VoxInk">
 
+        <!-- AdMob Application ID (test ID for development) -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713" />
+
         <!-- Main Activity (Settings / Home) -->
         <activity
             android:name=".ui.MainActivity"

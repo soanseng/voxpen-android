@@ -1,6 +1,7 @@
 package com.voxink.app.ui.settings
 
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,11 +16,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -42,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.voxink.app.R
+import com.voxink.app.ads.BannerAdView
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.SttLanguage
 
@@ -88,6 +93,8 @@ fun SettingsScreenContent(
                     .padding(horizontal = 16.dp)
                     .verticalScroll(rememberScrollState()),
         ) {
+            ProStatusSection(state, context as? Activity)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             ApiKeySection(state, apiKeyInput, { apiKeyInput = it }) {
                 viewModel.saveApiKey(apiKeyInput)
                 apiKeyInput = ""
@@ -102,7 +109,93 @@ fun SettingsScreenContent(
             PermissionSection(hasMicPermission) {
                 permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             }
+            if (!state.proStatus.isPro) {
+                Spacer(modifier = Modifier.height(16.dp))
+                BannerAdView()
+            }
             Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+private fun ProStatusSection(
+    state: SettingsUiState,
+    activity: Activity?,
+) {
+    SectionHeader(stringResource(R.string.pro_section_title))
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (state.proStatus.isPro) {
+                        MaterialTheme.colorScheme.primaryContainer
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    },
+            ),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                if (state.proStatus.isPro) {
+                    stringResource(R.string.pro_status_pro)
+                } else {
+                    stringResource(R.string.pro_status_free)
+                },
+                style = MaterialTheme.typography.titleMedium,
+            )
+            if (!state.proStatus.isPro) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(R.string.pro_upgrade_description),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.usage_voice_remaining, state.remainingVoiceInputs),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Text(
+                    stringResource(R.string.usage_refinement_remaining, state.remainingRefinements),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Text(
+                    stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptions),
+                    style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(12.dp))
+                Button(
+                    onClick = {
+                        activity?.let {
+                            val billingManager =
+                                dagger.hilt.android.EntryPointAccessors.fromApplication(
+                                    it.applicationContext,
+                                    com.voxink.app.ime.VoxInkIMEEntryPoint::class.java,
+                                ).billingManager()
+                            billingManager.launchPurchaseFlow(it)
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.usage_upgrade_pro))
+                }
+                OutlinedButton(
+                    onClick = {
+                        activity?.let {
+                            val billingManager =
+                                dagger.hilt.android.EntryPointAccessors.fromApplication(
+                                    it.applicationContext,
+                                    com.voxink.app.ime.VoxInkIMEEntryPoint::class.java,
+                                ).billingManager()
+                            billingManager.restorePurchases()
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.pro_restore_purchase))
+                }
+            }
         }
     }
 }

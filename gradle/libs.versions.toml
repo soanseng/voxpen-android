@@ -34,6 +34,11 @@ datastore = "1.2.0"
 securityCrypto = "1.1.0-alpha06"
 room = "2.6.1"
 
+# Billing & Ads
+billing = "7.1.1"
+playServicesAds = "23.5.0"
+ump = "3.1.0"
+
 # Navigation
 navigationCompose = "2.8.6"
 
@@ -96,6 +101,11 @@ google-material = { group = "com.google.android.material", name = "material", ve
 
 # Compose Extended
 compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+
+# Billing & Ads
+billing = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
+play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
+ump = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "ump" }
 
 # Testing
 junit5-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5" }

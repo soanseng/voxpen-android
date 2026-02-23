@@ -86,4 +86,42 @@
     <string name="quick_language">語言：%1$s</string>
     <string name="quick_refinement_on">潤稿：開</string>
     <string name="quick_refinement_off">潤稿：關</string>
+
+    <!-- Monetization — Usage Limits -->
+    <string name="usage_voice_remaining">語音輸入：今日剩餘 %1$d 次</string>
+    <string name="usage_refinement_remaining">潤稿：今日剩餘 %1$d 次</string>
+    <string name="usage_transcription_remaining">音檔轉錄：今日剩餘 %1$d 次</string>
+    <string name="usage_limit_reached">已達每日上限</string>
+    <string name="usage_limit_voice">今日語音輸入次數已用完。升級 Pro 即可無限使用。</string>
+    <string name="usage_limit_refinement">今日潤稿次數已用完。</string>
+    <string name="usage_limit_transcription">今日音檔轉錄次數已用完。</string>
+    <string name="usage_watch_ad">觀看廣告獲取 %1$d 次額外使用</string>
+    <string name="usage_upgrade_pro">升級 Pro</string>
+
+    <!-- Monetization — Pro -->
+    <string name="pro_status_free">免費版</string>
+    <string name="pro_status_pro">Pro</string>
+    <string name="pro_upgrade_title">升級至 VoxInk Pro</string>
+    <string name="pro_upgrade_description">無限語音輸入、潤稿及音檔轉錄，無廣告。</string>
+    <string name="pro_restore_purchase">恢復購買</string>
+    <string name="pro_purchase_success">Pro 升級成功！</string>
+    <string name="pro_purchase_error">購買失敗，請重試。</string>
+    <string name="pro_restored">已成功恢復購買。</string>
+    <string name="pro_section_title">訂閱方案</string>
+
+    <!-- Monetization — Ads -->
+    <string name="ad_consent_title">個人化廣告</string>
+    <string name="ad_reward_prompt">觀看短廣告換取 %1$d 次額外語音輸入？</string>
+    <string name="ad_reward_granted">已獲得 %1$d 次額外語音輸入！</string>
+    <string name="ad_loading">載入廣告中…</string>
+
+    <!-- Pro Feature Labels -->
+    <string name="pro_feature_unlimited_voice">無限語音輸入</string>
+    <string name="pro_feature_unlimited_refinement">無限智慧潤稿</string>
+    <string name="pro_feature_unlimited_transcription">無限音檔轉錄</string>
+    <string name="pro_feature_export_formats">匯出純文字、SRT 字幕及分享</string>
+    <string name="pro_feature_no_ads">無廣告體驗</string>
+    <string name="pro_feature_all_providers">所有 STT 提供者</string>
+    <string name="pro_feature_all_languages">所有語言選項</string>
+    <string name="pro_feature_custom_prompts">自訂潤稿 Prompt</string>
 </resources>
