@@ -22,7 +22,7 @@ mockk = "1.13.16"
 turbine = "1.2.0"
 truth = "1.4.4"
 coroutinesTest = "1.10.1"
-mannodermausJunit5 = "1.6.0"
+mannodermausJunit5 = "1.14.0.0"
 
 # Code Quality
 detekt = "1.23.7"
