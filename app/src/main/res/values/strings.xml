@@ -86,4 +86,42 @@
     <string name="quick_language">Language: %1$s</string>
     <string name="quick_refinement_on">Refinement: ON</string>
     <string name="quick_refinement_off">Refinement: OFF</string>
+
+    <!-- Monetization — Usage Limits -->
+    <string name="usage_voice_remaining">Voice input: %1$d remaining today</string>
+    <string name="usage_refinement_remaining">Refinements: %1$d remaining today</string>
+    <string name="usage_transcription_remaining">File transcriptions: %1$d remaining today</string>
+    <string name="usage_limit_reached">Daily limit reached</string>
+    <string name="usage_limit_voice">Voice input limit reached for today. Upgrade to Pro for unlimited use.</string>
+    <string name="usage_limit_refinement">Refinement limit reached for today.</string>
+    <string name="usage_limit_transcription">File transcription limit reached for today.</string>
+    <string name="usage_watch_ad">Watch ad for %1$d extra uses</string>
+    <string name="usage_upgrade_pro">Upgrade to Pro</string>
+
+    <!-- Monetization — Pro -->
+    <string name="pro_status_free">Free</string>
+    <string name="pro_status_pro">Pro</string>
+    <string name="pro_upgrade_title">Upgrade to VoxInk Pro</string>
+    <string name="pro_upgrade_description">Unlimited voice input, refinements, and file transcriptions. No ads.</string>
+    <string name="pro_restore_purchase">Restore Purchase</string>
+    <string name="pro_purchase_success">Pro upgrade successful!</string>
+    <string name="pro_purchase_error">Purchase failed. Please try again.</string>
+    <string name="pro_restored">Purchase restored successfully.</string>
+    <string name="pro_section_title">Subscription</string>
+
+    <!-- Monetization — Ads -->
+    <string name="ad_consent_title">Personalized Ads</string>
+    <string name="ad_reward_prompt">Watch a short ad to get %1$d extra voice inputs?</string>
+    <string name="ad_reward_granted">%1$d extra voice inputs granted!</string>
+    <string name="ad_loading">Loading ad…</string>
+
+    <!-- Pro Feature Labels -->
+    <string name="pro_feature_unlimited_voice">Unlimited voice input</string>
+    <string name="pro_feature_unlimited_refinement">Unlimited text refinement</string>
+    <string name="pro_feature_unlimited_transcription">Unlimited file transcription</string>
+    <string name="pro_feature_export_formats">Export as text, SRT, and share</string>
+    <string name="pro_feature_no_ads">Ad-free experience</string>
+    <string name="pro_feature_all_providers">All STT providers</string>
+    <string name="pro_feature_all_languages">All language options</string>
+    <string name="pro_feature_custom_prompts">Custom refinement prompts</string>
 </resources>
