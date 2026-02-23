@@ -24,6 +24,7 @@ object NetworkModule {
         Json {
             ignoreUnknownKeys = true
             isLenient = true
+            encodeDefaults = true
         }
 
     @Provides
