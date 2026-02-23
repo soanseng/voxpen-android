@@ -95,8 +95,7 @@ class RecordingController(
         }
     }
 
-    private fun canUseRefinement(proStatus: ProStatus): Boolean =
-        proStatus.isPro || usageLimiter.canUseRefinement()
+    private fun canUseRefinement(proStatus: ProStatus): Boolean = proStatus.isPro || usageLimiter.canUseRefinement()
 
     fun dismiss() {
         _uiState.value = ImeUiState.Idle

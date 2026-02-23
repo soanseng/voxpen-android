@@ -106,7 +106,10 @@ class VoxInkIME : InputMethodService() {
         }
         view.findViewById<ImageButton>(R.id.btn_settings)?.let { settingsBtn ->
             settingsBtn.setOnClickListener { actionHandler.handle(KeyboardAction.OpenSettings) }
-            settingsBtn.setOnLongClickListener { showQuickSettings(it); true }
+            settingsBtn.setOnLongClickListener {
+                showQuickSettings(it)
+                true
+            }
         }
         setupMicButton(view.findViewById(R.id.btn_mic))
     }
@@ -258,75 +261,86 @@ class VoxInkIME : InputMethodService() {
             val refinementOn = preferencesManager.refinementEnabledFlow.first()
 
             val dp = resources.displayMetrics.density
-            val container = LinearLayout(this@VoxInkIME).apply {
-                orientation = LinearLayout.VERTICAL
-                setBackgroundColor(resources.getColor(R.color.key_background, null))
-                val pad = (12 * dp).toInt()
-                setPadding(pad, pad, pad, pad)
-            }
+            val container =
+                LinearLayout(this@VoxInkIME).apply {
+                    orientation = LinearLayout.VERTICAL
+                    setBackgroundColor(resources.getColor(R.color.key_background, null))
+                    val pad = (12 * dp).toInt()
+                    setPadding(pad, pad, pad, pad)
+                }
 
             val languages = listOf(SttLanguage.Auto, SttLanguage.Chinese, SttLanguage.English, SttLanguage.Japanese)
-            val langNames = listOf(
-                getString(R.string.lang_auto),
-                getString(R.string.lang_zh),
-                getString(R.string.lang_en),
-                getString(R.string.lang_ja),
-            )
+            val langNames =
+                listOf(
+                    getString(R.string.lang_auto),
+                    getString(R.string.lang_zh),
+                    getString(R.string.lang_en),
+                    getString(R.string.lang_ja),
+                )
 
-            val popup = PopupWindow(
-                container,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                true,
-            )
+            val popup =
+                PopupWindow(
+                    container,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    true,
+                )
 
             languages.forEachIndexed { i, lang ->
-                val tv = TextView(this@VoxInkIME).apply {
-                    text = getString(R.string.quick_language, langNames[i])
-                    textSize = 14f
-                    setTextColor(
-                        if (lang == currentLang) {
-                            resources.getColor(R.color.mic_idle, null)
-                        } else {
-                            resources.getColor(R.color.key_text, null)
-                        },
-                    )
-                    val pad = (8 * dp).toInt()
-                    setPadding(pad, pad, pad, pad)
-                    setOnClickListener {
-                        serviceScope.launch { preferencesManager.setLanguage(lang) }
-                        popup.dismiss()
+                val tv =
+                    TextView(this@VoxInkIME).apply {
+                        text = getString(R.string.quick_language, langNames[i])
+                        textSize = 14f
+                        setTextColor(
+                            if (lang == currentLang) {
+                                resources.getColor(R.color.mic_idle, null)
+                            } else {
+                                resources.getColor(R.color.key_text, null)
+                            },
+                        )
+                        val pad = (8 * dp).toInt()
+                        setPadding(pad, pad, pad, pad)
+                        setOnClickListener {
+                            serviceScope.launch { preferencesManager.setLanguage(lang) }
+                            popup.dismiss()
+                        }
                     }
-                }
                 container.addView(tv)
             }
 
             // Divider
-            val divider = View(this@VoxInkIME).apply {
-                layoutParams = LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    (1 * dp).toInt(),
-                ).apply { topMargin = (4 * dp).toInt(); bottomMargin = (4 * dp).toInt() }
-                setBackgroundColor(0x33FFFFFF)
-            }
+            val divider =
+                View(this@VoxInkIME).apply {
+                    layoutParams =
+                        LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            (1 * dp).toInt(),
+                        ).apply {
+                            topMargin = (4 * dp).toInt()
+                            bottomMargin = (4 * dp).toInt()
+                        }
+                    setBackgroundColor(0x33FFFFFF)
+                }
             container.addView(divider)
 
             // Refinement toggle
-            val refinementTv = TextView(this@VoxInkIME).apply {
-                text = if (refinementOn) {
-                    getString(R.string.quick_refinement_on)
-                } else {
-                    getString(R.string.quick_refinement_off)
+            val refinementTv =
+                TextView(this@VoxInkIME).apply {
+                    text =
+                        if (refinementOn) {
+                            getString(R.string.quick_refinement_on)
+                        } else {
+                            getString(R.string.quick_refinement_off)
+                        }
+                    textSize = 14f
+                    setTextColor(resources.getColor(R.color.key_text, null))
+                    val pad = (8 * dp).toInt()
+                    setPadding(pad, pad, pad, pad)
+                    setOnClickListener {
+                        serviceScope.launch { preferencesManager.setRefinementEnabled(!refinementOn) }
+                        popup.dismiss()
+                    }
                 }
-                textSize = 14f
-                setTextColor(resources.getColor(R.color.key_text, null))
-                val pad = (8 * dp).toInt()
-                setPadding(pad, pad, pad, pad)
-                setOnClickListener {
-                    serviceScope.launch { preferencesManager.setRefinementEnabled(!refinementOn) }
-                    popup.dismiss()
-                }
-            }
             container.addView(refinementTv)
 
             popup.showAtLocation(anchor, Gravity.BOTTOM or Gravity.END, (8 * dp).toInt(), (64 * dp).toInt())

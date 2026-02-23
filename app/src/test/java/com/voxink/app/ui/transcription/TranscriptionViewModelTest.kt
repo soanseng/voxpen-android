@@ -67,8 +67,20 @@ class TranscriptionViewModelTest {
         runTest {
             val entities =
                 listOf(
-                    TranscriptionEntity(id = 1, fileName = "a.wav", originalText = "Hello", language = "en", createdAt = 2000L),
-                    TranscriptionEntity(id = 2, fileName = "b.wav", originalText = "World", language = "zh", createdAt = 1000L),
+                    TranscriptionEntity(
+                        id = 1,
+                        fileName = "a.wav",
+                        originalText = "Hello",
+                        language = "en",
+                        createdAt = 2000L,
+                    ),
+                    TranscriptionEntity(
+                        id = 2,
+                        fileName = "b.wav",
+                        originalText = "World",
+                        language = "zh",
+                        createdAt = 1000L,
+                    ),
                 )
             every { transcriptionRepository.getAll() } returns flowOf(entities)
             viewModel = createViewModel()
@@ -84,7 +96,13 @@ class TranscriptionViewModelTest {
     fun `should select transcription for detail view`() =
         runTest {
             val entity =
-                TranscriptionEntity(id = 1, fileName = "a.wav", originalText = "Hello", language = "en", createdAt = 1000L)
+                TranscriptionEntity(
+                    id = 1,
+                    fileName = "a.wav",
+                    originalText = "Hello",
+                    language = "en",
+                    createdAt = 1000L,
+                )
             every { transcriptionRepository.getAll() } returns flowOf(listOf(entity))
             viewModel = createViewModel()
 
@@ -101,7 +119,13 @@ class TranscriptionViewModelTest {
     fun `should clear selection`() =
         runTest {
             val entity =
-                TranscriptionEntity(id = 1, fileName = "a.wav", originalText = "Hello", language = "en", createdAt = 1000L)
+                TranscriptionEntity(
+                    id = 1,
+                    fileName = "a.wav",
+                    originalText = "Hello",
+                    language = "en",
+                    createdAt = 1000L,
+                )
             every { transcriptionRepository.getAll() } returns flowOf(listOf(entity))
             viewModel = createViewModel()
 
@@ -173,7 +197,13 @@ class TranscriptionViewModelTest {
         runTest {
             viewModel = createViewModel()
             val entity =
-                TranscriptionEntity(id = 1, fileName = "a.wav", originalText = "Hello", language = "en", createdAt = 1000L)
+                TranscriptionEntity(
+                    id = 1,
+                    fileName = "a.wav",
+                    originalText = "Hello",
+                    language = "en",
+                    createdAt = 1000L,
+                )
 
             viewModel.onTranscriptionComplete(entity)
 

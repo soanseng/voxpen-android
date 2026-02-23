@@ -42,6 +42,5 @@ object AppModule {
             .build()
 
     @Provides
-    fun provideTranscriptionDao(database: AppDatabase): TranscriptionDao =
-        database.transcriptionDao()
+    fun provideTranscriptionDao(database: AppDatabase): TranscriptionDao = database.transcriptionDao()
 }

@@ -47,7 +47,6 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.voxink.app.R
 import com.voxink.app.ads.BannerAdView
-import com.voxink.app.billing.BillingManager
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.SttLanguage
 

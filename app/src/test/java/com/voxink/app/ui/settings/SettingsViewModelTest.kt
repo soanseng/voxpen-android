@@ -50,8 +50,7 @@ class SettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() =
-        SettingsViewModel(apiKeyManager, preferencesManager, billingManager, usageLimiter)
+    private fun createViewModel() = SettingsViewModel(apiKeyManager, preferencesManager, billingManager, usageLimiter)
 
     @Test
     fun `should emit initial state with defaults`() =

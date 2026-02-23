@@ -6,19 +6,20 @@ object ExportHelper {
     private const val ESTIMATED_SECONDS_PER_SENTENCE = 5L
     private const val MS_PER_SECOND = 1000L
 
-    fun toPlainText(entity: TranscriptionEntity): String = buildString {
-        appendLine("File: ${entity.fileName}")
-        appendLine()
-        if (entity.refinedText != null) {
-            appendLine("Original:")
-            appendLine(entity.originalText)
+    fun toPlainText(entity: TranscriptionEntity): String =
+        buildString {
+            appendLine("File: ${entity.fileName}")
             appendLine()
-            appendLine("Refined:")
-            appendLine(entity.refinedText)
-        } else {
-            appendLine(entity.originalText)
+            if (entity.refinedText != null) {
+                appendLine("Original:")
+                appendLine(entity.originalText)
+                appendLine()
+                appendLine("Refined:")
+                appendLine(entity.refinedText)
+            } else {
+                appendLine(entity.originalText)
+            }
         }
-    }
 
     fun toSrt(entity: TranscriptionEntity): String {
         val text = entity.displayText
