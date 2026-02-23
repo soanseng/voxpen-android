@@ -270,6 +270,40 @@ Output only the cleaned text, no explanations.
 - No hardcoded strings in UI code — always use string resources
 - API keys never logged or exposed in UI beyond masked display
 
+### TDD — Test-Driven Development
+
+開發遵循 TDD，核心循環為 **Red-Green-Refactor**：
+
+1. **Red** — 先寫一個會失敗的測試，定義預期行為
+2. **Green** — 寫最少量的程式碼讓測試通過（不多不少）
+3. **Refactor** — 在測試保護下重構，消除重複、改善設計
+
+原則：
+- 每次只加一個測試，確認失敗後才寫實作
+- 不寫沒有對應測試的產品程式碼
+- Refactor 階段測試必須持續全綠
+- 目標覆蓋率 ≥ 80%
+
+#### 測試工具
+
+| 層級 | 工具 |
+|------|------|
+| Unit tests | JUnit 5 + MockK |
+| Flow testing | Turbine |
+| API tests | MockWebServer (OkHttp) |
+| UI tests | Compose Testing (`createComposeRule`) |
+| Assertions | Truth / JUnit assertions |
+
+#### 測試命名慣例
+
+```kotlin
+@Test
+fun `should return transcription when API responds successfully`() { ... }
+
+@Test
+fun `should emit error state when network fails`() { ... }
+```
+
 ### Testing Priority
 1. Repository layer (unit tests with MockWebServer)
 2. Use cases (unit tests)
