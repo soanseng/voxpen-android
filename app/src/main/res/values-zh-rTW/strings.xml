@@ -38,4 +38,7 @@
     <string name="recording">錄音中…</string>
     <string name="processing">處理中…</string>
     <string name="mic_permission_required">需要麥克風權限。請前往設定授權。</string>
+    <string name="refining">潤稿中…</string>
+    <string name="settings_refinement_section">文字潤稿</string>
+    <string name="settings_refinement_toggle">啟用智慧潤稿</string>
 </resources>
