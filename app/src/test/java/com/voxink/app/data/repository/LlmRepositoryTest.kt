@@ -5,6 +5,7 @@ import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.data.remote.GroqApi
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -13,7 +14,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import okhttp3.MediaType.Companion.toMediaType
 
 class LlmRepositoryTest {
     private lateinit var server: MockWebServer
@@ -46,7 +46,8 @@ class LlmRepositoryTest {
             server.enqueue(
                 MockResponse()
                     .setBody(
-                        """{"id":"c1","choices":[{"index":0,"message":{"role":"assistant","content":"Polished text"}}]}""",
+                        """{"id":"c1","choices":[{"index":0,""" +
+                            """"message":{"role":"assistant","content":"Polished text"}}]}""",
                     )
                     .setHeader("Content-Type", "application/json"),
             )

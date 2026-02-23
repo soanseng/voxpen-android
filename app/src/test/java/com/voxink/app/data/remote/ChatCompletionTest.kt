@@ -6,7 +6,11 @@ import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 
 class ChatCompletionTest {
-    private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    private val json =
+        Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+        }
 
     @Test
     fun `should serialize ChatMessage with role and content`() {

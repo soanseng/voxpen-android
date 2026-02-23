@@ -4,9 +4,8 @@ import com.google.common.truth.Truth.assertThat
 import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.data.remote.GroqApi
 import com.voxink.app.data.repository.LlmRepository
-import io.mockk.coEvery
-import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
@@ -16,7 +15,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
-import kotlinx.serialization.json.Json
 
 class RefineTextUseCaseTest {
     private lateinit var server: MockWebServer
