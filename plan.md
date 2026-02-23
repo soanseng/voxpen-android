@@ -366,3 +366,166 @@ Whisper does NOT officially support Taiwanese Hokkien (nan-tw). However:
 - [ ] Zero crashes in 1-week dogfooding
 - [ ] Successful Play Store publication
 - [ ] 繁中 + English UI complete
+
+---
+
+## Phase 7: Monetization — Free + Pro + Ads (Post-Launch)
+
+### 7.1 Free vs Pro 功能分級
+
+| 功能 | Free | Pro |
+|------|------|-----|
+| **語音輸入 (IME)** | 20 次/天 | 無限制 |
+| **STT 提供者** | Groq only | Groq + OpenAI + 自訂端點 |
+| **語言選擇** | Auto-detect only | Auto / 中文 / English / 日本語 |
+| **LLM 智慧潤稿** | 5 次/天 | 無限制 |
+| **音檔轉逐字稿** | 2 檔/天，每檔 ≤ 3 分鐘 | 無限制，每檔 ≤ 25MB |
+| **逐字稿歷史紀錄** | 保留 7 天 | 無限保留 |
+| **匯出格式** | 複製到剪貼簿 | 純文字 / SRT 字幕 / 分享 |
+| **自訂潤稿 Prompt** | ❌（僅預設） | ✅ 可自訂/儲存/匯出 |
+| **Per-App 語氣設定** | ❌ | ✅ |
+| **主題** | 跟隨系統 | 淺色 / 深色 / 跟隨系統 |
+| **廣告** | 有（非 IME 畫面） | 無廣告 |
+
+#### 設計理念
+
+- **Free 要夠用**：20 次/天的語音輸入足夠輕度使用者日常使用，Auto-detect 模式涵蓋大多數場景
+- **Pro 差異明確**：多 STT 提供者、無限潤稿、完整匯出、自訂 Prompt 是 power user 剛需
+- **BYOK 心理**：用戶已付 API 費用，Pro 收費應定位為「app 本身的開發價值」而非「功能解鎖」，避免雙重收費感
+
+### 7.2 廣告策略
+
+#### 廣告 SDK
+- Google AdMob（唯一選擇，Play Store 最友好）
+- 整合 UMP（User Messaging Platform）處理 consent
+
+#### 廣告位置與格式
+
+| 位置 | AdMob 格式 | 尺寸 | 觸發時機 |
+|------|-----------|------|---------|
+| 設定頁面底部 | Banner | 320×50 (BANNER) | 進入設定頁時載入 |
+| 逐字稿歷史列表 | Native Advanced | In-feed | 每 5 筆紀錄插入 1 則 |
+| 音檔轉寫完成後 | Interstitial | 全螢幕 | 轉寫結果顯示後 |
+| 每日用量達上限 | Rewarded | 全螢幕（用戶主動觀看） | 看廣告換 5 次額外語音輸入 |
+| 主畫面（轉寫頁）底部 | Banner | 320×50 (BANNER) | 進入轉寫頁時載入 |
+
+#### 絕對不放廣告的位置
+
+- **IME 鍵盤視窗內**：Play Store 對 IME 內廣告審查極嚴，極高機率被拒
+- **錄音 / 處理中**：打斷工作流程，UX 災難
+- **Onboarding 流程**：第一印象最重要
+- **候選文字列（Original / Refined）**：核心交互區，絕不能有干擾
+
+#### 頻率控制
+
+- Interstitial：同一 session 間隔 ≥ 5 分鐘，每日最多 3 次
+- 新用戶前 3 天不顯示 Interstitial（先讓用戶養成習慣）
+- Rewarded 不設頻率限制（用戶主動選擇觀看）
+- Banner 使用 Adaptive Banner 自動調整尺寸
+
+### 7.3 定價策略
+
+#### 建議方案：一次買斷
+
+| 方案 | 價格 | 說明 |
+|------|------|------|
+| **正式價** | NT$150（~US$4.99） | 介於 Dictate ($3.49) 和 FUTO ($10) 之間 |
+| **上架促銷價** | NT$99（~US$2.99） | 前 1000 名或前 30 天，吸引早期用戶 |
+
+#### 為什麼選一次買斷而非訂閱
+
+1. **BYOK 模式已有持續成本**：用戶每月付 API 費用，再加月費心理抗拒極高
+2. **台灣市場消費習慣**：小額 app 偏好一次買斷（$3-5 美金甜蜜點），訂閱制需要極強價值感
+3. **競品參考**：Dictate $3.49 買斷、FUTO $10 買斷都賣得不錯；Typeless $12-30/月是 SaaS 模式不同
+4. **Play Store 內購簡單**：一次性 IAP（In-App Purchase）實作比訂閱簡單，不需處理續訂/過期邏輯
+5. **口碑效應**：「只要 NT$99 就能去廣告 + 完整功能」是強力推薦誘因
+
+#### 未來追加營收選項（非 v1）
+
+- **VoxInk+ 訂閱**（NT$99/月或 NT$799/年）：解鎖 Phase 6 進階功能（Context-Aware Tone、Speak-to-Edit、個人字典同步）
+- 分層：Pro = 完整基礎功能，VoxInk+ = 持續更新的 AI 進階功能
+
+### 7.4 技術實作
+
+#### 依賴項
+
+```kotlin
+// build.gradle.kts (app)
+implementation("com.google.android.gms:play-services-ads:23.x.x")
+implementation("com.google.android.ump:user-messaging-platform:3.x.x")
+implementation("com.android.billingclient:billing-ktx:7.x.x")
+```
+
+#### 架構
+
+```
+app/src/main/java/com/voxink/app/
+├── billing/
+│   ├── BillingManager.kt          # Google Play Billing 封裝
+│   ├── ProStatus.kt               # sealed interface: Free / Pro
+│   └── UsageLimiter.kt            # 每日用量追蹤（DataStore）
+├── ads/
+│   ├── AdManager.kt               # AdMob 初始化 + consent
+│   ├── BannerAdView.kt            # Compose wrapper for Banner
+│   ├── InterstitialAdLoader.kt    # Interstitial 預載 + 頻率控制
+│   ├── RewardedAdLoader.kt        # Rewarded 廣告邏輯
+│   └── NativeAdProvider.kt        # Native ad 資料來源
+```
+
+#### 用量追蹤
+
+```kotlin
+// UsageLimiter.kt — DataStore-based daily counter
+data class DailyUsage(
+    val date: LocalDate,
+    val voiceInputCount: Int = 0,
+    val refinementCount: Int = 0,
+    val fileTranscriptionCount: Int = 0
+)
+```
+
+- 每日零點自動重置
+- 用量接近上限時顯示提示（「今日剩餘 3 次語音輸入」）
+- 達到上限後顯示 Rewarded Ad 選項 + 升級 Pro 按鈕
+
+### 7.5 Play Store 上架注意事項
+
+#### IME 相關審查
+
+- [ ] 隱私政策必須明確說明 IME 權限用途（麥克風、網路）
+- [ ] 聲明所有語音資料僅傳送至用戶自選的 API（Groq/OpenAI），app 不經手
+- [ ] IME 內禁止任何廣告元素（包括 banner、按鈕、品牌 logo）
+- [ ] 資料安全區（Data Safety Section）揭露：
+  - 收集：無（BYOK 模式，API key 僅存本機）
+  - 分享：無（語音資料直接傳至用戶選擇的 STT 提供者）
+  - 廣告追蹤：是（AdMob，僅在非 IME 畫面）
+
+#### AdMob 合規
+
+- [ ] 整合 UMP consent（GDPR + 台灣 PDPA 考量）
+- [ ] 不可在鎖定螢幕或系統 UI 上顯示廣告
+- [ ] Ad placement 需通過 AdMob Policy Center 審查
+- [ ] 測試用 test ad unit IDs，上線前切換正式 IDs
+
+#### 內購 (IAP) 合規
+
+- [ ] Pro 升級使用 Google Play Billing Library（不可用第三方支付）
+- [ ] 提供「恢復購買」功能（用戶換機時）
+- [ ] 免費試用期不適用於一次買斷（僅訂閱需要）
+- [ ] 價格透明：在 app 內清楚標示 Pro 功能對照
+
+---
+
+## Risk Assessment (Updated)
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Play Store IME review rejection | High | Thorough privacy policy, no data collection, clear disclosures |
+| Groq API changes/pricing | Medium | Multi-provider support, easy to switch |
+| Compose-in-IME performance | Medium | Benchmark early, fall back to XML if needed |
+| Chinese refinement quality | Medium | Extensive prompt engineering, user-customizable prompts |
+| Competition (Typeless grows) | Low | Different value prop (BYOK, open, zero cost) |
+| AdMob policy violation in IME | High | 嚴格隔離：IME 內零廣告，僅在 Activity 畫面顯示 |
+| Free tier 太慷慨導致轉化率低 | Medium | 追蹤用量數據，A/B test 限制閾值（15 vs 20 vs 25 次/天） |
+| Free tier 太嚴苛導致用戶流失 | Medium | 提供 Rewarded Ad 作為緩衝，監控 D1/D7 retention |
+| BYOK + 付費的雙重收費感 | Medium | 清楚傳達 Pro = 支持開發者 + 去廣告 + 便利功能 |
