@@ -20,13 +20,13 @@ Build the best BYOK AI voice keyboard for Android — Typeless-quality UX, open 
 ## Phase 0: Project Setup (Day 1-2)
 
 ### 0.1 Repository & Environment
-- [ ] Fork `DevEmperor/Dictate` on GitHub
-- [ ] Create new branch `dev` for all development
-- [ ] Set up Android Studio project with Kotlin DSL Gradle
-- [ ] Change package name to `com.voxink.app`
-- [ ] Change app name to "VoxInk" / "語墨"
-- [ ] Add `.editorconfig`, `ktlint`, `detekt` configs
-- [ ] Set up CI (GitHub Actions): lint + build
+- [x] ~~Fork `DevEmperor/Dictate` on GitHub~~ Clean rewrite, not a fork
+- [x] Create new branch `dev` for all development
+- [x] Set up Android project with Kotlin DSL Gradle
+- [x] Change package name to `com.voxink.app`
+- [x] Change app name to "VoxInk" / "語墨"
+- [x] Add `.editorconfig`, `ktlint`, `detekt` configs
+- [x] Set up CI (GitHub Actions): lint + build
 
 ### 0.2 Study Dictate Codebase
 - [ ] Map out Dictate's Java classes and their responsibilities
@@ -37,6 +37,12 @@ Build the best BYOK AI voice keyboard for Android — Typeless-quality UX, open 
 
 ### Deliverable
 Clean Kotlin project skeleton that builds and runs (blank IME).
+
+**Status: COMPLETE** (v0.0.1 tagged 2026-02-23)
+- 21 unit tests passing (JUnit 5 + Truth + MockK)
+- `./gradlew clean ktlintCheck detekt test assembleDebug` all green
+- TDD: test files committed before production code for all `.kt` files
+- 6 test files, 8 production files, CI pipeline ready
 
 ---
 
