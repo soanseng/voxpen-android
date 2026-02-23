@@ -2,8 +2,11 @@ package com.voxink.app.di
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.room.Room
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.voxink.app.data.local.AppDatabase
+import com.voxink.app.data.local.TranscriptionDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,4 +31,17 @@ object AppModule {
             EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM,
         )
     }
+
+    @Provides
+    @Singleton
+    fun provideAppDatabase(
+        @ApplicationContext context: Context,
+    ): AppDatabase =
+        Room
+            .databaseBuilder(context, AppDatabase::class.java, "voxink.db")
+            .build()
+
+    @Provides
+    fun provideTranscriptionDao(database: AppDatabase): TranscriptionDao =
+        database.transcriptionDao()
 }

@@ -41,4 +41,49 @@
     <string name="refining">Refining…</string>
     <string name="settings_refinement_section">Text Refinement</string>
     <string name="settings_refinement_toggle">Enable refinement</string>
+
+    <!-- Transcription Screen -->
+    <string name="transcribe_audio">Transcribe Audio File</string>
+    <string name="transcription_title">Transcriptions</string>
+    <string name="transcription_pick_file">Select audio file</string>
+    <string name="transcription_processing">Transcribing…</string>
+    <string name="transcription_empty">No transcriptions yet</string>
+    <string name="transcription_empty_hint">Tap + to transcribe an audio file</string>
+    <string name="transcription_original">Original</string>
+    <string name="transcription_refined">Refined</string>
+    <string name="transcription_copied">Copied to clipboard</string>
+    <string name="transcription_delete_title">Delete Transcription</string>
+    <string name="transcription_delete_confirm">Are you sure you want to delete this transcription?</string>
+    <string name="transcription_delete">Delete</string>
+    <string name="transcription_cancel">Cancel</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">Welcome to VoxInk</string>
+    <string name="onboarding_welcome_description">VoxInk is an AI-powered voice keyboard. Speak naturally, get polished text. Let\'s get set up in a few steps.</string>
+    <string name="onboarding_api_key_title">Set Up Your API Key</string>
+    <string name="onboarding_api_key_description">VoxInk uses Groq\'s Whisper API for speech-to-text. Enter your Groq API key to get started. You can get one free at groq.com.</string>
+    <string name="onboarding_api_key_saved">API key saved</string>
+    <string name="onboarding_keyboard_title">Enable VoxInk Keyboard</string>
+    <string name="onboarding_keyboard_description">Open system settings and enable VoxInk Voice as an input method. Then switch to it when typing.</string>
+    <string name="onboarding_keyboard_enabled">Keyboard enabled</string>
+    <string name="onboarding_permission_title">Microphone Permission</string>
+    <string name="onboarding_permission_description">VoxInk needs microphone access to record your voice for transcription.</string>
+    <string name="onboarding_permission_granted">Microphone permission granted</string>
+    <string name="onboarding_done_title">All Set!</string>
+    <string name="onboarding_done_description">You\'re ready to use VoxInk. Switch to VoxInk Voice keyboard in any app and tap the mic button to start speaking.</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_finish">Get Started</string>
+
+    <!-- Keyboard Accessibility -->
+    <string name="keyboard_switch">Switch keyboard</string>
+    <string name="keyboard_backspace">Backspace</string>
+    <string name="keyboard_record">Record</string>
+    <string name="keyboard_enter">Enter</string>
+    <string name="keyboard_settings">Settings</string>
+
+    <!-- Keyboard Quick Settings -->
+    <string name="quick_language">Language: %1$s</string>
+    <string name="quick_refinement_on">Refinement: ON</string>
+    <string name="quick_refinement_off">Refinement: OFF</string>
 </resources>

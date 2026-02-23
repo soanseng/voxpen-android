@@ -18,8 +18,8 @@ android {
         applicationId = "com.voxink.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = 3
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -27,6 +27,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -91,6 +92,20 @@ dependencies {
     // Storage
     implementation(libs.datastore.preferences)
     implementation(libs.security.crypto)
+
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    // Navigation
+    implementation(libs.navigation.compose)
+
+    // Material (XML theme support)
+    implementation(libs.google.material)
+
+    // Compose Extended
+    implementation(libs.compose.material.icons.extended)
 
     // Testing — JUnit 5
     testImplementation(libs.junit5.api)

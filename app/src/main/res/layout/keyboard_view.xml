@@ -104,7 +104,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@color/key_background"
-            android:contentDescription="Switch keyboard"
+            android:contentDescription="@string/keyboard_switch"
             android:src="@android:drawable/ic_menu_sort_by_size"
             android:layout_margin="2dp" />
 
@@ -114,7 +114,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@color/key_background"
-            android:contentDescription="Backspace"
+            android:contentDescription="@string/keyboard_backspace"
             android:src="@android:drawable/ic_delete"
             android:layout_margin="2dp" />
 
@@ -124,7 +124,7 @@
             android:layout_height="match_parent"
             android:layout_weight="2"
             android:background="@color/mic_idle"
-            android:contentDescription="Record"
+            android:contentDescription="@string/keyboard_record"
             android:src="@android:drawable/ic_btn_speak_now"
             android:layout_margin="2dp" />
 
@@ -134,7 +134,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@color/key_background"
-            android:contentDescription="Enter"
+            android:contentDescription="@string/keyboard_enter"
             android:src="@android:drawable/ic_menu_send"
             android:layout_margin="2dp" />
 
@@ -144,7 +144,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@color/key_background"
-            android:contentDescription="Settings"
+            android:contentDescription="@string/keyboard_settings"
             android:src="@android:drawable/ic_menu_preferences"
             android:layout_margin="2dp" />
     </LinearLayout>

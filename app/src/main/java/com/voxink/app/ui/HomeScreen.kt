@@ -38,6 +38,7 @@ object HomeScreen
 @Composable
 fun HomeScreenContent(
     onNavigateToSettings: () -> Unit,
+    onNavigateToTranscription: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -70,7 +71,7 @@ fun HomeScreenContent(
             Spacer(Modifier.height(32.dp))
             SetupChecklist(isKeyboardEnabled, state.isApiKeyConfigured, hasMicPerm)
             Spacer(Modifier.height(24.dp))
-            HomeActions(isKeyboardEnabled, onNavigateToSettings)
+            HomeActions(isKeyboardEnabled, onNavigateToSettings, onNavigateToTranscription)
         }
     }
 }
@@ -130,6 +131,7 @@ private fun SetupChecklist(
 private fun HomeActions(
     isKeyboardEnabled: Boolean,
     onNavigateToSettings: () -> Unit,
+    onNavigateToTranscription: () -> Unit,
 ) {
     val context = LocalContext.current
     if (!isKeyboardEnabled) {
@@ -141,6 +143,10 @@ private fun HomeActions(
         }
         Spacer(Modifier.height(8.dp))
     }
+    Button(onClick = onNavigateToTranscription, Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.transcribe_audio))
+    }
+    Spacer(Modifier.height(8.dp))
     OutlinedButton(onClick = onNavigateToSettings, Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.open_settings))
     }

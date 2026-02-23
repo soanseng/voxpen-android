@@ -41,4 +41,49 @@
     <string name="refining">潤稿中…</string>
     <string name="settings_refinement_section">文字潤稿</string>
     <string name="settings_refinement_toggle">啟用智慧潤稿</string>
+
+    <!-- Transcription Screen -->
+    <string name="transcribe_audio">音檔轉逐字稿</string>
+    <string name="transcription_title">逐字稿</string>
+    <string name="transcription_pick_file">選擇音檔</string>
+    <string name="transcription_processing">轉錄中…</string>
+    <string name="transcription_empty">尚無逐字稿</string>
+    <string name="transcription_empty_hint">點擊 + 轉錄音檔</string>
+    <string name="transcription_original">原文</string>
+    <string name="transcription_refined">潤稿</string>
+    <string name="transcription_copied">已複製到剪貼簿</string>
+    <string name="transcription_delete_title">刪除逐字稿</string>
+    <string name="transcription_delete_confirm">確定要刪除此逐字稿嗎？</string>
+    <string name="transcription_delete">刪除</string>
+    <string name="transcription_cancel">取消</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_welcome_title">歡迎使用語墨</string>
+    <string name="onboarding_welcome_description">語墨是 AI 語音鍵盤，自然說話即可取得精修文字。讓我們完成幾個步驟開始使用。</string>
+    <string name="onboarding_api_key_title">設定 API 金鑰</string>
+    <string name="onboarding_api_key_description">語墨使用 Groq 的 Whisper API 進行語音轉文字。請輸入你的 Groq API 金鑰。可至 groq.com 免費申請。</string>
+    <string name="onboarding_api_key_saved">API 金鑰已儲存</string>
+    <string name="onboarding_keyboard_title">啟用語墨鍵盤</string>
+    <string name="onboarding_keyboard_description">前往系統設定啟用「語墨語音」輸入法，之後在任何 App 中切換使用。</string>
+    <string name="onboarding_keyboard_enabled">鍵盤已啟用</string>
+    <string name="onboarding_permission_title">麥克風權限</string>
+    <string name="onboarding_permission_description">語墨需要麥克風權限來錄製語音進行轉錄。</string>
+    <string name="onboarding_permission_granted">麥克風權限已授權</string>
+    <string name="onboarding_done_title">設定完成！</string>
+    <string name="onboarding_done_description">你已準備好使用語墨。在任何 App 中切換到語墨語音鍵盤，點擊麥克風按鈕開始說話。</string>
+    <string name="onboarding_back">上一步</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_finish">開始使用</string>
+
+    <!-- Keyboard Accessibility -->
+    <string name="keyboard_switch">切換鍵盤</string>
+    <string name="keyboard_backspace">退格</string>
+    <string name="keyboard_record">錄音</string>
+    <string name="keyboard_enter">換行</string>
+    <string name="keyboard_settings">設定</string>
+
+    <!-- Keyboard Quick Settings -->
+    <string name="quick_language">語言：%1$s</string>
+    <string name="quick_refinement_on">潤稿：開</string>
+    <string name="quick_refinement_off">潤稿：關</string>
 </resources>

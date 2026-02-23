@@ -32,6 +32,13 @@ kotlinxSerialization = "1.7.3"
 # Storage
 datastore = "1.2.0"
 securityCrypto = "1.1.0-alpha06"
+room = "2.6.1"
+
+# Navigation
+navigationCompose = "2.8.6"
+
+# Material
+material = "1.12.0"
 
 # Code Quality
 detekt = "1.23.7"
@@ -75,6 +82,20 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 # Storage
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore" }
 security-crypto = { group = "androidx.security", name = "security-crypto", version.ref = "securityCrypto" }
+
+# Room
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+
+# Navigation
+navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+
+# Material
+google-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+
+# Compose Extended
+compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 
 # Testing
 junit5-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5" }
