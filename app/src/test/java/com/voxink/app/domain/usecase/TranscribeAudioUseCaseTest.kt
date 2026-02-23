@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test
 import java.io.IOException
 
 class TranscribeAudioUseCaseTest {
-
     private val groqApi: GroqApi = mockk()
     private lateinit var sttRepository: SttRepository
     private lateinit var useCase: TranscribeAudioUseCase
@@ -37,41 +36,44 @@ class TranscribeAudioUseCaseTest {
     }
 
     @Test
-    fun `should encode PCM to WAV and call repository`() = runTest {
-        val pcm = ByteArray(100) { 1 }
-        val wav = ByteArray(144) { 2 }
-        every { AudioEncoder.pcmToWav(pcm, 16000, 1, 16) } returns wav
-        coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
-            WhisperResponse(text = "你好")
+    fun `should encode PCM to WAV and call repository`() =
+        runTest {
+            val pcm = ByteArray(100) { 1 }
+            val wav = ByteArray(144) { 2 }
+            every { AudioEncoder.pcmToWav(pcm, 16000, 1, 16) } returns wav
+            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(text = "你好")
 
-        val result = useCase(pcm, SttLanguage.Chinese, "key")
+            val result = useCase(pcm, SttLanguage.Chinese, "key")
 
-        assertThat(result.isSuccess).isTrue()
-        assertThat(result.getOrNull()).isEqualTo("你好")
-    }
-
-    @Test
-    fun `should propagate repository errors`() = runTest {
-        val pcm = ByteArray(10)
-        every { AudioEncoder.pcmToWav(any(), any(), any(), any()) } returns ByteArray(54)
-        coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } throws
-            IOException("Network error")
-
-        val result = useCase(pcm, SttLanguage.Auto, "key")
-
-        assertThat(result.isFailure).isTrue()
-        assertThat(result.exceptionOrNull()?.message).contains("Network error")
-    }
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrNull()).isEqualTo("你好")
+        }
 
     @Test
-    fun `should use 16kHz mono 16-bit encoding defaults`() = runTest {
-        val pcm = ByteArray(50)
-        every { AudioEncoder.pcmToWav(pcm, 16000, 1, 16) } returns ByteArray(94)
-        coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
-            WhisperResponse(text = "test")
+    fun `should propagate repository errors`() =
+        runTest {
+            val pcm = ByteArray(10)
+            every { AudioEncoder.pcmToWav(any(), any(), any(), any()) } returns ByteArray(54)
+            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } throws
+                IOException("Network error")
 
-        useCase(pcm, SttLanguage.English, "key")
+            val result = useCase(pcm, SttLanguage.Auto, "key")
 
-        verify { AudioEncoder.pcmToWav(pcm, 16000, 1, 16) }
-    }
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()?.message).contains("Network error")
+        }
+
+    @Test
+    fun `should use 16kHz mono 16-bit encoding defaults`() =
+        runTest {
+            val pcm = ByteArray(50)
+            every { AudioEncoder.pcmToWav(pcm, 16000, 1, 16) } returns ByteArray(94)
+            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(text = "test")
+
+            useCase(pcm, SttLanguage.English, "key")
+
+            verify { AudioEncoder.pcmToWav(pcm, 16000, 1, 16) }
+        }
 }

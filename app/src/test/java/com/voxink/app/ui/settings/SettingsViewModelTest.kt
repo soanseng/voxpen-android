@@ -23,7 +23,6 @@ import org.junit.jupiter.api.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
-
     private val apiKeyManager: ApiKeyManager = mockk(relaxed = true)
     private val preferencesManager: PreferencesManager = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -45,40 +44,44 @@ class SettingsViewModelTest {
     private fun createViewModel() = SettingsViewModel(apiKeyManager, preferencesManager)
 
     @Test
-    fun `should emit initial state with defaults`() = runTest {
-        val vm = createViewModel()
-        vm.uiState.test {
-            val state = awaitItem()
-            assertThat(state.isApiKeyConfigured).isFalse()
-            assertThat(state.language).isEqualTo(SttLanguage.Auto)
-            assertThat(state.recordingMode).isEqualTo(RecordingMode.TAP_TO_TOGGLE)
+    fun `should emit initial state with defaults`() =
+        runTest {
+            val vm = createViewModel()
+            vm.uiState.test {
+                val state = awaitItem()
+                assertThat(state.isApiKeyConfigured).isFalse()
+                assertThat(state.language).isEqualTo(SttLanguage.Auto)
+                assertThat(state.recordingMode).isEqualTo(RecordingMode.TAP_TO_TOGGLE)
+            }
         }
-    }
 
     @Test
-    fun `should save API key and update state`() = runTest {
-        val vm = createViewModel()
-        every { apiKeyManager.isGroqKeyConfigured() } returns true
+    fun `should save API key and update state`() =
+        runTest {
+            val vm = createViewModel()
+            every { apiKeyManager.isGroqKeyConfigured() } returns true
 
-        vm.saveApiKey("gsk_test123")
+            vm.saveApiKey("gsk_test123")
 
-        verify { apiKeyManager.setGroqApiKey("gsk_test123") }
-        vm.uiState.test {
-            assertThat(awaitItem().isApiKeyConfigured).isTrue()
+            verify { apiKeyManager.setGroqApiKey("gsk_test123") }
+            vm.uiState.test {
+                assertThat(awaitItem().isApiKeyConfigured).isTrue()
+            }
         }
-    }
 
     @Test
-    fun `should update language`() = runTest {
-        val vm = createViewModel()
-        vm.setLanguage(SttLanguage.Chinese)
-        coVerify { preferencesManager.setLanguage(SttLanguage.Chinese) }
-    }
+    fun `should update language`() =
+        runTest {
+            val vm = createViewModel()
+            vm.setLanguage(SttLanguage.Chinese)
+            coVerify { preferencesManager.setLanguage(SttLanguage.Chinese) }
+        }
 
     @Test
-    fun `should update recording mode`() = runTest {
-        val vm = createViewModel()
-        vm.setRecordingMode(RecordingMode.HOLD_TO_RECORD)
-        coVerify { preferencesManager.setRecordingMode(RecordingMode.HOLD_TO_RECORD) }
-    }
+    fun `should update recording mode`() =
+        runTest {
+            val vm = createViewModel()
+            vm.setRecordingMode(RecordingMode.HOLD_TO_RECORD)
+            coVerify { preferencesManager.setRecordingMode(RecordingMode.HOLD_TO_RECORD) }
+        }
 }

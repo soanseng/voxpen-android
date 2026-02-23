@@ -4,16 +4,16 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 
 class ImeUiStateTest {
-
     @Test
     fun `should define all IME states`() {
-        val states: List<ImeUiState> = listOf(
-            ImeUiState.Idle,
-            ImeUiState.Recording,
-            ImeUiState.Processing,
-            ImeUiState.Result("hello"),
-            ImeUiState.Error("network error"),
-        )
+        val states: List<ImeUiState> =
+            listOf(
+                ImeUiState.Idle,
+                ImeUiState.Recording,
+                ImeUiState.Processing,
+                ImeUiState.Result("hello"),
+                ImeUiState.Error("network error"),
+            )
         assertThat(states).hasSize(5)
     }
 
@@ -32,13 +32,14 @@ class ImeUiStateTest {
     @Test
     fun `should be exhaustive in when expression`() {
         val state: ImeUiState = ImeUiState.Idle
-        val label = when (state) {
-            ImeUiState.Idle -> "idle"
-            ImeUiState.Recording -> "recording"
-            ImeUiState.Processing -> "processing"
-            is ImeUiState.Result -> "result"
-            is ImeUiState.Error -> "error"
-        }
+        val label =
+            when (state) {
+                ImeUiState.Idle -> "idle"
+                ImeUiState.Recording -> "recording"
+                ImeUiState.Processing -> "processing"
+                is ImeUiState.Result -> "result"
+                is ImeUiState.Error -> "error"
+            }
         assertThat(label).isEqualTo("idle")
     }
 }

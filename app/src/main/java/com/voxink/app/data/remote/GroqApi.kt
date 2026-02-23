@@ -8,7 +8,6 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 
 interface GroqApi {
-
     @Multipart
     @POST("openai/v1/audio/transcriptions")
     suspend fun transcribe(

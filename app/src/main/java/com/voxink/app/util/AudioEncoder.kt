@@ -5,7 +5,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 object AudioEncoder {
-
     private const val WAV_HEADER_SIZE = 44
 
     fun pcmToWav(

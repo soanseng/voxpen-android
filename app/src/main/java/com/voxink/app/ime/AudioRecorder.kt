@@ -11,7 +11,6 @@ import timber.log.Timber
 import java.io.ByteArrayOutputStream
 
 class AudioRecorder(private val context: Context) {
-
     private var audioRecord: AudioRecord? = null
     private var recordingThread: Thread? = null
     private var pcmOutput: ByteArrayOutputStream? = null
@@ -26,6 +25,7 @@ class AudioRecorder(private val context: Context) {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
+    @Suppress("ReturnCount")
     fun startRecording(): Boolean {
         if (!hasPermission()) {
             Timber.w("RECORD_AUDIO permission not granted")
@@ -38,42 +38,49 @@ class AudioRecorder(private val context: Context) {
             return false
         }
 
-        try {
-            audioRecord = AudioRecord(
-                MediaRecorder.AudioSource.MIC,
-                SAMPLE_RATE,
-                CHANNEL_CONFIG,
-                AUDIO_FORMAT,
-                bufferSize,
-            )
-        } catch (e: SecurityException) {
-            Timber.e(e, "SecurityException creating AudioRecord")
-            return false
-        }
-
-        if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
-            Timber.e("AudioRecord failed to initialize")
-            audioRecord?.release()
-            audioRecord = null
-            return false
-        }
+        val recorder = createAudioRecord(bufferSize) ?: return false
+        audioRecord = recorder
 
         pcmOutput = ByteArrayOutputStream()
         isRecording = true
-        audioRecord?.startRecording()
+        recorder.startRecording()
 
-        recordingThread = Thread {
-            val buffer = ByteArray(bufferSize)
-            while (isRecording) {
-                val bytesRead = audioRecord?.read(buffer, 0, buffer.size) ?: -1
-                if (bytesRead > 0) {
-                    pcmOutput?.write(buffer, 0, bytesRead)
+        recordingThread =
+            Thread {
+                val buffer = ByteArray(bufferSize)
+                while (isRecording) {
+                    val bytesRead = recorder.read(buffer, 0, buffer.size)
+                    if (bytesRead > 0) {
+                        pcmOutput?.write(buffer, 0, bytesRead)
+                    }
                 }
-            }
-        }.apply { start() }
+            }.apply { start() }
 
         Timber.d("Recording started")
         return true
+    }
+
+    private fun createAudioRecord(bufferSize: Int): AudioRecord? {
+        val recorder =
+            try {
+                AudioRecord(
+                    MediaRecorder.AudioSource.MIC,
+                    SAMPLE_RATE,
+                    CHANNEL_CONFIG,
+                    AUDIO_FORMAT,
+                    bufferSize,
+                )
+            } catch (e: SecurityException) {
+                Timber.e(e, "SecurityException creating AudioRecord")
+                return null
+            }
+
+        if (recorder.state != AudioRecord.STATE_INITIALIZED) {
+            Timber.e("AudioRecord failed to initialize")
+            recorder.release()
+            return null
+        }
+        return recorder
     }
 
     fun stopRecording(): ByteArray {

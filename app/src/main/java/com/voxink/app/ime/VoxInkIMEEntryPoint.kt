@@ -11,6 +11,8 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 interface VoxInkIMEEntryPoint {
     fun transcribeAudioUseCase(): TranscribeAudioUseCase
+
     fun apiKeyManager(): ApiKeyManager
+
     fun preferencesManager(): PreferencesManager
 }

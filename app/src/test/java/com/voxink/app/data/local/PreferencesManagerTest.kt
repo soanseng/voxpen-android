@@ -6,7 +6,6 @@ import com.voxink.app.data.model.SttLanguage
 import org.junit.jupiter.api.Test
 
 class PreferencesManagerTest {
-
     @Test
     fun `should have correct default language`() {
         assertThat(PreferencesManager.DEFAULT_LANGUAGE).isEqualTo(SttLanguage.Auto)

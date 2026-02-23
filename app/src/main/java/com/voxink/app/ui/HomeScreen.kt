@@ -32,9 +32,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.voxink.app.R
 import com.voxink.app.ui.settings.SettingsViewModel
 
-class HomeScreen {
-    companion object
-}
+object HomeScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,16 +42,18 @@ fun HomeScreenContent(
 ) {
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
-    val isKeyboardEnabled = try {
-        val imm = context.getSystemService(InputMethodManager::class.java)
-        imm.enabledInputMethodList.any { it.packageName == context.packageName }
-    } catch (_: Exception) {
-        false
-    }
-    val hasMicPerm = ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.RECORD_AUDIO,
-    ) == PackageManager.PERMISSION_GRANTED
+    val isKeyboardEnabled =
+        try {
+            val imm = context.getSystemService(InputMethodManager::class.java)
+            imm.enabledInputMethodList.any { it.packageName == context.packageName }
+        } catch (_: Exception) {
+            false
+        }
+    val hasMicPerm =
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO,
+        ) == PackageManager.PERMISSION_GRANTED
 
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.app_name)) }) },
@@ -66,63 +66,82 @@ fun HomeScreenContent(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Text(
-                stringResource(R.string.welcome_message),
-                style = MaterialTheme.typography.titleLarge,
-            )
-            Text(
-                stringResource(R.string.welcome_description),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(top = 8.dp),
-            )
+            WelcomeHeader()
             Spacer(Modifier.height(32.dp))
-
-            Text(
-                stringResource(
-                    R.string.setup_keyboard,
-                    if (isKeyboardEnabled) {
-                        stringResource(R.string.status_enabled)
-                    } else {
-                        stringResource(R.string.status_disabled)
-                    },
-                ),
-            )
-            Text(
-                stringResource(
-                    R.string.setup_api_key,
-                    if (state.isApiKeyConfigured) {
-                        stringResource(R.string.status_configured)
-                    } else {
-                        stringResource(R.string.status_not_configured)
-                    },
-                ),
-            )
-            Text(
-                stringResource(
-                    R.string.setup_permission,
-                    if (hasMicPerm) {
-                        stringResource(R.string.status_granted)
-                    } else {
-                        stringResource(R.string.status_denied)
-                    },
-                ),
-            )
+            SetupChecklist(isKeyboardEnabled, state.isApiKeyConfigured, hasMicPerm)
             Spacer(Modifier.height(24.dp))
-
-            if (!isKeyboardEnabled) {
-                Button(
-                    onClick = {
-                        context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
-                    },
-                    Modifier.fillMaxWidth(),
-                ) {
-                    Text(stringResource(R.string.open_keyboard_settings))
-                }
-                Spacer(Modifier.height(8.dp))
-            }
-            OutlinedButton(onClick = onNavigateToSettings, Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.open_settings))
-            }
+            HomeActions(isKeyboardEnabled, onNavigateToSettings)
         }
+    }
+}
+
+@Composable
+private fun WelcomeHeader() {
+    Text(
+        stringResource(R.string.welcome_message),
+        style = MaterialTheme.typography.titleLarge,
+    )
+    Text(
+        stringResource(R.string.welcome_description),
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = Modifier.padding(top = 8.dp),
+    )
+}
+
+@Composable
+private fun SetupChecklist(
+    isKeyboardEnabled: Boolean,
+    isApiKeyConfigured: Boolean,
+    hasMicPerm: Boolean,
+) {
+    Text(
+        stringResource(
+            R.string.setup_keyboard,
+            if (isKeyboardEnabled) {
+                stringResource(
+                    R.string.status_enabled,
+                )
+            } else {
+                stringResource(R.string.status_disabled)
+            },
+        ),
+    )
+    Text(
+        stringResource(
+            R.string.setup_api_key,
+            if (isApiKeyConfigured) {
+                stringResource(
+                    R.string.status_configured,
+                )
+            } else {
+                stringResource(R.string.status_not_configured)
+            },
+        ),
+    )
+    Text(
+        stringResource(
+            R.string.setup_permission,
+            if (hasMicPerm) stringResource(R.string.status_granted) else stringResource(R.string.status_denied),
+        ),
+    )
+}
+
+@Composable
+private fun HomeActions(
+    isKeyboardEnabled: Boolean,
+    onNavigateToSettings: () -> Unit,
+) {
+    val context = LocalContext.current
+    if (!isKeyboardEnabled) {
+        Button(
+            onClick = { context.startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) },
+            Modifier.fillMaxWidth(),
+        ) {
+            Text(stringResource(R.string.open_keyboard_settings))
+        }
+        Spacer(Modifier.height(8.dp))
+    }
+    OutlinedButton(onClick = onNavigateToSettings, Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.open_settings))
     }
 }

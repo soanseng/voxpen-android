@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test
 import java.io.IOException
 
 class SttRepositoryTest {
-
     private val groqApi: GroqApi = mockk()
     private lateinit var repository: SttRepository
 
@@ -25,75 +24,82 @@ class SttRepositoryTest {
     }
 
     @Test
-    fun `should return transcription text on successful API call`() = runTest {
-        coEvery {
-            groqApi.transcribe(any(), any(), any(), any(), any(), any())
-        } returns WhisperResponse(text = "你好世界")
+    fun `should return transcription text on successful API call`() =
+        runTest {
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "你好世界")
 
-        val result = repository.transcribe(
-            wavBytes = ByteArray(100),
-            language = SttLanguage.Chinese,
-            apiKey = "test-key",
-        )
+            val result =
+                repository.transcribe(
+                    wavBytes = ByteArray(100),
+                    language = SttLanguage.Chinese,
+                    apiKey = "test-key",
+                )
 
-        assertThat(result.isSuccess).isTrue()
-        assertThat(result.getOrNull()).isEqualTo("你好世界")
-    }
-
-    @Test
-    fun `should pass authorization header with Bearer prefix`() = runTest {
-        val authSlot = slot<String>()
-        coEvery {
-            groqApi.transcribe(capture(authSlot), any(), any(), any(), any(), any())
-        } returns WhisperResponse(text = "test")
-
-        repository.transcribe(ByteArray(10), SttLanguage.Auto, "my-api-key")
-
-        assertThat(authSlot.captured).isEqualTo("Bearer my-api-key")
-    }
-
-    @Test
-    fun `should omit language parameter for auto-detect`() = runTest {
-        val langSlot = slot<RequestBody?>()
-        coEvery {
-            groqApi.transcribe(any(), any(), any(), any(), captureNullable(langSlot), any())
-        } returns WhisperResponse(text = "test")
-
-        repository.transcribe(ByteArray(10), SttLanguage.Auto, "key")
-
-        assertThat(langSlot.captured).isNull()
-    }
-
-    @Test
-    fun `should pass language code for specific language`() = runTest {
-        coEvery {
-            groqApi.transcribe(any(), any(), any(), any(), any(), any())
-        } returns WhisperResponse(text = "test")
-
-        repository.transcribe(ByteArray(10), SttLanguage.Chinese, "key")
-
-        coVerify {
-            groqApi.transcribe(any(), any(), any(), any(), match { it != null }, any())
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrNull()).isEqualTo("你好世界")
         }
-    }
 
     @Test
-    fun `should return failure on IOException`() = runTest {
-        coEvery {
-            groqApi.transcribe(any(), any(), any(), any(), any(), any())
-        } throws IOException("Network error")
+    fun `should pass authorization header with Bearer prefix`() =
+        runTest {
+            val authSlot = slot<String>()
+            coEvery {
+                groqApi.transcribe(capture(authSlot), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "test")
 
-        val result = repository.transcribe(ByteArray(10), SttLanguage.Auto, "key")
+            repository.transcribe(ByteArray(10), SttLanguage.Auto, "my-api-key")
 
-        assertThat(result.isFailure).isTrue()
-        assertThat(result.exceptionOrNull()?.message).contains("Network error")
-    }
+            assertThat(authSlot.captured).isEqualTo("Bearer my-api-key")
+        }
 
     @Test
-    fun `should return failure on empty API key`() = runTest {
-        val result = repository.transcribe(ByteArray(10), SttLanguage.Auto, "")
+    fun `should omit language parameter for auto-detect`() =
+        runTest {
+            val langSlot = slot<RequestBody?>()
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), captureNullable(langSlot), any())
+            } returns WhisperResponse(text = "test")
 
-        assertThat(result.isFailure).isTrue()
-        assertThat(result.exceptionOrNull()?.message).contains("API key")
-    }
+            repository.transcribe(ByteArray(10), SttLanguage.Auto, "key")
+
+            assertThat(langSlot.captured).isNull()
+        }
+
+    @Test
+    fun `should pass language code for specific language`() =
+        runTest {
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "test")
+
+            repository.transcribe(ByteArray(10), SttLanguage.Chinese, "key")
+
+            coVerify {
+                groqApi.transcribe(any(), any(), any(), any(), isNull(inverse = true), any())
+            }
+        }
+
+    @Test
+    fun `should return failure on IOException`() =
+        runTest {
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            } throws IOException("Network error")
+
+            val result = repository.transcribe(ByteArray(10), SttLanguage.Auto, "key")
+
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()?.message).contains("Network error")
+        }
+
+    @Test
+    fun `should return failure on empty API key`() =
+        runTest {
+            val result = repository.transcribe(ByteArray(10), SttLanguage.Auto, "")
+
+            assertThat(result.isFailure).isTrue()
+            assertThat(result.exceptionOrNull()?.message).contains("API key")
+        }
 }

@@ -4,7 +4,6 @@ import com.google.common.truth.Truth.assertThat
 import org.junit.jupiter.api.Test
 
 class SttLanguageTest {
-
     @Test
     fun `should define auto-detect with no language code`() {
         assertThat(SttLanguage.Auto.code).isNull()
@@ -31,19 +30,21 @@ class SttLanguageTest {
 
     @Test
     fun `should be exhaustive in when expression`() {
-        val languages = listOf(
-            SttLanguage.Auto,
-            SttLanguage.Chinese,
-            SttLanguage.English,
-            SttLanguage.Japanese,
-        )
+        val languages =
+            listOf(
+                SttLanguage.Auto,
+                SttLanguage.Chinese,
+                SttLanguage.English,
+                SttLanguage.Japanese,
+            )
         languages.forEach { lang ->
-            val label = when (lang) {
-                SttLanguage.Auto -> "auto"
-                SttLanguage.Chinese -> "zh"
-                SttLanguage.English -> "en"
-                SttLanguage.Japanese -> "ja"
-            }
+            val label =
+                when (lang) {
+                    SttLanguage.Auto -> "auto"
+                    SttLanguage.Chinese -> "zh"
+                    SttLanguage.English -> "en"
+                    SttLanguage.Japanese -> "ja"
+                }
             assertThat(label).isNotEmpty()
         }
     }

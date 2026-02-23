@@ -59,9 +59,10 @@ fun SettingsScreenContent(
                 PackageManager.PERMISSION_GRANTED,
         )
     }
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission(),
-    ) { granted -> hasMicPermission = granted }
+    val permissionLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission(),
+        ) { granted -> hasMicPermission = granted }
 
     Scaffold(
         topBar = {
@@ -79,80 +80,102 @@ fun SettingsScreenContent(
         },
     ) { innerPadding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState()),
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(rememberScrollState()),
         ) {
-            // API Key
-            SectionHeader(stringResource(R.string.settings_api_key_section))
-            if (state.isApiKeyConfigured) {
-                Text(state.apiKeyDisplay, style = MaterialTheme.typography.bodyMedium)
+            ApiKeySection(state, apiKeyInput, { apiKeyInput = it }) {
+                viewModel.saveApiKey(apiKeyInput)
+                apiKeyInput = ""
             }
-            OutlinedTextField(
-                value = apiKeyInput,
-                onValueChange = { apiKeyInput = it },
-                label = { Text(stringResource(R.string.settings_groq_api_key)) },
-                placeholder = { Text(stringResource(R.string.settings_api_key_hint)) },
-                visualTransformation = PasswordVisualTransformation(),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Button(
-                onClick = {
-                    if (apiKeyInput.isNotBlank()) {
-                        viewModel.saveApiKey(apiKeyInput)
-                        apiKeyInput = ""
-                    }
-                },
-                modifier = Modifier.padding(top = 8.dp),
-            ) { Text(stringResource(R.string.settings_save)) }
-
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            // Language
-            SectionHeader(stringResource(R.string.settings_language_section))
-            listOf(
-                SttLanguage.Auto to stringResource(R.string.lang_auto),
-                SttLanguage.Chinese to stringResource(R.string.lang_zh),
-                SttLanguage.English to stringResource(R.string.lang_en),
-                SttLanguage.Japanese to stringResource(R.string.lang_ja),
-            ).forEach { (lang, label) ->
-                RadioRow(label, state.language == lang) { viewModel.setLanguage(lang) }
+            LanguageSection(state, viewModel)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            RecordingModeSection(state, viewModel)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            PermissionSection(hasMicPermission) {
+                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            // Recording Mode
-            SectionHeader(stringResource(R.string.settings_recording_section))
-            RadioRow(
-                stringResource(R.string.settings_tap_to_toggle),
-                state.recordingMode == RecordingMode.TAP_TO_TOGGLE,
-            ) { viewModel.setRecordingMode(RecordingMode.TAP_TO_TOGGLE) }
-            RadioRow(
-                stringResource(R.string.settings_hold_to_record),
-                state.recordingMode == RecordingMode.HOLD_TO_RECORD,
-            ) { viewModel.setRecordingMode(RecordingMode.HOLD_TO_RECORD) }
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            // Permission
-            SectionHeader(stringResource(R.string.settings_permission_section))
-            if (hasMicPermission) {
-                Text(
-                    stringResource(R.string.status_granted),
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            } else {
-                Button(
-                    onClick = { permissionLauncher.launch(Manifest.permission.RECORD_AUDIO) },
-                ) {
-                    Text(stringResource(R.string.settings_grant_mic))
-                }
-            }
-
             Spacer(modifier = Modifier.height(32.dp))
+        }
+    }
+}
+
+@Composable
+private fun ApiKeySection(
+    state: SettingsUiState,
+    apiKeyInput: String,
+    onInputChange: (String) -> Unit,
+    onSave: () -> Unit,
+) {
+    SectionHeader(stringResource(R.string.settings_api_key_section))
+    if (state.isApiKeyConfigured) {
+        Text(state.apiKeyDisplay, style = MaterialTheme.typography.bodyMedium)
+    }
+    OutlinedTextField(
+        value = apiKeyInput,
+        onValueChange = onInputChange,
+        label = { Text(stringResource(R.string.settings_groq_api_key)) },
+        placeholder = { Text(stringResource(R.string.settings_api_key_hint)) },
+        visualTransformation = PasswordVisualTransformation(),
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Button(
+        onClick = { if (apiKeyInput.isNotBlank()) onSave() },
+        modifier = Modifier.padding(top = 8.dp),
+    ) { Text(stringResource(R.string.settings_save)) }
+}
+
+@Composable
+private fun LanguageSection(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    SectionHeader(stringResource(R.string.settings_language_section))
+    listOf(
+        SttLanguage.Auto to stringResource(R.string.lang_auto),
+        SttLanguage.Chinese to stringResource(R.string.lang_zh),
+        SttLanguage.English to stringResource(R.string.lang_en),
+        SttLanguage.Japanese to stringResource(R.string.lang_ja),
+    ).forEach { (lang, label) ->
+        RadioRow(label, state.language == lang) { viewModel.setLanguage(lang) }
+    }
+}
+
+@Composable
+private fun RecordingModeSection(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    SectionHeader(stringResource(R.string.settings_recording_section))
+    RadioRow(
+        stringResource(R.string.settings_tap_to_toggle),
+        state.recordingMode == RecordingMode.TAP_TO_TOGGLE,
+    ) { viewModel.setRecordingMode(RecordingMode.TAP_TO_TOGGLE) }
+    RadioRow(
+        stringResource(R.string.settings_hold_to_record),
+        state.recordingMode == RecordingMode.HOLD_TO_RECORD,
+    ) { viewModel.setRecordingMode(RecordingMode.HOLD_TO_RECORD) }
+}
+
+@Composable
+private fun PermissionSection(
+    hasMicPermission: Boolean,
+    onRequestPermission: () -> Unit,
+) {
+    SectionHeader(stringResource(R.string.settings_permission_section))
+    if (hasMicPermission) {
+        Text(
+            stringResource(R.string.status_granted),
+            color = MaterialTheme.colorScheme.primary,
+        )
+    } else {
+        Button(onClick = onRequestPermission) {
+            Text(stringResource(R.string.settings_grant_mic))
         }
     }
 }
@@ -167,7 +190,11 @@ private fun SectionHeader(title: String) {
 }
 
 @Composable
-private fun RadioRow(label: String, selected: Boolean, onClick: () -> Unit) {
+private fun RadioRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
     Row(
         Modifier
             .fillMaxWidth()

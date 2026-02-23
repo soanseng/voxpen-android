@@ -6,7 +6,6 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class AudioEncoderTest {
-
     @Test
     fun `should produce valid WAV header with RIFF magic bytes`() {
         val pcm = ByteArray(100) { it.toByte() }

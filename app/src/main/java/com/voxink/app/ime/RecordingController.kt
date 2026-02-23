@@ -17,7 +17,6 @@ class RecordingController(
     private val apiKeyManager: ApiKeyManager,
     private val ioDispatcher: CoroutineDispatcher,
 ) {
-
     private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private val _uiState = MutableStateFlow<ImeUiState>(ImeUiState.Idle)
     val uiState: StateFlow<ImeUiState> = _uiState.asStateFlow()
@@ -27,7 +26,10 @@ class RecordingController(
         _uiState.value = ImeUiState.Recording
     }
 
-    fun onStopRecording(stopRecording: () -> ByteArray, language: SttLanguage) {
+    fun onStopRecording(
+        stopRecording: () -> ByteArray,
+        language: SttLanguage,
+    ) {
         val pcmData = stopRecording()
         val apiKey = apiKeyManager.getGroqApiKey()
 
@@ -39,10 +41,11 @@ class RecordingController(
         _uiState.value = ImeUiState.Processing
         scope.launch {
             val result = transcribeUseCase(pcmData, language, apiKey)
-            _uiState.value = result.fold(
-                onSuccess = { ImeUiState.Result(it) },
-                onFailure = { ImeUiState.Error(it.message ?: "Transcription failed") },
-            )
+            _uiState.value =
+                result.fold(
+                    onSuccess = { ImeUiState.Result(it) },
+                    onFailure = { ImeUiState.Error(it.message ?: "Transcription failed") },
+                )
         }
     }
 

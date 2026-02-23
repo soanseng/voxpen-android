@@ -18,13 +18,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
     @Provides
     @Singleton
-    fun provideJson(): Json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-    }
+    fun provideJson(): Json =
+        Json {
+            ignoreUnknownKeys = true
+            isLenient = true
+        }
 
     @Provides
     @Singleton
@@ -32,11 +32,12 @@ object NetworkModule {
         return OkHttpClient.Builder()
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
-                    level = if (BuildConfig.DEBUG) {
-                        HttpLoggingInterceptor.Level.HEADERS
-                    } else {
-                        HttpLoggingInterceptor.Level.NONE
-                    }
+                    level =
+                        if (BuildConfig.DEBUG) {
+                            HttpLoggingInterceptor.Level.HEADERS
+                        } else {
+                            HttpLoggingInterceptor.Level.NONE
+                        }
                 },
             )
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -47,7 +48,10 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideGroqApi(client: OkHttpClient, json: Json): GroqApi {
+    fun provideGroqApi(
+        client: OkHttpClient,
+        json: Json,
+    ): GroqApi {
         return Retrofit.Builder()
             .baseUrl("https://api.groq.com/")
             .client(client)

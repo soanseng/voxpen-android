@@ -5,7 +5,6 @@ import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 
 class WhisperResponseTest {
-
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test
@@ -17,22 +16,23 @@ class WhisperResponseTest {
 
     @Test
     fun `should deserialize verbose JSON response`() {
-        val jsonString = """
-        {
-            "task": "transcribe",
-            "language": "chinese",
-            "duration": 3.45,
-            "text": "Hello world",
-            "segments": [
-                {
-                    "id": 0,
-                    "start": 0.0,
-                    "end": 3.45,
-                    "text": "Hello world"
-                }
-            ]
-        }
-        """.trimIndent()
+        val jsonString =
+            """
+            {
+                "task": "transcribe",
+                "language": "chinese",
+                "duration": 3.45,
+                "text": "Hello world",
+                "segments": [
+                    {
+                        "id": 0,
+                        "start": 0.0,
+                        "end": 3.45,
+                        "text": "Hello world"
+                    }
+                ]
+            }
+            """.trimIndent()
         val response = json.decodeFromString<WhisperResponse>(jsonString)
         assertThat(response.text).isEqualTo("Hello world")
         assertThat(response.language).isEqualTo("chinese")

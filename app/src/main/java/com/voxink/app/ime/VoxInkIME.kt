@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 class VoxInkIME : InputMethodService() {
-
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private lateinit var actionHandler: KeyboardActionHandler
     private lateinit var recordingController: RecordingController
@@ -35,27 +34,30 @@ class VoxInkIME : InputMethodService() {
     private var micButton: ImageButton? = null
 
     override fun onCreateInputView(): View {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            applicationContext,
-            VoxInkIMEEntryPoint::class.java,
-        )
+        val entryPoint =
+            EntryPointAccessors.fromApplication(
+                applicationContext,
+                VoxInkIMEEntryPoint::class.java,
+            )
 
         audioRecorder = AudioRecorder(this)
         preferencesManager = entryPoint.preferencesManager()
-        recordingController = RecordingController(
-            transcribeUseCase = entryPoint.transcribeAudioUseCase(),
-            apiKeyManager = entryPoint.apiKeyManager(),
-            ioDispatcher = Dispatchers.IO,
-        )
+        recordingController =
+            RecordingController(
+                transcribeUseCase = entryPoint.transcribeAudioUseCase(),
+                apiKeyManager = entryPoint.apiKeyManager(),
+                ioDispatcher = Dispatchers.IO,
+            )
 
-        actionHandler = KeyboardActionHandler(
-            onSendKeyEvent = { keyCode -> sendDownUpKeyEvents(keyCode) },
-            onSwitchKeyboard = {
-                switchToPreviousInputMethod()
-            },
-            onOpenSettings = { launchSettings() },
-            onMicTap = { handleMicTap() },
-        )
+        actionHandler =
+            KeyboardActionHandler(
+                onSendKeyEvent = { keyCode -> sendDownUpKeyEvents(keyCode) },
+                onSwitchKeyboard = {
+                    switchToPreviousInputMethod()
+                },
+                onOpenSettings = { launchSettings() },
+                onMicTap = { handleMicTap() },
+            )
 
         val view = layoutInflater.inflate(R.layout.keyboard_view, null)
         bindViews(view)
@@ -100,9 +102,13 @@ class VoxInkIME : InputMethodService() {
                 RecordingMode.HOLD_TO_RECORD -> {
                     micBtn.setOnTouchListener { _, event ->
                         when (event.action) {
-                            MotionEvent.ACTION_DOWN -> { startRecording(); true }
+                            MotionEvent.ACTION_DOWN -> {
+                                startRecording()
+                                true
+                            }
                             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                                stopRecording(); true
+                                stopRecording()
+                                true
                             }
                             else -> false
                         }
