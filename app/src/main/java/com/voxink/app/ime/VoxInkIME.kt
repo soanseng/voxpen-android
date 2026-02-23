@@ -29,8 +29,13 @@ class VoxInkIME : InputMethodService() {
     private lateinit var preferencesManager: PreferencesManager
 
     private var candidateBar: LinearLayout? = null
+    private var candidateStatusRow: LinearLayout? = null
     private var candidateText: TextView? = null
     private var candidateProgress: ProgressBar? = null
+    private var candidateOriginal: TextView? = null
+    private var candidateRefinedRow: LinearLayout? = null
+    private var candidateRefined: TextView? = null
+    private var refineProgress: ProgressBar? = null
     private var micButton: ImageButton? = null
 
     override fun onCreateInputView(): View {
@@ -45,7 +50,9 @@ class VoxInkIME : InputMethodService() {
         recordingController =
             RecordingController(
                 transcribeUseCase = entryPoint.transcribeAudioUseCase(),
+                refineTextUseCase = entryPoint.refineTextUseCase(),
                 apiKeyManager = entryPoint.apiKeyManager(),
+                preferencesManager = preferencesManager,
                 ioDispatcher = Dispatchers.IO,
             )
 
@@ -69,8 +76,13 @@ class VoxInkIME : InputMethodService() {
 
     private fun bindViews(view: View) {
         candidateBar = view.findViewById(R.id.candidate_bar)
+        candidateStatusRow = view.findViewById(R.id.candidate_status_row)
         candidateText = view.findViewById(R.id.candidate_text)
         candidateProgress = view.findViewById(R.id.candidate_progress)
+        candidateOriginal = view.findViewById(R.id.candidate_original)
+        candidateRefinedRow = view.findViewById(R.id.candidate_refined_row)
+        candidateRefined = view.findViewById(R.id.candidate_refined)
+        refineProgress = view.findViewById(R.id.refine_progress)
         micButton = view.findViewById(R.id.btn_mic)
     }
 
@@ -120,9 +132,11 @@ class VoxInkIME : InputMethodService() {
 
     private fun handleMicTap() {
         when (recordingController.uiState.value) {
-            ImeUiState.Idle, is ImeUiState.Error, is ImeUiState.Result -> startRecording()
+            ImeUiState.Idle, is ImeUiState.Error, is ImeUiState.Result,
+            is ImeUiState.Refined,
+            -> startRecording()
             ImeUiState.Recording -> stopRecording()
-            ImeUiState.Processing -> { /* ignore */ }
+            ImeUiState.Processing, is ImeUiState.Refining -> { /* ignore */ }
         }
     }
 
@@ -153,40 +167,80 @@ class VoxInkIME : InputMethodService() {
     }
 
     private fun updateUi(state: ImeUiState) {
+        // Reset all views
+        candidateBar?.setOnClickListener(null)
+        candidateOriginal?.setOnClickListener(null)
+        candidateRefinedRow?.setOnClickListener(null)
+
         when (state) {
             ImeUiState.Idle -> {
                 candidateBar?.visibility = View.GONE
-                candidateBar?.setOnClickListener(null)
             }
             ImeUiState.Recording -> {
-                candidateBar?.visibility = View.VISIBLE
-                candidateProgress?.visibility = View.GONE
-                candidateText?.text = getString(R.string.recording)
+                showStatusRow(getString(R.string.recording), showProgress = false)
             }
             ImeUiState.Processing -> {
-                candidateBar?.visibility = View.VISIBLE
-                candidateProgress?.visibility = View.VISIBLE
-                candidateText?.text = getString(R.string.processing)
+                showStatusRow(getString(R.string.processing), showProgress = true)
             }
             is ImeUiState.Result -> {
-                candidateBar?.visibility = View.VISIBLE
-                candidateProgress?.visibility = View.GONE
-                candidateText?.text = state.text
+                showStatusRow(state.text, showProgress = false)
                 candidateBar?.setOnClickListener {
                     currentInputConnection?.commitText(state.text, 1)
                     recordingController.dismiss()
                 }
             }
+            is ImeUiState.Refining -> {
+                showDualRows(state.original, null)
+            }
+            is ImeUiState.Refined -> {
+                showDualRows(state.original, state.refined)
+                candidateOriginal?.setOnClickListener {
+                    currentInputConnection?.commitText(state.original, 1)
+                    recordingController.dismiss()
+                }
+                candidateRefinedRow?.setOnClickListener {
+                    currentInputConnection?.commitText(state.refined, 1)
+                    recordingController.dismiss()
+                }
+            }
             is ImeUiState.Error -> {
-                candidateBar?.visibility = View.VISIBLE
-                candidateProgress?.visibility = View.GONE
-                candidateText?.text = state.message
+                showStatusRow(state.message, showProgress = false)
                 candidateBar?.setOnClickListener { recordingController.dismiss() }
             }
         }
         micButton?.setBackgroundColor(
             getColor(if (state == ImeUiState.Recording) R.color.mic_active else R.color.mic_idle),
         )
+    }
+
+    private fun showStatusRow(
+        text: String,
+        showProgress: Boolean,
+    ) {
+        candidateBar?.visibility = View.VISIBLE
+        candidateStatusRow?.visibility = View.VISIBLE
+        candidateProgress?.visibility = if (showProgress) View.VISIBLE else View.GONE
+        candidateText?.text = text
+        candidateOriginal?.visibility = View.GONE
+        candidateRefinedRow?.visibility = View.GONE
+    }
+
+    private fun showDualRows(
+        original: String,
+        refined: String?,
+    ) {
+        candidateBar?.visibility = View.VISIBLE
+        candidateStatusRow?.visibility = View.GONE
+        candidateOriginal?.visibility = View.VISIBLE
+        candidateOriginal?.text = original
+        candidateRefinedRow?.visibility = View.VISIBLE
+        if (refined != null) {
+            refineProgress?.visibility = View.GONE
+            candidateRefined?.text = refined
+        } else {
+            refineProgress?.visibility = View.VISIBLE
+            candidateRefined?.text = getString(R.string.refining)
+        }
     }
 
     private fun launchSettings() {

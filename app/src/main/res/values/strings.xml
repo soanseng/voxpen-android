@@ -38,4 +38,7 @@
     <string name="recording">Recording…</string>
     <string name="processing">Processing…</string>
     <string name="mic_permission_required">Microphone permission required. Open Settings to grant.</string>
+    <string name="refining">Refining…</string>
+    <string name="settings_refinement_section">Text Refinement</string>
+    <string name="settings_refinement_toggle">Enable refinement</string>
 </resources>

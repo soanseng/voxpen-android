@@ -8,4 +8,5 @@ data class SettingsUiState(
     val apiKeyDisplay: String = "",
     val language: SttLanguage = SttLanguage.Auto,
     val recordingMode: RecordingMode = RecordingMode.TAP_TO_TOGGLE,
+    val refinementEnabled: Boolean = true,
 )

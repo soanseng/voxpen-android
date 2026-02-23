@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -96,6 +97,8 @@ fun SettingsScreenContent(
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             RecordingModeSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            RefinementSection(state, viewModel)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             PermissionSection(hasMicPermission) {
                 permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             }
@@ -160,6 +163,29 @@ private fun RecordingModeSection(
         stringResource(R.string.settings_hold_to_record),
         state.recordingMode == RecordingMode.HOLD_TO_RECORD,
     ) { viewModel.setRecordingMode(RecordingMode.HOLD_TO_RECORD) }
+}
+
+@Composable
+private fun RefinementSection(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    SectionHeader(stringResource(R.string.settings_refinement_section))
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.settings_refinement_toggle),
+            modifier = Modifier.weight(1f),
+        )
+        Switch(
+            checked = state.refinementEnabled,
+            onCheckedChange = { viewModel.setRefinementEnabled(it) },
+        )
+    }
 }
 
 @Composable

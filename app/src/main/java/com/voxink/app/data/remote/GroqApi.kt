@@ -2,6 +2,7 @@ package com.voxink.app.data.remote
 
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import retrofit2.http.Body
 import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.POST
@@ -18,4 +19,10 @@ interface GroqApi {
         @Part("language") language: RequestBody? = null,
         @Part("prompt") prompt: RequestBody? = null,
     ): WhisperResponse
+
+    @POST("openai/v1/chat/completions")
+    suspend fun chatCompletion(
+        @Header("Authorization") authorization: String,
+        @Body request: ChatCompletionRequest,
+    ): ChatCompletionResponse
 }
