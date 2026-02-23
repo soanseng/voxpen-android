@@ -316,14 +316,28 @@ fun `should emit error state when network fails`() { ... }
 - Feature branches: `feature/xxx`
 - Commit messages: conventional commits (`feat:`, `fix:`, `refactor:`, `docs:`)
 
-## Migration Notes (from Dictate)
+## Reference: Dictate Keyboard
 
-The original Dictate Keyboard is written in Java. Our approach:
+The original [Dictate Keyboard](https://github.com/DevEmperor/Dictate) (Apache 2.0) is cloned locally at `reference/dictate/` for studying its implementation patterns. This directory is git-ignored and NOT part of our source tree.
+
+### Key Reference Files
+
+| Dictate File | What to Learn |
+|---|---|
+| `reference/dictate/app/src/main/java/net/devemperor/dictate/core/DictateInputMethodService.java` | IME lifecycle, audio recording flow, InputConnection usage |
+| `reference/dictate/app/src/main/java/net/devemperor/dictate/core/DictatePunctuationKeyboard.java` | Key layout and button handling patterns |
+| `reference/dictate/app/src/main/java/net/devemperor/dictate/rewording/` | LLM rewording/refinement logic |
+| `reference/dictate/app/src/main/java/net/devemperor/dictate/settings/` | Settings and API key management |
+| `reference/dictate/app/src/main/java/net/devemperor/dictate/onboarding/` | First-run setup wizard flow |
+| `reference/dictate/app/src/main/res/` | Layouts, XML resources, IME declarations |
+
+### Migration Approach
+
 1. **Do NOT convert file-by-file** — rewrite from scratch in Kotlin using Dictate's logic as reference
-2. Reference Dictate's `DictateInputMethodService.java` for IME lifecycle patterns
-3. Reference Dictate's API call patterns but rewrite with Retrofit + Coroutines
+2. Study Dictate's `DictateInputMethodService.java` for IME lifecycle patterns, then rewrite idiomatically
+3. Study Dictate's API call patterns, then rewrite with Retrofit + Coroutines
 4. Dictate's UI is XML-based Views — we use Jetpack Compose entirely (except IME keyboard view which may need XML)
-5. Keep Dictate repo as a git submodule or separate reference, not in our source tree
+5. When implementing a new feature, READ the corresponding Dictate file first to understand the problem space, then write clean Kotlin
 
 ## Known Limitations & Future Work
 

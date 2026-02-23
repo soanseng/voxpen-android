@@ -43,3 +43,6 @@ Thumbs.db
 
 # Secrets
 *.env
+
+# Reference repos (not part of our source)
+reference/
