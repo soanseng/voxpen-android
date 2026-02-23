@@ -92,6 +92,17 @@ dependencies {
     implementation(libs.datastore.preferences)
     implementation(libs.security.crypto)
 
+    // Room
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    // Navigation
+    implementation(libs.navigation.compose)
+
+    // Compose Extended
+    implementation(libs.compose.material.icons.extended)
+
     // Testing — JUnit 5
     testImplementation(libs.junit5.api)
     testRuntimeOnly(libs.junit5.engine)
