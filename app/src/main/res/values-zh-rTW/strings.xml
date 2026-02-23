@@ -74,4 +74,16 @@
     <string name="onboarding_back">上一步</string>
     <string name="onboarding_next">下一步</string>
     <string name="onboarding_finish">開始使用</string>
+
+    <!-- Keyboard Accessibility -->
+    <string name="keyboard_switch">切換鍵盤</string>
+    <string name="keyboard_backspace">退格</string>
+    <string name="keyboard_record">錄音</string>
+    <string name="keyboard_enter">換行</string>
+    <string name="keyboard_settings">設定</string>
+
+    <!-- Keyboard Quick Settings -->
+    <string name="quick_language">語言：%1$s</string>
+    <string name="quick_refinement_on">潤稿：開</string>
+    <string name="quick_refinement_off">潤稿：關</string>
 </resources>

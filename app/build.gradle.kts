@@ -100,6 +100,9 @@ dependencies {
     // Navigation
     implementation(libs.navigation.compose)
 
+    // Material (XML theme support)
+    implementation(libs.google.material)
+
     // Compose Extended
     implementation(libs.compose.material.icons.extended)
 

@@ -74,4 +74,16 @@
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_finish">Get Started</string>
+
+    <!-- Keyboard Accessibility -->
+    <string name="keyboard_switch">Switch keyboard</string>
+    <string name="keyboard_backspace">Backspace</string>
+    <string name="keyboard_record">Record</string>
+    <string name="keyboard_enter">Enter</string>
+    <string name="keyboard_settings">Settings</string>
+
+    <!-- Keyboard Quick Settings -->
+    <string name="quick_language">Language: %1$s</string>
+    <string name="quick_refinement_on">Refinement: ON</string>
+    <string name="quick_refinement_off">Refinement: OFF</string>
 </resources>

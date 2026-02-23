@@ -37,6 +37,9 @@ room = "2.6.1"
 # Navigation
 navigationCompose = "2.8.6"
 
+# Material
+material = "1.12.0"
+
 # Code Quality
 detekt = "1.23.7"
 ktlint = "12.1.2"
@@ -87,6 +90,9 @@ room-compiler = { group = "androidx.room", name = "room-compiler", version.ref =
 
 # Navigation
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
+
+# Material
+google-material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 # Compose Extended
 compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
