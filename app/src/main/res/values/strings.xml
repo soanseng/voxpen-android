@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">VoxInk</string>
+    <string name="ime_name">VoxInk Voice</string>
+    <string name="ime_subtype_auto">Auto-detect</string>
+    <string name="ime_subtype_zh">Chinese (Traditional)</string>
+    <string name="ime_subtype_en">English</string>
+    <string name="ime_subtype_ja">Japanese</string>
+    <string name="settings_title">Settings</string>
+    <string name="welcome_message">Welcome to VoxInk</string>
+    <string name="enable_keyboard_prompt">Enable VoxInk keyboard in system settings to get started.</string>
+</resources>

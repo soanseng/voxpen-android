@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">語墨</string>
+    <string name="ime_name">語墨語音</string>
+    <string name="ime_subtype_auto">自動偵測</string>
+    <string name="ime_subtype_zh">中文（繁體）</string>
+    <string name="ime_subtype_en">英文</string>
+    <string name="ime_subtype_ja">日文</string>
+    <string name="settings_title">設定</string>
+    <string name="welcome_message">歡迎使用語墨</string>
+    <string name="enable_keyboard_prompt">請至系統設定啟用語墨鍵盤以開始使用。</string>
+</resources>
