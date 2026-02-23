@@ -43,3 +43,9 @@ Thumbs.db
 
 # Secrets
 *.env
+
+# Reference repos (not part of our source)
+reference/
+
+# Git worktrees
+.worktrees/

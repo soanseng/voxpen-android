@@ -7,17 +7,35 @@
     android:background="@color/keyboard_background"
     android:padding="4dp">
 
-    <!-- Candidate bar (placeholder — will show Original/Refined text) -->
-    <TextView
-        android:id="@+id/candidate_text"
+    <!-- Candidate bar -->
+    <LinearLayout
+        android:id="@+id/candidate_bar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
+        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:textColor="@color/key_text"
-        android:textSize="16sp"
-        android:visibility="gone" />
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:id="@+id/candidate_progress"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="8dp"
+            android:visibility="gone"
+            style="?android:attr/progressBarStyleSmall" />
+
+        <TextView
+            android:id="@+id/candidate_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@color/key_text"
+            android:textSize="16sp"
+            android:ellipsize="end"
+            android:maxLines="2" />
+    </LinearLayout>
 
     <!-- Key row -->
     <LinearLayout
@@ -26,7 +44,6 @@
         android:orientation="horizontal"
         android:gravity="center">
 
-        <!-- Switch keyboard -->
         <ImageButton
             android:id="@+id/btn_switch"
             android:layout_width="0dp"
@@ -37,7 +54,6 @@
             android:src="@android:drawable/ic_menu_sort_by_size"
             android:layout_margin="2dp" />
 
-        <!-- Backspace -->
         <ImageButton
             android:id="@+id/btn_backspace"
             android:layout_width="0dp"
@@ -48,7 +64,6 @@
             android:src="@android:drawable/ic_delete"
             android:layout_margin="2dp" />
 
-        <!-- Mic (larger) -->
         <ImageButton
             android:id="@+id/btn_mic"
             android:layout_width="0dp"
@@ -59,7 +74,6 @@
             android:src="@android:drawable/ic_btn_speak_now"
             android:layout_margin="2dp" />
 
-        <!-- Enter -->
         <ImageButton
             android:id="@+id/btn_enter"
             android:layout_width="0dp"
@@ -70,7 +84,6 @@
             android:src="@android:drawable/ic_menu_send"
             android:layout_margin="2dp" />
 
-        <!-- Settings -->
         <ImageButton
             android:id="@+id/btn_settings"
             android:layout_width="0dp"
