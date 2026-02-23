@@ -41,6 +41,11 @@ class SettingsViewModel
                     _uiState.update { it.copy(recordingMode = mode) }
                 }
             }
+            viewModelScope.launch {
+                preferencesManager.refinementEnabledFlow.collect { enabled ->
+                    _uiState.update { it.copy(refinementEnabled = enabled) }
+                }
+            }
         }
 
         fun saveApiKey(key: String) {
@@ -59,6 +64,10 @@ class SettingsViewModel
 
         fun setRecordingMode(mode: RecordingMode) {
             viewModelScope.launch { preferencesManager.setRecordingMode(mode) }
+        }
+
+        fun setRefinementEnabled(enabled: Boolean) {
+            viewModelScope.launch { preferencesManager.setRefinementEnabled(enabled) }
         }
 
         private fun maskApiKey(key: String?): String {
