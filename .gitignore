@@ -46,3 +46,6 @@ Thumbs.db
 
 # Reference repos (not part of our source)
 reference/
+
+# Git worktrees
+.worktrees/
