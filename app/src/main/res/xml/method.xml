@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<input-method
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:settingsActivity="com.voxink.app.ui.MainActivity"
+    android:icon="@mipmap/ic_launcher">
+
+    <subtype
+        android:label="@string/ime_subtype_auto"
+        android:imeSubtypeLocale="und"
+        android:imeSubtypeMode="voice" />
+
+    <subtype
+        android:label="@string/ime_subtype_zh"
+        android:imeSubtypeLocale="zh_TW"
+        android:imeSubtypeMode="voice" />
+
+    <subtype
+        android:label="@string/ime_subtype_en"
+        android:imeSubtypeLocale="en_US"
+        android:imeSubtypeMode="voice" />
+
+    <subtype
+        android:label="@string/ime_subtype_ja"
+        android:imeSubtypeLocale="ja_JP"
+        android:imeSubtypeMode="voice" />
+</input-method>

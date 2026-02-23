@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/keyboard_background"
+    android:padding="4dp">
+
+    <!-- Candidate bar (placeholder — will show Original/Refined text) -->
+    <TextView
+        android:id="@+id/candidate_text"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="@color/key_text"
+        android:textSize="16sp"
+        android:visibility="gone" />
+
+    <!-- Key row -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:orientation="horizontal"
+        android:gravity="center">
+
+        <!-- Switch keyboard -->
+        <ImageButton
+            android:id="@+id/btn_switch"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/key_background"
+            android:contentDescription="Switch keyboard"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:layout_margin="2dp" />
+
+        <!-- Backspace -->
+        <ImageButton
+            android:id="@+id/btn_backspace"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/key_background"
+            android:contentDescription="Backspace"
+            android:src="@android:drawable/ic_delete"
+            android:layout_margin="2dp" />
+
+        <!-- Mic (larger) -->
+        <ImageButton
+            android:id="@+id/btn_mic"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:background="@color/mic_idle"
+            android:contentDescription="Record"
+            android:src="@android:drawable/ic_btn_speak_now"
+            android:layout_margin="2dp" />
+
+        <!-- Enter -->
+        <ImageButton
+            android:id="@+id/btn_enter"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/key_background"
+            android:contentDescription="Enter"
+            android:src="@android:drawable/ic_menu_send"
+            android:layout_margin="2dp" />
+
+        <!-- Settings -->
+        <ImageButton
+            android:id="@+id/btn_settings"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/key_background"
+            android:contentDescription="Settings"
+            android:src="@android:drawable/ic_menu_preferences"
+            android:layout_margin="2dp" />
+    </LinearLayout>
+</LinearLayout>
