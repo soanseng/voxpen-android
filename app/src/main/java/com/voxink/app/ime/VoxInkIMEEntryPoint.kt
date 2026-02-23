@@ -1,5 +1,7 @@
 package com.voxink.app.ime
 
+import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.domain.usecase.RefineTextUseCase
@@ -18,4 +20,8 @@ interface VoxInkIMEEntryPoint {
     fun apiKeyManager(): ApiKeyManager
 
     fun preferencesManager(): PreferencesManager
+
+    fun usageLimiter(): UsageLimiter
+
+    fun billingManager(): BillingManager
 }

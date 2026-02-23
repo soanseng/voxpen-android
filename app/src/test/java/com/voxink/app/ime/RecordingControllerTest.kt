@@ -2,6 +2,8 @@ package com.voxink.app.ime
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.voxink.app.billing.ProStatus
+import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.SttLanguage
@@ -31,6 +33,8 @@ class RecordingControllerTest {
     private val apiKeyManager: ApiKeyManager = mockk()
     private val preferencesManager: PreferencesManager = mockk()
     private val testDispatcher = UnconfinedTestDispatcher()
+    private val usageLimiter = UsageLimiter()
+    private var proStatus: ProStatus = ProStatus.Free
     private lateinit var controller: RecordingController
 
     private val refinementEnabledFlow = MutableStateFlow(true)
@@ -58,6 +62,8 @@ class RecordingControllerTest {
                 refineTextUseCase = refineTextUseCase,
                 apiKeyManager = apiKeyManager,
                 preferencesManager = preferencesManager,
+                usageLimiter = usageLimiter,
+                proStatusProvider = { proStatus },
                 ioDispatcher = testDispatcher,
             )
     }
@@ -195,6 +201,53 @@ class RecordingControllerTest {
                 skipItems(1)
                 controller.dismiss()
                 assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+            }
+        }
+
+    @Test
+    fun `should block recording when voice input limit reached for Free users`() =
+        runTest {
+            repeat(UsageLimiter.FREE_VOICE_INPUT_LIMIT) { usageLimiter.incrementVoiceInput() }
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                val state = awaitItem()
+                assertThat(state).isInstanceOf(ImeUiState.Error::class.java)
+                assertThat((state as ImeUiState.Error).message).contains("Daily limit")
+            }
+        }
+
+    @Test
+    fun `should allow recording when Pro even at limit`() =
+        runTest {
+            proStatus = ProStatus.Pro
+            repeat(UsageLimiter.FREE_VOICE_INPUT_LIMIT) { usageLimiter.incrementVoiceInput() }
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Recording)
+            }
+        }
+
+    @Test
+    fun `should skip refinement when refinement limit reached for Free users`() =
+        runTest {
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "hello")
+
+            repeat(UsageLimiter.FREE_REFINEMENT_LIMIT) { usageLimiter.incrementRefinement() }
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1)
+
+                controller.onStopRecording(stopRecording, SttLanguage.Auto)
+                skipItems(1) // Processing
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Result("hello"))
             }
         }
 

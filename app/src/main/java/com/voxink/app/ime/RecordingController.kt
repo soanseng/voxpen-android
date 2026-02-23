@@ -1,5 +1,7 @@
 package com.voxink.app.ime
 
+import com.voxink.app.billing.ProStatus
+import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.SttLanguage
@@ -19,6 +21,8 @@ class RecordingController(
     private val refineTextUseCase: RefineTextUseCase,
     private val apiKeyManager: ApiKeyManager,
     private val preferencesManager: PreferencesManager,
+    private val usageLimiter: UsageLimiter,
+    private val proStatusProvider: () -> ProStatus,
     private val ioDispatcher: CoroutineDispatcher,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
@@ -34,6 +38,13 @@ class RecordingController(
     val uiState: StateFlow<ImeUiState> = _uiState.asStateFlow()
 
     fun onStartRecording(startRecording: () -> Unit) {
+        val proStatus = proStatusProvider()
+        if (!proStatus.isPro && !usageLimiter.canUseVoiceInput()) {
+            val remaining = usageLimiter.remainingVoiceInputs()
+            _uiState.value =
+                ImeUiState.Error("Daily limit reached ($remaining remaining). Upgrade to Pro for unlimited use.")
+            return
+        }
         startRecording()
         _uiState.value = ImeUiState.Recording
     }
@@ -52,14 +63,24 @@ class RecordingController(
 
         _uiState.value = ImeUiState.Processing
         scope.launch {
+            val proStatus = proStatusProvider()
             val result = transcribeUseCase(pcmData, language, apiKey)
             result.fold(
                 onSuccess = { originalText ->
-                    if (!refinementEnabled) {
+                    // Increment voice input usage after successful transcription
+                    if (!proStatus.isPro) {
+                        usageLimiter.incrementVoiceInput()
+                    }
+
+                    val shouldRefine = refinementEnabled && canUseRefinement(proStatus)
+                    if (!shouldRefine) {
                         _uiState.value = ImeUiState.Result(originalText)
                         return@launch
                     }
                     _uiState.value = ImeUiState.Refining(originalText)
+                    if (!proStatus.isPro) {
+                        usageLimiter.incrementRefinement()
+                    }
                     val refinedResult = refineTextUseCase(originalText, language, apiKey)
                     _uiState.value =
                         refinedResult.fold(
@@ -73,6 +94,9 @@ class RecordingController(
             )
         }
     }
+
+    private fun canUseRefinement(proStatus: ProStatus): Boolean =
+        proStatus.isPro || usageLimiter.canUseRefinement()
 
     fun dismiss() {
         _uiState.value = ImeUiState.Idle
