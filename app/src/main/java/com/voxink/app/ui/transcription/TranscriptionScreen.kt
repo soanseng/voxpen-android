@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.voxink.app.R
+import com.voxink.app.ads.BannerAdView
 import com.voxink.app.data.local.TranscriptionEntity
 import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.util.ExportHelper
@@ -81,6 +82,8 @@ fun TranscriptionScreenContent(
         ) { uri ->
             uri ?: return@rememberLauncherForActivityResult
             viewModel.onFileSelected(uri)
+            // Check if onFileSelected rejected due to limits
+            if (!state.isTranscribing && state.error != null) return@rememberLauncherForActivityResult
             scope.launch {
                 try {
                     val fileBytes =
@@ -128,6 +131,7 @@ fun TranscriptionScreenContent(
     if (state.selectedTranscription != null) {
         TranscriptionDetailScreen(
             entity = state.selectedTranscription!!,
+            isPro = state.proStatus.isPro,
             onBack = { viewModel.clearSelection() },
             onDelete = { id ->
                 viewModel.deleteTranscription(id)
@@ -146,7 +150,7 @@ fun TranscriptionScreenContent(
                 )
             },
             floatingActionButton = {
-                if (!state.isTranscribing) {
+                if (!state.isTranscribing && state.canTranscribeFile) {
                     FloatingActionButton(onClick = { filePicker.launch("audio/*") }) {
                         Icon(Icons.Default.Add, contentDescription = stringResource(R.string.transcription_pick_file))
                     }
@@ -158,6 +162,14 @@ fun TranscriptionScreenContent(
                     .fillMaxSize()
                     .padding(innerPadding),
             ) {
+                if (!state.proStatus.isPro) {
+                    Text(
+                        stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptions),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
                 if (state.isTranscribing) {
                     TranscribingIndicator(state.progress)
                 }
@@ -171,6 +183,10 @@ fun TranscriptionScreenContent(
                         transcriptions = state.transcriptions,
                         onSelect = { viewModel.selectTranscription(it) },
                     )
+                }
+                if (!state.proStatus.isPro) {
+                    Spacer(Modifier.weight(1f))
+                    BannerAdView(modifier = Modifier.padding(bottom = 8.dp))
                 }
             }
         }
@@ -275,6 +291,7 @@ private fun TranscriptionItem(
 @Composable
 private fun TranscriptionDetailScreen(
     entity: TranscriptionEntity,
+    isPro: Boolean,
     onBack: () -> Unit,
     onDelete: (Long) -> Unit,
 ) {
@@ -315,8 +332,10 @@ private fun TranscriptionDetailScreen(
                     IconButton(onClick = { copyToClipboard(context, entity) }) {
                         Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
                     }
-                    IconButton(onClick = { shareTranscription(context, entity) }) {
-                        Icon(Icons.Default.Share, contentDescription = "Share")
+                    if (isPro) {
+                        IconButton(onClick = { shareTranscription(context, entity) }) {
+                            Icon(Icons.Default.Share, contentDescription = "Share")
+                        }
                     }
                     IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(Icons.Default.Delete, contentDescription = "Delete")

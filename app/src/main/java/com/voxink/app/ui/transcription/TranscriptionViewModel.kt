@@ -3,6 +3,8 @@ package com.voxink.app.ui.transcription
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.TranscriptionEntity
 import com.voxink.app.data.repository.TranscriptionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +20,8 @@ class TranscriptionViewModel
     @Inject
     constructor(
         private val transcriptionRepository: TranscriptionRepository,
+        private val billingManager: BillingManager,
+        private val usageLimiter: UsageLimiter,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(TranscriptionUiState())
         val uiState: StateFlow<TranscriptionUiState> = _uiState.asStateFlow()
@@ -26,6 +30,17 @@ class TranscriptionViewModel
             viewModelScope.launch {
                 transcriptionRepository.getAll().collect { list ->
                     _uiState.update { it.copy(transcriptions = list) }
+                }
+            }
+            viewModelScope.launch {
+                billingManager.proStatus.collect { status ->
+                    _uiState.update {
+                        it.copy(
+                            proStatus = status,
+                            canTranscribeFile = status.isPro || usageLimiter.canUseFileTranscription(),
+                            remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
+                        )
+                    }
                 }
             }
         }
@@ -56,16 +71,28 @@ class TranscriptionViewModel
         }
 
         fun onFileSelected(uri: Uri) {
-            // File transcription will be triggered from the screen with ContentResolver
+            val proStatus = billingManager.proStatus.value
+            if (!proStatus.isPro && !usageLimiter.canUseFileTranscription()) {
+                _uiState.update {
+                    it.copy(error = "Daily file transcription limit reached. Upgrade to Pro for unlimited use.")
+                }
+                return
+            }
             _uiState.update { it.copy(isTranscribing = true, progress = "Preparing…") }
         }
 
         fun onTranscriptionComplete(entity: TranscriptionEntity) {
+            val proStatus = billingManager.proStatus.value
+            if (!proStatus.isPro) {
+                usageLimiter.incrementFileTranscription()
+            }
             _uiState.update {
                 it.copy(
                     isTranscribing = false,
                     progress = "",
                     selectedTranscription = entity,
+                    canTranscribeFile = proStatus.isPro || usageLimiter.canUseFileTranscription(),
+                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
                 )
             }
         }
