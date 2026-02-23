@@ -10,6 +10,7 @@ trim_trailing_whitespace = true
 
 [*.{kt,kts}]
 max_line_length = 120
+ktlint_function_naming_ignore_when_annotated_with = Composable
 
 [*.{xml,json,toml,yml,yaml}]
 indent_size = 2

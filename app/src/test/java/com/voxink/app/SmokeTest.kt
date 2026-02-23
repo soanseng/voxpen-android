@@ -6,7 +6,6 @@ import io.mockk.verify
 import org.junit.jupiter.api.Test
 
 class SmokeTest {
-
     @Test
     fun `should verify JUnit 5 and Truth work`() {
         assertThat(1 + 1).isEqualTo(2)

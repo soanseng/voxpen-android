@@ -9,21 +9,21 @@ import com.voxink.app.ui.MainActivity
 import timber.log.Timber
 
 class VoxInkIME : InputMethodService() {
-
     private lateinit var actionHandler: KeyboardActionHandler
 
     override fun onCreateInputView(): View {
-        actionHandler = KeyboardActionHandler(
-            onSendKeyEvent = { keyCode -> sendDownUpKeyEvents(keyCode) },
-            onSwitchKeyboard = {
-                switchToPreviousInputMethod()
-            },
-            onOpenSettings = { launchSettings() },
-            onMicTap = {
-                // TODO: Phase 1 — audio recording
-                Timber.d("Mic button tapped")
-            },
-        )
+        actionHandler =
+            KeyboardActionHandler(
+                onSendKeyEvent = { keyCode -> sendDownUpKeyEvents(keyCode) },
+                onSwitchKeyboard = {
+                    switchToPreviousInputMethod()
+                },
+                onOpenSettings = { launchSettings() },
+                onMicTap = {
+                    // TODO: Phase 1 — audio recording
+                    Timber.d("Mic button tapped")
+                },
+            )
 
         val view = layoutInflater.inflate(R.layout.keyboard_view, null)
         bindButtons(view)
@@ -50,10 +50,10 @@ class VoxInkIME : InputMethodService() {
     }
 
     private fun launchSettings() {
-        val intent = Intent(this, MainActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        }
+        val intent =
+            Intent(this, MainActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
         startActivity(intent)
     }
-
 }

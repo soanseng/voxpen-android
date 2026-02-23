@@ -8,7 +8,6 @@ class KeyboardActionHandler(
     private val onOpenSettings: () -> Unit,
     private val onMicTap: () -> Unit,
 ) {
-
     fun handle(action: KeyboardAction) {
         when (action) {
             KeyboardAction.Backspace -> onSendKeyEvent(KeyEvent.KEYCODE_DEL)

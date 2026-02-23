@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class KeyboardActionHandlerTest {
-
     private val onSendKeyEvent: (Int) -> Unit = mockk(relaxed = true)
     private val onSwitchKeyboard: () -> Boolean = mockk()
     private val onOpenSettings: () -> Unit = mockk(relaxed = true)
@@ -19,12 +18,13 @@ class KeyboardActionHandlerTest {
     @BeforeEach
     fun setUp() {
         every { onSwitchKeyboard() } returns true
-        handler = KeyboardActionHandler(
-            onSendKeyEvent = onSendKeyEvent,
-            onSwitchKeyboard = onSwitchKeyboard,
-            onOpenSettings = onOpenSettings,
-            onMicTap = onMicTap,
-        )
+        handler =
+            KeyboardActionHandler(
+                onSendKeyEvent = onSendKeyEvent,
+                onSwitchKeyboard = onSwitchKeyboard,
+                onOpenSettings = onOpenSettings,
+                onMicTap = onMicTap,
+            )
     }
 
     @Test

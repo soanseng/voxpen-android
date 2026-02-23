@@ -7,11 +7,9 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 
 class ThemeTest {
-
     @Nested
     @DisplayName("Brand Colors")
     inner class BrandColors {
-
         @Test
         fun `should define VoxInk purple as primary brand color`() {
             assertThat(VoxInkPurple).isEqualTo(Color(0xFF6366F1))
@@ -31,7 +29,6 @@ class ThemeTest {
     @Nested
     @DisplayName("Semantic Colors")
     inner class SemanticColors {
-
         @Test
         fun `should define red for active mic`() {
             assertThat(MicActive).isEqualTo(Color(0xFFEF4444))
@@ -51,7 +48,6 @@ class ThemeTest {
     @Nested
     @DisplayName("Typography")
     inner class TypographyTests {
-
         @Test
         fun `should define titleLarge at 22sp`() {
             assertThat(VoxInkTypography.titleLarge.fontSize.value).isEqualTo(22f)
