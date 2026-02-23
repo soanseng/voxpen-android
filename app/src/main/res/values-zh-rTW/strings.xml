@@ -41,4 +41,19 @@
     <string name="refining">潤稿中…</string>
     <string name="settings_refinement_section">文字潤稿</string>
     <string name="settings_refinement_toggle">啟用智慧潤稿</string>
+
+    <!-- Transcription Screen -->
+    <string name="transcribe_audio">音檔轉逐字稿</string>
+    <string name="transcription_title">逐字稿</string>
+    <string name="transcription_pick_file">選擇音檔</string>
+    <string name="transcription_processing">轉錄中…</string>
+    <string name="transcription_empty">尚無逐字稿</string>
+    <string name="transcription_empty_hint">點擊 + 轉錄音檔</string>
+    <string name="transcription_original">原文</string>
+    <string name="transcription_refined">潤稿</string>
+    <string name="transcription_copied">已複製到剪貼簿</string>
+    <string name="transcription_delete_title">刪除逐字稿</string>
+    <string name="transcription_delete_confirm">確定要刪除此逐字稿嗎？</string>
+    <string name="transcription_delete">刪除</string>
+    <string name="transcription_cancel">取消</string>
 </resources>

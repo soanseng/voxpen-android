@@ -41,4 +41,19 @@
     <string name="refining">Refining…</string>
     <string name="settings_refinement_section">Text Refinement</string>
     <string name="settings_refinement_toggle">Enable refinement</string>
+
+    <!-- Transcription Screen -->
+    <string name="transcribe_audio">Transcribe Audio File</string>
+    <string name="transcription_title">Transcriptions</string>
+    <string name="transcription_pick_file">Select audio file</string>
+    <string name="transcription_processing">Transcribing…</string>
+    <string name="transcription_empty">No transcriptions yet</string>
+    <string name="transcription_empty_hint">Tap + to transcribe an audio file</string>
+    <string name="transcription_original">Original</string>
+    <string name="transcription_refined">Refined</string>
+    <string name="transcription_copied">Copied to clipboard</string>
+    <string name="transcription_delete_title">Delete Transcription</string>
+    <string name="transcription_delete_confirm">Are you sure you want to delete this transcription?</string>
+    <string name="transcription_delete">Delete</string>
+    <string name="transcription_cancel">Cancel</string>
 </resources>
