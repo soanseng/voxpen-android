@@ -5,9 +5,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.voxink.app.ui.onboarding.OnboardingScreenContent
 import com.voxink.app.ui.settings.SettingsScreenContent
 import com.voxink.app.ui.theme.VoxInkTheme
 import com.voxink.app.ui.transcription.TranscriptionScreenContent
@@ -29,8 +33,21 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun VoxInkNavHost() {
     val navController = rememberNavController()
+    val mainViewModel: MainViewModel = hiltViewModel()
+    val isOnboardingCompleted by mainViewModel.onboardingCompleted.collectAsState(initial = true)
 
-    NavHost(navController = navController, startDestination = "home") {
+    val startDestination = if (isOnboardingCompleted) "home" else "onboarding"
+
+    NavHost(navController = navController, startDestination = startDestination) {
+        composable("onboarding") {
+            OnboardingScreenContent(
+                onComplete = {
+                    navController.navigate("home") {
+                        popUpTo("onboarding") { inclusive = true }
+                    }
+                },
+            )
+        }
         composable("home") {
             HomeScreenContent(
                 onNavigateToSettings = { navController.navigate("settings") },

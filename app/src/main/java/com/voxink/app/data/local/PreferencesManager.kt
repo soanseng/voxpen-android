@@ -39,6 +39,11 @@ class PreferencesManager
                 prefs[REFINEMENT_ENABLED_KEY] ?: DEFAULT_REFINEMENT_ENABLED
             }
 
+        val onboardingCompletedFlow: Flow<Boolean> =
+            context.dataStore.data.map { prefs ->
+                prefs[ONBOARDING_COMPLETED_KEY] ?: false
+            }
+
         suspend fun setLanguage(language: SttLanguage) {
             context.dataStore.edit { prefs ->
                 prefs[LANGUAGE_KEY] = languageToKey(language)
@@ -57,6 +62,12 @@ class PreferencesManager
             }
         }
 
+        suspend fun setOnboardingCompleted(completed: Boolean) {
+            context.dataStore.edit { prefs ->
+                prefs[ONBOARDING_COMPLETED_KEY] = completed
+            }
+        }
+
         companion object {
             val DEFAULT_LANGUAGE: SttLanguage = SttLanguage.Auto
             val DEFAULT_RECORDING_MODE: RecordingMode = RecordingMode.TAP_TO_TOGGLE
@@ -65,6 +76,7 @@ class PreferencesManager
             private val LANGUAGE_KEY = stringPreferencesKey("stt_language")
             private val RECORDING_MODE_KEY = stringPreferencesKey("recording_mode")
             private val REFINEMENT_ENABLED_KEY = booleanPreferencesKey("refinement_enabled")
+            private val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
 
             fun languageFromKey(key: String): SttLanguage =
                 when (key) {
