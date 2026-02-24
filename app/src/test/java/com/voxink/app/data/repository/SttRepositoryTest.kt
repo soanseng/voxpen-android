@@ -102,4 +102,24 @@ class SttRepositoryTest {
             assertThat(result.isFailure).isTrue()
             assertThat(result.exceptionOrNull()?.message).contains("API key")
         }
+
+    @Test
+    fun `should use provided model name in API request`() =
+        runTest {
+            val modelSlot = slot<RequestBody>()
+            coEvery {
+                groqApi.transcribe(any(), any(), capture(modelSlot), any(), any(), any())
+            } returns WhisperResponse(text = "test")
+
+            repository.transcribe(
+                wavBytes = ByteArray(10),
+                language = SttLanguage.Auto,
+                apiKey = "key",
+                model = "whisper-large-v3",
+            )
+
+            val buffer = okio.Buffer()
+            modelSlot.captured.writeTo(buffer)
+            assertThat(buffer.readUtf8()).isEqualTo("whisper-large-v3")
+        }
 }

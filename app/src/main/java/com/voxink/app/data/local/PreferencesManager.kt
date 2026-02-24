@@ -39,6 +39,16 @@ class PreferencesManager
                 prefs[REFINEMENT_ENABLED_KEY] ?: DEFAULT_REFINEMENT_ENABLED
             }
 
+        val sttModelFlow: Flow<String> =
+            context.dataStore.data.map { prefs ->
+                prefs[STT_MODEL_KEY] ?: DEFAULT_STT_MODEL
+            }
+
+        val llmModelFlow: Flow<String> =
+            context.dataStore.data.map { prefs ->
+                prefs[LLM_MODEL_KEY] ?: DEFAULT_LLM_MODEL
+            }
+
         val onboardingCompletedFlow: Flow<Boolean> =
             context.dataStore.data.map { prefs ->
                 prefs[ONBOARDING_COMPLETED_KEY] ?: false
@@ -62,6 +72,18 @@ class PreferencesManager
             }
         }
 
+        suspend fun setSttModel(model: String) {
+            context.dataStore.edit { prefs ->
+                prefs[STT_MODEL_KEY] = model
+            }
+        }
+
+        suspend fun setLlmModel(model: String) {
+            context.dataStore.edit { prefs ->
+                prefs[LLM_MODEL_KEY] = model
+            }
+        }
+
         suspend fun setOnboardingCompleted(completed: Boolean) {
             context.dataStore.edit { prefs ->
                 prefs[ONBOARDING_COMPLETED_KEY] = completed
@@ -72,11 +94,15 @@ class PreferencesManager
             val DEFAULT_LANGUAGE: SttLanguage = SttLanguage.Auto
             val DEFAULT_RECORDING_MODE: RecordingMode = RecordingMode.TAP_TO_TOGGLE
             const val DEFAULT_REFINEMENT_ENABLED: Boolean = true
+            const val DEFAULT_STT_MODEL: String = "whisper-large-v3-turbo"
+            const val DEFAULT_LLM_MODEL: String = "llama-3.3-70b-versatile"
 
             private val LANGUAGE_KEY = stringPreferencesKey("stt_language")
             private val RECORDING_MODE_KEY = stringPreferencesKey("recording_mode")
             private val REFINEMENT_ENABLED_KEY = booleanPreferencesKey("refinement_enabled")
             private val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
+            private val STT_MODEL_KEY = stringPreferencesKey("stt_model")
+            private val LLM_MODEL_KEY = stringPreferencesKey("llm_model")
 
             fun languageFromKey(key: String): SttLanguage =
                 when (key) {

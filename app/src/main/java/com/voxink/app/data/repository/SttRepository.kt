@@ -19,6 +19,7 @@ class SttRepository
             wavBytes: ByteArray,
             language: SttLanguage,
             apiKey: String,
+            model: String = WHISPER_MODEL,
         ): Result<String> {
             if (apiKey.isBlank()) {
                 return Result.failure(IllegalStateException("API key not configured"))
@@ -31,7 +32,7 @@ class SttRepository
                         "recording.wav",
                         wavBytes.toRequestBody("audio/wav".toMediaType()),
                     )
-                val model = WHISPER_MODEL.toRequestBody(TEXT_PLAIN)
+                val modelBody = model.toRequestBody(TEXT_PLAIN)
                 val format = RESPONSE_FORMAT.toRequestBody(TEXT_PLAIN)
                 val langBody = language.code?.toRequestBody(TEXT_PLAIN)
                 val promptBody = language.prompt.toRequestBody(TEXT_PLAIN)
@@ -40,7 +41,7 @@ class SttRepository
                     groqApi.transcribe(
                         authorization = "Bearer $apiKey",
                         file = filePart,
-                        model = model,
+                        model = modelBody,
                         responseFormat = format,
                         language = langBody,
                         prompt = promptBody,

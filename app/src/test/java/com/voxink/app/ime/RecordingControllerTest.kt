@@ -38,6 +38,8 @@ class RecordingControllerTest {
     private lateinit var controller: RecordingController
 
     private val refinementEnabledFlow = MutableStateFlow(true)
+    private val sttModelFlow = MutableStateFlow(PreferencesManager.DEFAULT_STT_MODEL)
+    private val llmModelFlow = MutableStateFlow(PreferencesManager.DEFAULT_LLM_MODEL)
     private var fakeRecordedAudio: ByteArray = ByteArray(100) { it.toByte() }
     private var isRecording = false
     private val startRecording: () -> Unit = { isRecording = true }
@@ -50,6 +52,8 @@ class RecordingControllerTest {
     fun setUp() {
         every { apiKeyManager.getGroqApiKey() } returns "test-key"
         every { preferencesManager.refinementEnabledFlow } returns refinementEnabledFlow
+        every { preferencesManager.sttModelFlow } returns sttModelFlow
+        every { preferencesManager.llmModelFlow } returns llmModelFlow
 
         val sttRepository = SttRepository(groqApi)
         val llmRepository = LlmRepository(groqApi)

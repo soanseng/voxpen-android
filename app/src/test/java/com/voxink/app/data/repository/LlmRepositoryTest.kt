@@ -119,4 +119,22 @@ class LlmRepositoryTest {
 
             assertThat(result.isFailure).isTrue()
         }
+
+    @Test
+    fun `should use provided model name in request body`() =
+        runTest {
+            server.enqueue(
+                MockResponse()
+                    .setBody(
+                        """{"id":"c4","choices":[{"index":0,"message":{"role":"assistant","content":"ok"}}]}""",
+                    )
+                    .setHeader("Content-Type", "application/json"),
+            )
+
+            repository.refine("text", SttLanguage.English, "key", model = "gpt-oss-120b")
+
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).contains("\"model\":\"gpt-oss-120b\"")
+        }
 }

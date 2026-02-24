@@ -54,6 +54,16 @@ class SettingsViewModel
                 }
             }
             viewModelScope.launch {
+                preferencesManager.sttModelFlow.collect { model ->
+                    _uiState.update { it.copy(sttModel = model) }
+                }
+            }
+            viewModelScope.launch {
+                preferencesManager.llmModelFlow.collect { model ->
+                    _uiState.update { it.copy(llmModel = model) }
+                }
+            }
+            viewModelScope.launch {
                 billingManager.proStatus.collect { status ->
                     _uiState.update { it.copy(proStatus = status) }
                 }
@@ -80,6 +90,14 @@ class SettingsViewModel
 
         fun setRefinementEnabled(enabled: Boolean) {
             viewModelScope.launch { preferencesManager.setRefinementEnabled(enabled) }
+        }
+
+        fun setSttModel(model: String) {
+            viewModelScope.launch { preferencesManager.setSttModel(model) }
+        }
+
+        fun setLlmModel(model: String) {
+            viewModelScope.launch { preferencesManager.setLlmModel(model) }
         }
 
         fun restorePurchases() {

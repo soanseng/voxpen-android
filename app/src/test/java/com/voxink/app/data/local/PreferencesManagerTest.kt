@@ -37,4 +37,14 @@ class PreferencesManagerTest {
     fun `should have correct default refinement enabled`() {
         assertThat(PreferencesManager.DEFAULT_REFINEMENT_ENABLED).isTrue()
     }
+
+    @Test
+    fun `default STT model should be whisper-large-v3-turbo`() {
+        assertThat(PreferencesManager.DEFAULT_STT_MODEL).isEqualTo("whisper-large-v3-turbo")
+    }
+
+    @Test
+    fun `default LLM model should be llama-3_3-70b-versatile`() {
+        assertThat(PreferencesManager.DEFAULT_LLM_MODEL).isEqualTo("llama-3.3-70b-versatile")
+    }
 }

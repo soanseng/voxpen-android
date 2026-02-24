@@ -102,6 +102,10 @@ fun SettingsScreenContent(
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             LanguageSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            SttModelSection(state, viewModel)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            LlmModelSection(state, viewModel)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             RecordingModeSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             RefinementSection(state, viewModel)
@@ -297,6 +301,54 @@ private fun PermissionSection(
             Text(stringResource(R.string.settings_grant_mic))
         }
     }
+}
+
+@Composable
+private fun SttModelSection(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    SectionHeader(stringResource(R.string.settings_stt_model_section))
+    RadioRow(
+        stringResource(R.string.settings_stt_model_turbo),
+        state.sttModel == "whisper-large-v3-turbo",
+    ) { viewModel.setSttModel("whisper-large-v3-turbo") }
+    RadioRow(
+        stringResource(R.string.settings_stt_model_v3),
+        state.sttModel == "whisper-large-v3",
+    ) { viewModel.setSttModel("whisper-large-v3") }
+    Text(
+        stringResource(R.string.settings_stt_model_description),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp),
+    )
+}
+
+@Composable
+private fun LlmModelSection(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    SectionHeader(stringResource(R.string.settings_llm_model_section))
+    RadioRow(
+        stringResource(R.string.settings_llm_model_llama),
+        state.llmModel == "llama-3.3-70b-versatile",
+    ) { viewModel.setLlmModel("llama-3.3-70b-versatile") }
+    RadioRow(
+        stringResource(R.string.settings_llm_model_gpt_oss_120b),
+        state.llmModel == "gpt-oss-120b",
+    ) { viewModel.setLlmModel("gpt-oss-120b") }
+    RadioRow(
+        stringResource(R.string.settings_llm_model_gpt_oss_20b),
+        state.llmModel == "gpt-oss-20b",
+    ) { viewModel.setLlmModel("gpt-oss-20b") }
+    Text(
+        stringResource(R.string.settings_llm_model_description),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp),
+    )
 }
 
 @Composable

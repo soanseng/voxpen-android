@@ -27,11 +27,15 @@ class RecordingController(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private var refinementEnabled: Boolean = PreferencesManager.DEFAULT_REFINEMENT_ENABLED
+    private var sttModel: String = PreferencesManager.DEFAULT_STT_MODEL
+    private var llmModel: String = PreferencesManager.DEFAULT_LLM_MODEL
 
     init {
         scope.launch {
             preferencesManager.refinementEnabledFlow.collect { refinementEnabled = it }
         }
+        scope.launch { preferencesManager.sttModelFlow.collect { sttModel = it } }
+        scope.launch { preferencesManager.llmModelFlow.collect { llmModel = it } }
     }
 
     private val _uiState = MutableStateFlow<ImeUiState>(ImeUiState.Idle)
@@ -64,7 +68,7 @@ class RecordingController(
         _uiState.value = ImeUiState.Processing
         scope.launch {
             val proStatus = proStatusProvider()
-            val result = transcribeUseCase(pcmData, language, apiKey)
+            val result = transcribeUseCase(pcmData, language, apiKey, sttModel)
             result.fold(
                 onSuccess = { originalText ->
                     // Increment voice input usage after successful transcription
@@ -81,7 +85,7 @@ class RecordingController(
                     if (!proStatus.isPro) {
                         usageLimiter.incrementRefinement()
                     }
-                    val refinedResult = refineTextUseCase(originalText, language, apiKey)
+                    val refinedResult = refineTextUseCase(originalText, language, apiKey, llmModel)
                     _uiState.value =
                         refinedResult.fold(
                             onSuccess = { ImeUiState.Refined(originalText, it) },

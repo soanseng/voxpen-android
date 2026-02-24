@@ -42,6 +42,17 @@
     <string name="settings_refinement_section">文字潤稿</string>
     <string name="settings_refinement_toggle">啟用智慧潤稿</string>
 
+    <!-- Model Selection -->
+    <string name="settings_stt_model_section">語音辨識模型</string>
+    <string name="settings_stt_model_turbo">Turbo — 更快、更便宜（US$0.04/hr）</string>
+    <string name="settings_stt_model_v3">V3 — 更精確，WER 8.4%（US$0.111/hr）</string>
+    <string name="settings_stt_model_description">Turbo 便宜約 2.8 倍，日常使用推薦。V3 精確度更高，適合重要場合。</string>
+    <string name="settings_llm_model_section">文字潤稿模型</string>
+    <string name="settings_llm_model_llama">LLaMA 3.3 70B — 平衡速度與品質</string>
+    <string name="settings_llm_model_gpt_oss_120b">GPT-OSS 120B — OpenAI 開源，≈ o4-mini</string>
+    <string name="settings_llm_model_gpt_oss_20b">GPT-OSS 20B — 輕量快速，≈ o3-mini</string>
+    <string name="settings_llm_model_description">GPT-OSS 是 OpenAI 的開源模型（Apache 2.0），可透過 Groq API 使用，無需額外金鑰。</string>
+
     <!-- Transcription Screen -->
     <string name="transcribe_audio">音檔轉逐字稿</string>
     <string name="transcription_title">逐字稿</string>
