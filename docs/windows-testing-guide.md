@@ -112,6 +112,23 @@ VoxInk 是 BYOK 模式，需要設定 API key 才能使用語音功能：
 .\gradlew.bat detekt
 ```
 
+## 11. 測試 Pro 版
+
+### License Testing（推薦）
+
+1. Play Console → Settings → License testing → 加入測試用 Gmail
+2. 測試裝置登入該 Gmail 帳號
+3. 安裝 debug APK → 觸發購買流程
+4. 會出現 "Test card, always approves" → 不會真的扣錢
+
+### Static Response Testing（不需 Play Console）
+
+在 BillingManager 中使用保留的 product ID 測試：
+- `android.test.purchased` — 模擬成功購買
+- `android.test.canceled` — 模擬取消
+
+**注意**：需使用實體手機或有 Google Play Services 的模擬器。
+
 ## 常見問題
 
 | 問題 | 解決方式 |

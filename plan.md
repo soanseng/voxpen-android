@@ -487,6 +487,38 @@ Whisper does NOT officially support Taiwanese Hokkien (nan-tw). However:
 - **VoxInk+ 訂閱**（NT$99/月或 NT$799/年）：解鎖 Phase 6 進階功能（Context-Aware Tone、Speak-to-Edit、個人字典同步）
 - 分層：Pro = 完整基礎功能，VoxInk+ = 持續更新的 AI 進階功能
 
+---
+
+## Phase 8.5: Model Selection + UI Polish + Onboarding Redo
+
+**Status: CODE COMPLETE** (feature/phase8.5-model-ui-onboarding)
+
+### Batch 1: Model Selection
+- [x] STT model selector: whisper-large-v3-turbo (default) / whisper-large-v3
+- [x] LLM model selector: llama-3.3-70b-versatile / gpt-oss-120b / gpt-oss-20b
+- [x] PreferencesManager, SttRepository, LlmRepository, use cases wired through
+- [x] Settings UI with radio buttons, bilingual labels and descriptions
+
+### Batch 2: UI Polish
+- [x] Mic pulse animation (ObjectAnimator scale + alpha)
+- [x] Haptic feedback (recording start/stop/commit)
+- [x] Sound effects (ToneGenerator start/stop tones)
+- [x] Recording timer in candidate status row
+- [x] Candidate bar visual hierarchy (icons, colors, divider, bold refined)
+- [x] Custom Material vector drawable icons (5 icons)
+- [x] Home Screen redesign: setup checklist card + usage summary bars
+
+### Batch 3: Onboarding Redo
+- [x] 6-step non-skippable flow with practice recording (Step 5)
+- [x] Contextual progress text (replaces "Step X of Y")
+- [x] API key validation link to console.groq.com
+- [x] Keyboard tooltips overlay (first-launch only)
+
+### Deferred to Future
+- Multi-provider BYOK (OpenAI, Anthropic, custom endpoint API keys) → Phase 6+
+- Speak-to-Edit (select text + voice command) → Phase 6.4
+- Context-aware formatting (detect foreground app) → Phase 6.3
+
 ### 7.4 技術實作
 
 #### 依賴項
