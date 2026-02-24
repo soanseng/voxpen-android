@@ -83,6 +83,7 @@ class VoxInkIME : InputMethodService() {
                 refineTextUseCase = entryPoint.refineTextUseCase(),
                 apiKeyManager = entryPoint.apiKeyManager(),
                 preferencesManager = preferencesManager,
+                dictionaryRepository = entryPoint.dictionaryRepository(),
                 usageLimiter = entryPoint.usageLimiter(),
                 proStatusProvider = { billingManager.proStatus.value },
                 ioDispatcher = Dispatchers.IO,
