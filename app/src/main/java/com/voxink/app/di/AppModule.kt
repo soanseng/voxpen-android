@@ -6,6 +6,7 @@ import androidx.room.Room
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import com.voxink.app.data.local.AppDatabase
+import com.voxink.app.data.local.DictionaryDao
 import com.voxink.app.data.local.TranscriptionDao
 import dagger.Module
 import dagger.Provides
@@ -39,8 +40,12 @@ object AppModule {
     ): AppDatabase =
         Room
             .databaseBuilder(context, AppDatabase::class.java, "voxink.db")
+            .addMigrations(AppDatabase.MIGRATION_1_2)
             .build()
 
     @Provides
     fun provideTranscriptionDao(database: AppDatabase): TranscriptionDao = database.transcriptionDao()
+
+    @Provides
+    fun provideDictionaryDao(database: AppDatabase): DictionaryDao = database.dictionaryDao()
 }
