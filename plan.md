@@ -518,6 +518,8 @@ Whisper does NOT officially support Taiwanese Hokkien (nan-tw). However:
 - Multi-provider BYOK (OpenAI, Anthropic, custom endpoint API keys) → Phase 6+
 - Speak-to-Edit (select text + voice command) → Phase 6.4
 - Context-aware formatting (detect foreground app) → Phase 6.3
+- Custom Vocabulary import/export (text file/CSV batch import, team sharing)
+- Custom Vocabulary auto-learning (detect user corrections, suggest adding misrecognized words)
 
 ### 7.4 技術實作
 
