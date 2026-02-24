@@ -86,6 +86,15 @@
     <string name="onboarding_next">Next</string>
     <string name="onboarding_finish">Get Started</string>
 
+    <!-- Home Screen -->
+    <string name="home_tagline">Speak instead of type</string>
+    <string name="home_setup_title">Setup</string>
+    <string name="home_usage_title">Today\'s Usage</string>
+    <string name="home_usage_reset">Resets at midnight</string>
+    <string name="home_usage_voice">Voice: %1$d / %2$d</string>
+    <string name="home_usage_refinement">Refine: %1$d / %2$d</string>
+    <string name="home_usage_transcription">Transcribe: %1$d / %2$d</string>
+
     <!-- Keyboard Accessibility -->
     <string name="keyboard_switch">Switch keyboard</string>
     <string name="keyboard_backspace">Backspace</string>

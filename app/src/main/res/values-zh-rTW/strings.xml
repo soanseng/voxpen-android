@@ -86,6 +86,15 @@
     <string name="onboarding_next">下一步</string>
     <string name="onboarding_finish">開始使用</string>
 
+    <!-- Home Screen -->
+    <string name="home_tagline">用說的，比打字更快</string>
+    <string name="home_setup_title">設定進度</string>
+    <string name="home_usage_title">今日用量</string>
+    <string name="home_usage_reset">午夜重置</string>
+    <string name="home_usage_voice">語音：%1$d / %2$d</string>
+    <string name="home_usage_refinement">潤稿：%1$d / %2$d</string>
+    <string name="home_usage_transcription">轉錄：%1$d / %2$d</string>
+
     <!-- Keyboard Accessibility -->
     <string name="keyboard_switch">切換鍵盤</string>
     <string name="keyboard_backspace">退格</string>

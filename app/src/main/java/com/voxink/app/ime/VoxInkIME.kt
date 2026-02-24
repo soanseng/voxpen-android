@@ -2,7 +2,9 @@ package com.voxink.app.ime
 
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
+import android.os.Build
 import android.view.Gravity
+import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
+@Suppress("TooManyFunctions")
 class VoxInkIME : InputMethodService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private lateinit var actionHandler: KeyboardActionHandler
@@ -42,6 +45,26 @@ class VoxInkIME : InputMethodService() {
     private var candidateRefined: TextView? = null
     private var refineProgress: ProgressBar? = null
     private var micButton: ImageButton? = null
+
+    // Task 6: Mic pulse animation
+    private var micPulseAnimator: android.animation.AnimatorSet? = null
+
+    // Task 7: Previous state tracking for haptic/sound feedback
+    private var previousUiState: ImeUiState = ImeUiState.Idle
+
+    // Task 8: Recording timer
+    private var recordingStartTime: Long = 0
+    private val timerHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private val timerRunnable =
+        object : Runnable {
+            override fun run() {
+                val elapsed = (System.currentTimeMillis() - recordingStartTime) / 1000
+                val minutes = elapsed / 60
+                val seconds = elapsed % 60
+                candidateText?.text = getString(R.string.recording) + " $minutes:%02d".format(seconds)
+                timerHandler.postDelayed(this, 1000)
+            }
+        }
 
     override fun onCreateInputView(): View {
         val entryPoint =
@@ -178,23 +201,113 @@ class VoxInkIME : InputMethodService() {
         }
     }
 
+    // Task 6: Start mic pulse animation
+    private fun startMicPulse(micBtn: ImageButton) {
+        val scaleX = android.animation.ObjectAnimator.ofFloat(micBtn, "scaleX", 1f, 1.15f, 1f)
+        val scaleY = android.animation.ObjectAnimator.ofFloat(micBtn, "scaleY", 1f, 1.15f, 1f)
+        val alpha = android.animation.ObjectAnimator.ofFloat(micBtn, "alpha", 1f, 0.7f, 1f)
+        micPulseAnimator =
+            android.animation.AnimatorSet().apply {
+                playTogether(scaleX, scaleY, alpha)
+                duration = 800
+                interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+                addListener(
+                    object : android.animation.AnimatorListenerAdapter() {
+                        override fun onAnimationEnd(animation: android.animation.Animator) {
+                            if (recordingController.uiState.value == ImeUiState.Recording) {
+                                start()
+                            }
+                        }
+                    },
+                )
+                start()
+            }
+    }
+
+    // Task 6: Stop mic pulse animation
+    private fun stopMicPulse() {
+        micPulseAnimator?.cancel()
+        micPulseAnimator = null
+        micButton?.apply {
+            scaleX = 1f
+            scaleY = 1f
+            this.alpha = 1f
+        }
+    }
+
+    // Task 7: Haptic feedback
+    private fun performHaptic(type: Int) {
+        micButton?.performHapticFeedback(type)
+    }
+
+    // Task 7: Sound effects
+    private fun playTone(toneType: Int) {
+        try {
+            val toneGen =
+                android.media.ToneGenerator(
+                    android.media.AudioManager.STREAM_NOTIFICATION,
+                    30,
+                )
+            toneGen.startTone(toneType, 100)
+            android.os.Handler(mainLooper).postDelayed({ toneGen.release() }, 200)
+        } catch (_: Exception) {
+        }
+    }
+
     private fun updateUi(state: ImeUiState) {
-        // Reset all views
+        if (state == previousUiState) return
+        previousUiState = state
+
+        triggerStateFeedback(state)
+        resetClickListeners()
+        updateCandidateBar(state)
+        updateMicAppearance(state)
+    }
+
+    private fun triggerStateFeedback(state: ImeUiState) {
+        when (state) {
+            ImeUiState.Recording -> {
+                performHaptic(HapticFeedbackConstants.LONG_PRESS)
+                playTone(android.media.ToneGenerator.TONE_PROP_BEEP)
+            }
+            ImeUiState.Processing -> {
+                performHaptic(HapticFeedbackConstants.KEYBOARD_TAP)
+                playTone(android.media.ToneGenerator.TONE_PROP_ACK)
+            }
+            is ImeUiState.Result, is ImeUiState.Refined -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    performHaptic(HapticFeedbackConstants.CONFIRM)
+                } else {
+                    performHaptic(HapticFeedbackConstants.KEYBOARD_TAP)
+                }
+            }
+            else -> { /* no feedback */ }
+        }
+    }
+
+    private fun resetClickListeners() {
         candidateBar?.setOnClickListener(null)
         candidateOriginal?.setOnClickListener(null)
         candidateRefinedRow?.setOnClickListener(null)
+    }
 
+    private fun updateCandidateBar(state: ImeUiState) {
         when (state) {
             ImeUiState.Idle -> {
+                timerHandler.removeCallbacks(timerRunnable)
                 candidateBar?.visibility = View.GONE
             }
             ImeUiState.Recording -> {
                 showStatusRow(getString(R.string.recording), showProgress = false)
+                recordingStartTime = System.currentTimeMillis()
+                timerHandler.post(timerRunnable)
             }
             ImeUiState.Processing -> {
+                timerHandler.removeCallbacks(timerRunnable)
                 showStatusRow(getString(R.string.processing), showProgress = true)
             }
             is ImeUiState.Result -> {
+                timerHandler.removeCallbacks(timerRunnable)
                 showStatusRow(state.text, showProgress = false)
                 candidateBar?.setOnClickListener {
                     currentInputConnection?.commitText(state.text, 1)
@@ -202,9 +315,11 @@ class VoxInkIME : InputMethodService() {
                 }
             }
             is ImeUiState.Refining -> {
+                timerHandler.removeCallbacks(timerRunnable)
                 showDualRows(state.original, null)
             }
             is ImeUiState.Refined -> {
+                timerHandler.removeCallbacks(timerRunnable)
                 showDualRows(state.original, state.refined)
                 candidateOriginal?.setOnClickListener {
                     currentInputConnection?.commitText(state.original, 1)
@@ -216,13 +331,21 @@ class VoxInkIME : InputMethodService() {
                 }
             }
             is ImeUiState.Error -> {
+                timerHandler.removeCallbacks(timerRunnable)
                 showStatusRow(state.message, showProgress = false)
                 candidateBar?.setOnClickListener { recordingController.dismiss() }
             }
         }
-        micButton?.setBackgroundColor(
-            getColor(if (state == ImeUiState.Recording) R.color.mic_active else R.color.mic_idle),
-        )
+    }
+
+    private fun updateMicAppearance(state: ImeUiState) {
+        if (state == ImeUiState.Recording) {
+            micButton?.setBackgroundColor(getColor(R.color.mic_active))
+            micButton?.let { startMicPulse(it) }
+        } else {
+            stopMicPulse()
+            micButton?.setBackgroundColor(getColor(R.color.mic_idle))
+        }
     }
 
     private fun showStatusRow(
@@ -259,25 +382,9 @@ class VoxInkIME : InputMethodService() {
         serviceScope.launch {
             val currentLang = preferencesManager.languageFlow.first()
             val refinementOn = preferencesManager.refinementEnabledFlow.first()
-
             val dp = resources.displayMetrics.density
-            val container =
-                LinearLayout(this@VoxInkIME).apply {
-                    orientation = LinearLayout.VERTICAL
-                    setBackgroundColor(resources.getColor(R.color.key_background, null))
-                    val pad = (12 * dp).toInt()
-                    setPadding(pad, pad, pad, pad)
-                }
 
-            val languages = listOf(SttLanguage.Auto, SttLanguage.Chinese, SttLanguage.English, SttLanguage.Japanese)
-            val langNames =
-                listOf(
-                    getString(R.string.lang_auto),
-                    getString(R.string.lang_zh),
-                    getString(R.string.lang_en),
-                    getString(R.string.lang_ja),
-                )
-
+            val container = createQuickSettingsContainer(dp)
             val popup =
                 PopupWindow(
                     container,
@@ -286,65 +393,102 @@ class VoxInkIME : InputMethodService() {
                     true,
                 )
 
-            languages.forEachIndexed { i, lang ->
-                val tv =
-                    TextView(this@VoxInkIME).apply {
-                        text = getString(R.string.quick_language, langNames[i])
-                        textSize = 14f
-                        setTextColor(
-                            if (lang == currentLang) {
-                                resources.getColor(R.color.mic_idle, null)
-                            } else {
-                                resources.getColor(R.color.key_text, null)
-                            },
-                        )
-                        val pad = (8 * dp).toInt()
-                        setPadding(pad, pad, pad, pad)
-                        setOnClickListener {
-                            serviceScope.launch { preferencesManager.setLanguage(lang) }
-                            popup.dismiss()
-                        }
-                    }
-                container.addView(tv)
-            }
-
-            // Divider
-            val divider =
-                View(this@VoxInkIME).apply {
-                    layoutParams =
-                        LinearLayout.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            (1 * dp).toInt(),
-                        ).apply {
-                            topMargin = (4 * dp).toInt()
-                            bottomMargin = (4 * dp).toInt()
-                        }
-                    setBackgroundColor(0x33FFFFFF)
-                }
-            container.addView(divider)
-
-            // Refinement toggle
-            val refinementTv =
-                TextView(this@VoxInkIME).apply {
-                    text =
-                        if (refinementOn) {
-                            getString(R.string.quick_refinement_on)
-                        } else {
-                            getString(R.string.quick_refinement_off)
-                        }
-                    textSize = 14f
-                    setTextColor(resources.getColor(R.color.key_text, null))
-                    val pad = (8 * dp).toInt()
-                    setPadding(pad, pad, pad, pad)
-                    setOnClickListener {
-                        serviceScope.launch { preferencesManager.setRefinementEnabled(!refinementOn) }
-                        popup.dismiss()
-                    }
-                }
-            container.addView(refinementTv)
+            addLanguageOptions(container, popup, currentLang, dp)
+            addQuickSettingsDivider(container, dp)
+            addRefinementToggle(container, popup, refinementOn, dp)
 
             popup.showAtLocation(anchor, Gravity.BOTTOM or Gravity.END, (8 * dp).toInt(), (64 * dp).toInt())
         }
+    }
+
+    private fun createQuickSettingsContainer(dp: Float): LinearLayout =
+        LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(resources.getColor(R.color.key_background, null))
+            val pad = (12 * dp).toInt()
+            setPadding(pad, pad, pad, pad)
+        }
+
+    private fun addLanguageOptions(
+        container: LinearLayout,
+        popup: PopupWindow,
+        currentLang: SttLanguage,
+        dp: Float,
+    ) {
+        val languages = listOf(SttLanguage.Auto, SttLanguage.Chinese, SttLanguage.English, SttLanguage.Japanese)
+        val langNames =
+            listOf(
+                getString(R.string.lang_auto),
+                getString(R.string.lang_zh),
+                getString(R.string.lang_en),
+                getString(R.string.lang_ja),
+            )
+        languages.forEachIndexed { i, lang ->
+            val tv =
+                TextView(this).apply {
+                    text = getString(R.string.quick_language, langNames[i])
+                    textSize = 14f
+                    setTextColor(
+                        if (lang == currentLang) {
+                            resources.getColor(R.color.mic_idle, null)
+                        } else {
+                            resources.getColor(R.color.key_text, null)
+                        },
+                    )
+                    val pad = (8 * dp).toInt()
+                    setPadding(pad, pad, pad, pad)
+                    setOnClickListener {
+                        serviceScope.launch { preferencesManager.setLanguage(lang) }
+                        popup.dismiss()
+                    }
+                }
+            container.addView(tv)
+        }
+    }
+
+    private fun addQuickSettingsDivider(
+        container: LinearLayout,
+        dp: Float,
+    ) {
+        val divider =
+            View(this).apply {
+                layoutParams =
+                    LinearLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        (1 * dp).toInt(),
+                    ).apply {
+                        topMargin = (4 * dp).toInt()
+                        bottomMargin = (4 * dp).toInt()
+                    }
+                setBackgroundColor(0x33FFFFFF)
+            }
+        container.addView(divider)
+    }
+
+    private fun addRefinementToggle(
+        container: LinearLayout,
+        popup: PopupWindow,
+        refinementOn: Boolean,
+        dp: Float,
+    ) {
+        val tv =
+            TextView(this).apply {
+                text =
+                    if (refinementOn) {
+                        getString(R.string.quick_refinement_on)
+                    } else {
+                        getString(R.string.quick_refinement_off)
+                    }
+                textSize = 14f
+                setTextColor(resources.getColor(R.color.key_text, null))
+                val pad = (8 * dp).toInt()
+                setPadding(pad, pad, pad, pad)
+                setOnClickListener {
+                    serviceScope.launch { preferencesManager.setRefinementEnabled(!refinementOn) }
+                    popup.dismiss()
+                }
+            }
+        container.addView(tv)
     }
 
     private fun launchSettings() {
@@ -354,6 +498,8 @@ class VoxInkIME : InputMethodService() {
     }
 
     override fun onDestroy() {
+        stopMicPulse()
+        timerHandler.removeCallbacks(timerRunnable)
         audioRecorder.release()
         recordingController.destroy()
         serviceScope.cancel()
