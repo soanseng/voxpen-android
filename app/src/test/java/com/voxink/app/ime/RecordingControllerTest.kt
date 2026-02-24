@@ -12,11 +12,13 @@ import com.voxink.app.data.remote.ChatCompletionResponse
 import com.voxink.app.data.remote.ChatMessage
 import com.voxink.app.data.remote.GroqApi
 import com.voxink.app.data.remote.WhisperResponse
+import com.voxink.app.data.repository.DictionaryRepository
 import com.voxink.app.data.repository.LlmRepository
 import com.voxink.app.data.repository.SttRepository
 import com.voxink.app.domain.usecase.RefineTextUseCase
 import com.voxink.app.domain.usecase.TranscribeAudioUseCase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -32,6 +34,7 @@ class RecordingControllerTest {
     private val groqApi: GroqApi = mockk()
     private val apiKeyManager: ApiKeyManager = mockk()
     private val preferencesManager: PreferencesManager = mockk()
+    private val dictionaryRepository: DictionaryRepository = mockk()
     private val testDispatcher = UnconfinedTestDispatcher()
     private val usageLimiter = UsageLimiter()
     private var proStatus: ProStatus = ProStatus.Free
@@ -54,6 +57,7 @@ class RecordingControllerTest {
         every { preferencesManager.refinementEnabledFlow } returns refinementEnabledFlow
         every { preferencesManager.sttModelFlow } returns sttModelFlow
         every { preferencesManager.llmModelFlow } returns llmModelFlow
+        coEvery { dictionaryRepository.getWords(any()) } returns listOf("語墨", "Claude")
 
         val sttRepository = SttRepository(groqApi)
         val llmRepository = LlmRepository(groqApi)
@@ -66,6 +70,7 @@ class RecordingControllerTest {
                 refineTextUseCase = refineTextUseCase,
                 apiKeyManager = apiKeyManager,
                 preferencesManager = preferencesManager,
+                dictionaryRepository = dictionaryRepository,
                 usageLimiter = usageLimiter,
                 proStatusProvider = { proStatus },
                 ioDispatcher = testDispatcher,
@@ -253,6 +258,32 @@ class RecordingControllerTest {
                 skipItems(1) // Processing
                 assertThat(awaitItem()).isEqualTo(ImeUiState.Result("hello"))
             }
+        }
+
+    @Test
+    fun `should fetch vocabulary and pass to transcription and refinement`() =
+        runTest {
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "語末你好")
+            coEvery {
+                groqApi.chatCompletion(any(), any())
+            } returns chatResponse("語墨你好")
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1)
+                controller.onStopRecording(stopRecording, SttLanguage.Chinese)
+                val states = mutableListOf(awaitItem())
+                states.add(awaitItem())
+                val finalState = states.last()
+                assertThat(finalState).isEqualTo(
+                    ImeUiState.Refined("語末你好", "語墨你好"),
+                )
+            }
+
+            coVerify { dictionaryRepository.getWords(any()) }
         }
 
     private fun chatResponse(content: String) =

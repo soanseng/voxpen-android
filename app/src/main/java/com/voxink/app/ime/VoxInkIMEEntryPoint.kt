@@ -4,6 +4,7 @@ import com.voxink.app.billing.BillingManager
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
+import com.voxink.app.data.repository.DictionaryRepository
 import com.voxink.app.domain.usecase.RefineTextUseCase
 import com.voxink.app.domain.usecase.TranscribeAudioUseCase
 import dagger.hilt.EntryPoint
@@ -20,6 +21,8 @@ interface VoxInkIMEEntryPoint {
     fun apiKeyManager(): ApiKeyManager
 
     fun preferencesManager(): PreferencesManager
+
+    fun dictionaryRepository(): DictionaryRepository
 
     fun usageLimiter(): UsageLimiter
 

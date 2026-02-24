@@ -14,5 +14,6 @@ class RefineTextUseCase
             language: SttLanguage,
             apiKey: String,
             model: String = "llama-3.3-70b-versatile",
-        ): Result<String> = llmRepository.refine(text, language, apiKey, model)
+            vocabulary: List<String> = emptyList(),
+        ): Result<String> = llmRepository.refine(text, language, apiKey, model, vocabulary)
     }

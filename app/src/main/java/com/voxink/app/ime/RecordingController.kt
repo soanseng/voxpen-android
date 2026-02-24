@@ -5,8 +5,10 @@ import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.SttLanguage
+import com.voxink.app.data.repository.DictionaryRepository
 import com.voxink.app.domain.usecase.RefineTextUseCase
 import com.voxink.app.domain.usecase.TranscribeAudioUseCase
+import com.voxink.app.util.VocabularyPromptBuilder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -21,6 +23,7 @@ class RecordingController(
     private val refineTextUseCase: RefineTextUseCase,
     private val apiKeyManager: ApiKeyManager,
     private val preferencesManager: PreferencesManager,
+    private val dictionaryRepository: DictionaryRepository,
     private val usageLimiter: UsageLimiter,
     private val proStatusProvider: () -> ProStatus,
     private val ioDispatcher: CoroutineDispatcher,
@@ -68,10 +71,16 @@ class RecordingController(
         _uiState.value = ImeUiState.Processing
         scope.launch {
             val proStatus = proStatusProvider()
-            val result = transcribeUseCase(pcmData, language, apiKey, sttModel)
+            val vocabulary = dictionaryRepository.getWords(80)
+            val whisperPrompt =
+                if (vocabulary.isNotEmpty()) {
+                    VocabularyPromptBuilder.buildWhisperPrompt(language, vocabulary)
+                } else {
+                    null
+                }
+            val result = transcribeUseCase(pcmData, language, apiKey, sttModel, vocabularyHint = whisperPrompt)
             result.fold(
                 onSuccess = { originalText ->
-                    // Increment voice input usage after successful transcription
                     if (!proStatus.isPro) {
                         usageLimiter.incrementVoiceInput()
                     }
@@ -85,7 +94,8 @@ class RecordingController(
                     if (!proStatus.isPro) {
                         usageLimiter.incrementRefinement()
                     }
-                    val refinedResult = refineTextUseCase(originalText, language, apiKey, llmModel)
+                    val allVocabulary = dictionaryRepository.getWords(500)
+                    val refinedResult = refineTextUseCase(originalText, language, apiKey, llmModel, allVocabulary)
                     _uiState.value =
                         refinedResult.fold(
                             onSuccess = { ImeUiState.Refined(originalText, it) },

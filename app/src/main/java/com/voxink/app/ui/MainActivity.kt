@@ -11,6 +11,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.voxink.app.ui.dictionary.DictionaryScreenContent
 import com.voxink.app.ui.onboarding.OnboardingScreenContent
 import com.voxink.app.ui.settings.SettingsScreenContent
 import com.voxink.app.ui.theme.VoxInkTheme
@@ -55,10 +56,16 @@ private fun VoxInkNavHost() {
             )
         }
         composable("settings") {
-            SettingsScreenContent(onNavigateBack = { navController.popBackStack() })
+            SettingsScreenContent(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDictionary = { navController.navigate("dictionary") },
+            )
         }
         composable("transcription") {
             TranscriptionScreenContent(onNavigateBack = { navController.popBackStack() })
+        }
+        composable("dictionary") {
+            DictionaryScreenContent(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

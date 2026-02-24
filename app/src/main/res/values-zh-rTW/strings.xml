@@ -154,4 +154,15 @@
     <string name="pro_feature_all_providers">所有 STT 提供者</string>
     <string name="pro_feature_all_languages">所有語言選項</string>
     <string name="pro_feature_custom_prompts">自訂潤稿 Prompt</string>
+
+    <!-- Dictionary / Custom Vocabulary -->
+    <string name="dictionary_title">自定義詞彙</string>
+    <string name="dictionary_add_hint">輸入新詞彙…</string>
+    <string name="dictionary_add_button">新增</string>
+    <string name="dictionary_count">%1$d / %2$d 個詞彙</string>
+    <string name="dictionary_count_unlimited">%1$d 個詞彙</string>
+    <string name="dictionary_empty">加入人名、地名、專有名詞，提升語音辨識準確度</string>
+    <string name="dictionary_duplicate">此詞彙已存在</string>
+    <string name="dictionary_upgrade">升級 Pro 版解鎖無限詞彙</string>
+    <string name="dictionary_help">加入的詞彙會協助語音引擎更準確地辨識人名、地名與專有名詞。</string>
 </resources>

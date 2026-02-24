@@ -1,13 +1,21 @@
 package com.voxink.app.data.model
 
+import com.voxink.app.util.VocabularyPromptBuilder
+
 object RefinementPrompt {
-    fun forLanguage(language: SttLanguage): String =
-        when (language) {
-            SttLanguage.Chinese -> PROMPT_ZH
-            SttLanguage.English -> PROMPT_EN
-            SttLanguage.Japanese -> PROMPT_JA
-            SttLanguage.Auto -> PROMPT_MIXED
-        }
+    fun forLanguage(
+        language: SttLanguage,
+        vocabulary: List<String> = emptyList(),
+    ): String {
+        val base =
+            when (language) {
+                SttLanguage.Chinese -> PROMPT_ZH
+                SttLanguage.English -> PROMPT_EN
+                SttLanguage.Japanese -> PROMPT_JA
+                SttLanguage.Auto -> PROMPT_MIXED
+            }
+        return base + VocabularyPromptBuilder.buildLlmSuffix(language, vocabulary)
+    }
 
     private const val PROMPT_ZH =
         "你是一個語音轉文字的編輯助手。請將以下口語內容整理為流暢的書面文字：\n" +

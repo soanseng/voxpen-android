@@ -20,6 +20,7 @@ class SttRepository
             language: SttLanguage,
             apiKey: String,
             model: String = WHISPER_MODEL,
+            vocabularyHint: String? = null,
         ): Result<String> {
             if (apiKey.isBlank()) {
                 return Result.failure(IllegalStateException("API key not configured"))
@@ -35,7 +36,7 @@ class SttRepository
                 val modelBody = model.toRequestBody(TEXT_PLAIN)
                 val format = RESPONSE_FORMAT.toRequestBody(TEXT_PLAIN)
                 val langBody = language.code?.toRequestBody(TEXT_PLAIN)
-                val promptBody = language.prompt.toRequestBody(TEXT_PLAIN)
+                val promptBody = (vocabularyHint ?: language.prompt).toRequestBody(TEXT_PLAIN)
 
                 val response =
                     groqApi.transcribe(

@@ -20,6 +20,7 @@ class LlmRepository
             language: SttLanguage,
             apiKey: String,
             model: String = LLM_MODEL,
+            vocabulary: List<String> = emptyList(),
         ): Result<String> {
             if (apiKey.isBlank()) {
                 return Result.failure(IllegalStateException("API key not configured"))
@@ -29,7 +30,7 @@ class LlmRepository
             }
 
             return try {
-                val systemPrompt = RefinementPrompt.forLanguage(language)
+                val systemPrompt = RefinementPrompt.forLanguage(language, vocabulary)
                 val request =
                     ChatCompletionRequest(
                         model = model,

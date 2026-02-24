@@ -39,4 +39,23 @@ class RefinementPromptTest {
                 assertThat(RefinementPrompt.forLanguage(lang)).isNotEmpty()
             }
     }
+
+    @Test
+    fun `should append vocabulary suffix when provided`() {
+        val prompt =
+            RefinementPrompt.forLanguage(
+                SttLanguage.Chinese,
+                listOf("語墨", "Claude"),
+            )
+        assertThat(prompt).contains("術語表")
+        assertThat(prompt).contains("語墨")
+        assertThat(prompt).contains("Claude")
+    }
+
+    @Test
+    fun `should not append suffix when vocabulary is empty`() {
+        val withVocab = RefinementPrompt.forLanguage(SttLanguage.Chinese, emptyList())
+        val without = RefinementPrompt.forLanguage(SttLanguage.Chinese)
+        assertThat(withVocab).isEqualTo(without)
+    }
 }
