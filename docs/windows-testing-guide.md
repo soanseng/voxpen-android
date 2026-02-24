@@ -12,9 +12,39 @@
 - 勾選安裝 **Android 15 (API 35)** SDK Platform（compileSdk = 35）
 - 確保 **Android 8.0 (API 26)** 以上的系統映像也有安裝（minSdk = 26）
 
-## 2. 開啟專案
+## 2. Git 同步（從 Server 拉取最新程式碼）
 
-1. 將專案複製到 Windows（git clone 或直接複製整個資料夾）
+本專案主要在 server 上開發，Windows 本機只用於 build 和測試。由於 Windows/WSL 的檔案權限機制與 Linux 不同，git 會把 permission 變化（`100644 → 100755`）誤判為修改。需要做以下設定：
+
+### 首次設定（只需做一次）
+
+```bash
+# 進入專案目錄
+cd /mnt/c/Users/soans/Downloads/voxink-android
+
+# 讓 git 忽略檔案權限變化（Windows/WSL 必要）
+git config core.fileMode false
+```
+
+### 每次同步流程
+
+```bash
+# 1. 丟棄本機所有工作區改動（permission diff + Android Studio 自動修改）
+git checkout -- .
+
+# 2. 清除 untracked 檔案（Android Studio / Kotlin compiler 產生的暫存）
+git clean -fd --dry-run   # 先預覽會刪什麼
+git clean -fd             # 確認後執行
+
+# 3. 拉取 server 最新程式碼
+git pull
+```
+
+> **注意**：此流程會丟棄本機所有未 commit 的修改。如果在 Windows 上有需要保留的改動，請先 commit 或 stash。
+
+## 3. 開啟專案
+
+1. 將專案複製到 Windows（`git clone` 或從第 2 步同步）
 2. Android Studio → File → Open → 選擇 `voxink-android` 根目錄
 3. 等待 Gradle sync 完成（首次可能需 5-10 分鐘下載依賴）
 
@@ -24,7 +54,7 @@
 > ```
 > Android Studio 通常會自動偵測並覆寫這個檔案。
 
-## 3. 建立模擬器（Emulator）
+## 4. 建立模擬器（Emulator）
 
 1. Android Studio → Tools → Device Manager → Create Virtual Device
 2. 選擇一個手機型號（推薦 Pixel 7 或 Pixel 8）
@@ -32,7 +62,7 @@
    - 因為有用到 Google Play Billing 和 AdMob，建議選 **"Google APIs"** 映像
 4. 完成建立後啟動模擬器
 
-## 4. Build & 安裝
+## 5. Build & 安裝
 
 ### 方式 A — Android Studio（推薦）
 
@@ -54,7 +84,7 @@
 adb install app\build\outputs\apk\debug\app-debug.apk
 ```
 
-## 5. 啟用 VoxInk 輸入法
+## 6. 啟用 VoxInk 輸入法
 
 安裝完成後，app 會自動開啟 MainActivity（首頁），但 **IME 需要手動啟用**：
 
@@ -64,14 +94,14 @@ adb install app\build\outputs\apk\debug\app-debug.apk
 3. 找到 **"VoxInk"** 並開啟
 4. 確認安全性提示（啟用第三方輸入法）
 
-## 6. 切換到 VoxInk 鍵盤
+## 7. 切換到 VoxInk 鍵盤
 
 1. 開啟任意有文字輸入框的 app（例如 Chrome、訊息、備忘錄）
 2. 點擊輸入框叫出鍵盤
 3. 點擊導覽列的鍵盤圖示（🌐），或長按空白鍵
 4. 選擇 **"VoxInk"**
 
-## 7. 設定 API Key
+## 8. 設定 API Key
 
 VoxInk 是 BYOK 模式，需要設定 API key 才能使用語音功能：
 
@@ -80,7 +110,7 @@ VoxInk 是 BYOK 模式，需要設定 API key 才能使用語音功能：
 3. 輸入 Groq API Key（從 https://console.groq.com 取得）
 4. 選擇語言偏好（Auto / 中文 / English / 日本語）
 
-## 8. 測試語音輸入
+## 9. 測試語音輸入
 
 1. 切換到 VoxInk 鍵盤
 2. 點擊麥克風按鈕 🎤 開始錄音
@@ -93,7 +123,7 @@ VoxInk 是 BYOK 模式，需要設定 API key 才能使用語音功能：
 - Windows 設定 → 隱私與安全性 → 麥克風 → 確認已開啟
 - 如果模擬器錄音有問題，建議用 **實體手機** 測試（USB 或 WiFi ADB）
 
-## 9. 使用實體手機測試（推薦）
+## 10. 使用實體手機測試（推薦）
 
 1. 手機開啟「開發人員選項」（設定 → 關於手機 → 連點版本號碼 7 次）
 2. 開啟「USB 偵錯」（USB Debugging）
@@ -101,7 +131,7 @@ VoxInk 是 BYOK 模式，需要設定 API key 才能使用語音功能：
 4. 手機上確認允許 USB 偵錯
 5. Android Studio 會自動偵測裝置，選擇它然後 Run
 
-## 10. 執行測試
+## 11. 執行測試
 
 ```bash
 # 單元測試
@@ -112,7 +142,7 @@ VoxInk 是 BYOK 模式，需要設定 API key 才能使用語音功能：
 .\gradlew.bat detekt
 ```
 
-## 11. 測試 Pro 版
+## 12. 測試 Pro 版
 
 ### License Testing（推薦）
 
@@ -139,3 +169,6 @@ VoxInk 是 BYOK 模式，需要設定 API key 才能使用語音功能：
 | 麥克風無聲 | 模擬器 → Extended Controls (⋯) → Microphone → 確認啟用 |
 | 輸入法沒出現在列表 | 確認 APK 已安裝成功，重啟模擬器再試 |
 | AdMob 初始化警告 | 正常，debug 版使用的是 Google 測試 ID |
+| `git status` 顯示大量檔案被修改 | 執行 `git config core.fileMode false`，然後 `git checkout -- .` |
+| `git pull` SSH 連線失敗 | 確認 `~/.ssh/` 有對應的 key，並執行 `ssh-keyscan -p 222 yalom >> ~/.ssh/known_hosts` |
+| Android Studio 自動改 gradle 版本 | 同步前用 `git checkout -- .` 丟棄，避免與 server 版本衝突 |
