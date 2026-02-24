@@ -40,6 +40,7 @@ Thumbs.db
 # Keystore (never commit)
 *.jks
 *.keystore
+keystore.properties
 
 # Secrets
 *.env

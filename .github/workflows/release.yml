@@ -26,15 +26,39 @@ jobs:
       - name: Run unit tests
         run: ./gradlew test
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug
+      - name: Decode keystore
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/voxink-release.keystore
 
-      - name: Rename APK with version
+      - name: Create keystore.properties
+        run: |
+          cat > keystore.properties << EOF
+          storeFile=voxink-release.keystore
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+
+      - name: Build release APK
+        run: ./gradlew assembleRelease
+
+      - name: Build release AAB
+        run: ./gradlew bundleRelease
+
+      - name: Rename artifacts
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          mv app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/voxink-${VERSION}-debug.apk"
+          mv app/build/outputs/apk/release/app-release.apk \
+             "app/build/outputs/apk/release/voxink-${VERSION}-release.apk"
+          mv app/build/outputs/bundle/release/app-release.aab \
+             "app/build/outputs/bundle/release/voxink-${VERSION}-release.aab"
 
-      - name: Upload APK to release
+      - name: Upload APK & AAB to release
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/debug/voxink-*-debug.apk
+          files: |
+            app/build/outputs/apk/release/voxink-*-release.apk
+            app/build/outputs/bundle/release/voxink-*-release.aab
+
+      - name: Cleanup secrets
+        if: always()
+        run: rm -f app/voxink-release.keystore keystore.properties
