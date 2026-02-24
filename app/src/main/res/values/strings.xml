@@ -154,4 +154,15 @@
     <string name="pro_feature_all_providers">All STT providers</string>
     <string name="pro_feature_all_languages">All language options</string>
     <string name="pro_feature_custom_prompts">Custom refinement prompts</string>
+
+    <!-- Dictionary / Custom Vocabulary -->
+    <string name="dictionary_title">Custom Vocabulary</string>
+    <string name="dictionary_add_hint">Add a word…</string>
+    <string name="dictionary_add_button">Add</string>
+    <string name="dictionary_count">%1$d / %2$d words</string>
+    <string name="dictionary_count_unlimited">%1$d words</string>
+    <string name="dictionary_empty">Add names, places, and terms to improve voice recognition accuracy</string>
+    <string name="dictionary_duplicate">Word already exists</string>
+    <string name="dictionary_upgrade">Upgrade to Pro for unlimited vocabulary</string>
+    <string name="dictionary_help">Words you add here help the voice engine recognize names, places, and special terms more accurately.</string>
 </resources>
