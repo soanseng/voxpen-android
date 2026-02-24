@@ -18,7 +18,7 @@ class VocabularyPromptBuilderTest {
                 SttLanguage.Chinese,
                 listOf("語墨", "Anthropic"),
             )
-        assertThat(result).isEqualTo("繁體中文轉錄。語墨, Anthropic")
+        assertThat(result).isEqualTo("繁體中文轉錄。 語墨, Anthropic")
     }
 
     @Test

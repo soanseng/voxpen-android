@@ -27,7 +27,7 @@ object VocabularyPromptBuilder {
         }
 
         if (selected.isEmpty()) return basePrompt
-        return basePrompt + selected.joinToString(", ")
+        return basePrompt + " " + selected.joinToString(", ")
     }
 
     fun buildLlmSuffix(

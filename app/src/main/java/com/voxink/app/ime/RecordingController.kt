@@ -72,7 +72,12 @@ class RecordingController(
         scope.launch {
             val proStatus = proStatusProvider()
             val vocabulary = dictionaryRepository.getWords(80)
-            val whisperPrompt = VocabularyPromptBuilder.buildWhisperPrompt(language, vocabulary)
+            val whisperPrompt =
+                if (vocabulary.isNotEmpty()) {
+                    VocabularyPromptBuilder.buildWhisperPrompt(language, vocabulary)
+                } else {
+                    null
+                }
             val result = transcribeUseCase(pcmData, language, apiKey, sttModel, vocabularyHint = whisperPrompt)
             result.fold(
                 onSuccess = { originalText ->

@@ -47,6 +47,7 @@ class DictionaryViewModel
         fun addWord(word: String) {
             if (word.isBlank()) return
             viewModelScope.launch {
+                if (isLimitReached.value) return@launch
                 val result = repository.add(word)
                 if (result == -1L) {
                     _showDuplicateToast.value = true

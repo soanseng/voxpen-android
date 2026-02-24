@@ -149,4 +149,20 @@ class DictionaryViewModelTest {
                 assertThat(awaitItem()).isFalse()
             }
         }
+
+    @Test
+    fun `should not add word when limit is reached for Free user`() =
+        runTest {
+            val vm = createViewModel()
+            countFlow.value = 10
+            proStatusFlow.value = ProStatus.Free
+
+            vm.isLimitReached.test {
+                assertThat(awaitItem()).isTrue()
+            }
+
+            vm.addWord("語墨")
+
+            coVerify(exactly = 0) { repository.add(any()) }
+        }
 }
