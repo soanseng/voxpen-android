@@ -54,6 +54,7 @@ import com.voxink.app.data.model.SttLanguage
 @Composable
 fun SettingsScreenContent(
     onNavigateBack: () -> Unit,
+    onNavigateToDictionary: () -> Unit = {},
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsState()
@@ -109,6 +110,8 @@ fun SettingsScreenContent(
             RecordingModeSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             RefinementSection(state, viewModel)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            DictionaryEntryRow(onNavigateToDictionary)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             PermissionSection(hasMicPermission) {
                 permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
@@ -375,5 +378,29 @@ private fun RadioRow(
     ) {
         RadioButton(selected = selected, onClick = onClick)
         Text(label, modifier = Modifier.padding(start = 8.dp))
+    }
+}
+
+@Composable
+private fun DictionaryEntryRow(onNavigate: () -> Unit) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onNavigate)
+                .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                stringResource(R.string.dictionary_title),
+                style = MaterialTheme.typography.titleSmall,
+            )
+        }
+        Text(
+            "\u203A",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
