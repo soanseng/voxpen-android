@@ -17,12 +17,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -33,7 +36,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -83,6 +88,7 @@ fun OnboardingScreenContent(
                 OnboardingStep.API_KEY -> ApiKeyStep(state, viewModel)
                 OnboardingStep.ENABLE_KEYBOARD -> EnableKeyboardStep(state)
                 OnboardingStep.GRANT_PERMISSION -> PermissionStep(state, viewModel)
+                OnboardingStep.PRACTICE -> PracticeStep(state, viewModel)
                 OnboardingStep.DONE -> DoneStep()
             }
             Spacer(Modifier.height(32.dp))
@@ -107,11 +113,21 @@ private fun StepProgress(currentStep: OnboardingStep) {
         modifier = Modifier.fillMaxWidth(),
     )
     Spacer(Modifier.height(8.dp))
-    Text(
-        "${currentStep.ordinal + 1} / ${OnboardingStep.entries.size}",
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-    )
+    val progressText =
+        when (currentStep) {
+            OnboardingStep.WELCOME, OnboardingStep.API_KEY -> null
+            OnboardingStep.ENABLE_KEYBOARD -> stringResource(R.string.onboarding_progress_few_more)
+            OnboardingStep.GRANT_PERMISSION -> stringResource(R.string.onboarding_progress_almost)
+            OnboardingStep.PRACTICE -> stringResource(R.string.onboarding_progress_last)
+            OnboardingStep.DONE -> null
+        }
+    progressText?.let {
+        Text(
+            it,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
 }
 
 @Composable
@@ -167,6 +183,15 @@ private fun ApiKeyStep(
         Spacer(Modifier.height(8.dp))
         Text(
             stringResource(R.string.onboarding_api_key_saved),
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+    Spacer(Modifier.height(8.dp))
+    val uriHandler = LocalUriHandler.current
+    TextButton(onClick = { uriHandler.openUri("https://console.groq.com") }) {
+        Text(
+            stringResource(R.string.onboarding_api_key_link),
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.primary,
         )
     }
@@ -232,6 +257,68 @@ private fun PermissionStep(
 }
 
 @Composable
+private fun PracticeStep(
+    state: OnboardingUiState,
+    viewModel: OnboardingViewModel,
+) {
+    Text(
+        stringResource(R.string.onboarding_practice_title),
+        style = MaterialTheme.typography.headlineMedium,
+    )
+    Spacer(Modifier.height(16.dp))
+    Text(
+        stringResource(R.string.onboarding_practice_description),
+        style = MaterialTheme.typography.bodyLarge,
+    )
+    Spacer(Modifier.height(24.dp))
+
+    if (state.isPracticing) {
+        CircularProgressIndicator()
+        Spacer(Modifier.height(8.dp))
+        Text(stringResource(R.string.processing))
+    } else if (state.hasPracticed && state.practiceOriginal != null) {
+        Text(
+            stringResource(R.string.onboarding_practice_success),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.primary,
+        )
+        Spacer(Modifier.height(16.dp))
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    stringResource(R.string.onboarding_practice_original),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Text(state.practiceOriginal, style = MaterialTheme.typography.bodyMedium)
+                if (state.practiceRefined != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        stringResource(R.string.onboarding_practice_refined),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        state.practiceRefined,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+        }
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(onClick = { viewModel.clearPractice() }) {
+            Text(stringResource(R.string.onboarding_practice_retry))
+        }
+    } else {
+        // Simple record button for practice
+        Button(onClick = { /* Recording wired in practice -- for now show placeholder */ }) {
+            Text(stringResource(R.string.keyboard_record))
+        }
+    }
+}
+
+@Composable
 private fun DoneStep() {
     Text(
         stringResource(R.string.onboarding_done_title),
@@ -251,6 +338,16 @@ private fun NavigationButtons(
     onNext: () -> Unit,
     onDone: () -> Unit,
 ) {
+    val canProceed =
+        when (state.currentStep) {
+            OnboardingStep.WELCOME -> true
+            OnboardingStep.API_KEY -> state.isApiKeyConfigured
+            OnboardingStep.ENABLE_KEYBOARD -> state.isKeyboardEnabled
+            OnboardingStep.GRANT_PERMISSION -> state.hasMicPermission
+            OnboardingStep.PRACTICE -> state.hasPracticed
+            OnboardingStep.DONE -> true
+        }
+
     Row(
         Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -267,7 +364,7 @@ private fun NavigationButtons(
                 Text(stringResource(R.string.onboarding_finish))
             }
         } else {
-            Button(onClick = onNext) {
+            Button(onClick = onNext, enabled = canProceed) {
                 Text(stringResource(R.string.onboarding_next))
             }
         }

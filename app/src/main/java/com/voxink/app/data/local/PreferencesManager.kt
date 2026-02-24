@@ -54,6 +54,11 @@ class PreferencesManager
                 prefs[ONBOARDING_COMPLETED_KEY] ?: false
             }
 
+        val keyboardTooltipsShownFlow: Flow<Boolean> =
+            context.dataStore.data.map { prefs ->
+                prefs[KEYBOARD_TOOLTIPS_SHOWN_KEY] ?: false
+            }
+
         suspend fun setLanguage(language: SttLanguage) {
             context.dataStore.edit { prefs ->
                 prefs[LANGUAGE_KEY] = languageToKey(language)
@@ -90,6 +95,12 @@ class PreferencesManager
             }
         }
 
+        suspend fun setKeyboardTooltipsShown(shown: Boolean) {
+            context.dataStore.edit { prefs ->
+                prefs[KEYBOARD_TOOLTIPS_SHOWN_KEY] = shown
+            }
+        }
+
         companion object {
             val DEFAULT_LANGUAGE: SttLanguage = SttLanguage.Auto
             val DEFAULT_RECORDING_MODE: RecordingMode = RecordingMode.TAP_TO_TOGGLE
@@ -101,6 +112,7 @@ class PreferencesManager
             private val RECORDING_MODE_KEY = stringPreferencesKey("recording_mode")
             private val REFINEMENT_ENABLED_KEY = booleanPreferencesKey("refinement_enabled")
             private val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
+            private val KEYBOARD_TOOLTIPS_SHOWN_KEY = booleanPreferencesKey("keyboard_tooltips_shown")
             private val STT_MODEL_KEY = stringPreferencesKey("stt_model")
             private val LLM_MODEL_KEY = stringPreferencesKey("llm_model")
 

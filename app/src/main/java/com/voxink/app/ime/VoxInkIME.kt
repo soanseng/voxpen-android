@@ -8,6 +8,7 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.PopupWindow
@@ -101,6 +102,13 @@ class VoxInkIME : InputMethodService() {
         bindViews(view)
         bindButtons(view)
         observeUiState()
+        serviceScope.launch {
+            val shown = preferencesManager.keyboardTooltipsShownFlow.first()
+            if (!shown) {
+                showKeyboardTooltips(view)
+                preferencesManager.setKeyboardTooltipsShown(true)
+            }
+        }
         Timber.d("VoxInkIME input view created")
         return view
     }
@@ -489,6 +497,61 @@ class VoxInkIME : InputMethodService() {
                 }
             }
         container.addView(tv)
+    }
+
+    private fun showKeyboardTooltips(rootView: View) {
+        val overlay =
+            FrameLayout(this).apply {
+                setBackgroundColor(0x99000000.toInt())
+                layoutParams =
+                    FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                    )
+            }
+
+        val tooltips =
+            mapOf(
+                R.id.btn_switch to getString(R.string.keyboard_switch),
+                R.id.btn_backspace to getString(R.string.keyboard_backspace),
+                R.id.btn_mic to getString(R.string.keyboard_record),
+                R.id.btn_enter to getString(R.string.keyboard_enter),
+                R.id.btn_settings to getString(R.string.keyboard_settings),
+            )
+
+        rootView.post {
+            tooltips.forEach { (btnId, label) ->
+                val btn = rootView.findViewById<View>(btnId) ?: return@forEach
+                val loc = IntArray(2)
+                btn.getLocationInWindow(loc)
+
+                val dp = resources.displayMetrics.density
+                val tv =
+                    TextView(this).apply {
+                        text = label
+                        textSize = 11f
+                        setTextColor(0xFFFFFFFF.toInt())
+                        setBackgroundColor(0xCC6366F1.toInt())
+                        val pad = (6 * dp).toInt()
+                        setPadding(pad, pad / 2, pad, pad / 2)
+                    }
+
+                val params =
+                    FrameLayout.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ).apply {
+                        leftMargin = loc[0] + btn.width / 2 - (40 * dp).toInt() / 2
+                        topMargin = maxOf(0, loc[1] - (24 * dp).toInt())
+                    }
+                overlay.addView(tv, params)
+            }
+
+            overlay.setOnClickListener {
+                (rootView as? ViewGroup)?.removeView(overlay)
+            }
+            (rootView as? ViewGroup)?.addView(overlay)
+        }
     }
 
     private fun launchSettings() {

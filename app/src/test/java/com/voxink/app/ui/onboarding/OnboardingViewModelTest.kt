@@ -4,6 +4,8 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
+import com.voxink.app.domain.usecase.RefineTextUseCase
+import com.voxink.app.domain.usecase.TranscribeAudioUseCase
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -22,6 +24,8 @@ class OnboardingViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var apiKeyManager: ApiKeyManager
     private lateinit var preferencesManager: PreferencesManager
+    private val transcribeUseCase: TranscribeAudioUseCase = mockk()
+    private val refineTextUseCase: RefineTextUseCase = mockk()
     private lateinit var viewModel: OnboardingViewModel
 
     @BeforeEach
@@ -37,7 +41,8 @@ class OnboardingViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel(): OnboardingViewModel = OnboardingViewModel(apiKeyManager, preferencesManager)
+    private fun createViewModel(): OnboardingViewModel =
+        OnboardingViewModel(apiKeyManager, preferencesManager, transcribeUseCase, refineTextUseCase)
 
     @Test
     fun `should start at welcome step`() =
@@ -77,7 +82,10 @@ class OnboardingViewModelTest {
             viewModel.nextStep() // ENABLE_KEYBOARD -> GRANT_PERMISSION
             assertThat(viewModel.uiState.value.currentStep).isEqualTo(OnboardingStep.GRANT_PERMISSION)
 
-            viewModel.nextStep() // GRANT_PERMISSION -> DONE
+            viewModel.nextStep() // GRANT_PERMISSION -> PRACTICE
+            assertThat(viewModel.uiState.value.currentStep).isEqualTo(OnboardingStep.PRACTICE)
+
+            viewModel.nextStep() // PRACTICE -> DONE
             assertThat(viewModel.uiState.value.currentStep).isEqualTo(OnboardingStep.DONE)
         }
 
@@ -143,5 +151,29 @@ class OnboardingViewModelTest {
             viewModel.updateMicPermission(true)
 
             assertThat(viewModel.uiState.value.hasMicPermission).isTrue()
+        }
+
+    @Test
+    fun `PRACTICE step should exist between GRANT_PERMISSION and DONE`() {
+        assertThat(OnboardingStep.PRACTICE.ordinal)
+            .isEqualTo(OnboardingStep.GRANT_PERMISSION.ordinal + 1)
+        assertThat(OnboardingStep.DONE.ordinal)
+            .isEqualTo(OnboardingStep.PRACTICE.ordinal + 1)
+    }
+
+    @Test
+    fun `should update practice result after recording`() =
+        runTest {
+            viewModel = createViewModel()
+
+            viewModel.uiState.test {
+                val initial = awaitItem()
+                assertThat(initial.hasPracticed).isFalse()
+                viewModel.setPracticeResult("Hello", "Hello there")
+                val updated = awaitItem()
+                assertThat(updated.practiceOriginal).isEqualTo("Hello")
+                assertThat(updated.practiceRefined).isEqualTo("Hello there")
+                assertThat(updated.hasPracticed).isTrue()
+            }
         }
 }

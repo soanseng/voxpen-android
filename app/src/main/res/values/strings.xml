@@ -85,6 +85,16 @@
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_finish">Get Started</string>
+    <string name="onboarding_practice_title">Try It Out!</string>
+    <string name="onboarding_practice_description">Tap the mic button below and say something. See how VoxInk transforms your speech into polished text.</string>
+    <string name="onboarding_practice_success">Great!</string>
+    <string name="onboarding_practice_original">Original:</string>
+    <string name="onboarding_practice_refined">Refined:</string>
+    <string name="onboarding_practice_retry">Try Again</string>
+    <string name="onboarding_progress_few_more">A few more steps\u2026</string>
+    <string name="onboarding_progress_almost">Almost there</string>
+    <string name="onboarding_progress_last">Last step!</string>
+    <string name="onboarding_api_key_link">Get a free key at console.groq.com</string>
 
     <!-- Home Screen -->
     <string name="home_tagline">Speak instead of type</string>

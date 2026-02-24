@@ -85,6 +85,16 @@
     <string name="onboarding_back">上一步</string>
     <string name="onboarding_next">下一步</string>
     <string name="onboarding_finish">開始使用</string>
+    <string name="onboarding_practice_title">試試看！</string>
+    <string name="onboarding_practice_description">點擊下方麥克風按鈕，說一句話。看看語墨如何將語音轉為精修文字。</string>
+    <string name="onboarding_practice_success">太棒了！</string>
+    <string name="onboarding_practice_original">原文：</string>
+    <string name="onboarding_practice_refined">潤稿：</string>
+    <string name="onboarding_practice_retry">再試一次</string>
+    <string name="onboarding_progress_few_more">還有幾步\u2026</string>
+    <string name="onboarding_progress_almost">快完成了</string>
+    <string name="onboarding_progress_last">最後一步！</string>
+    <string name="onboarding_api_key_link">至 console.groq.com 免費取得金鑰</string>
 
     <!-- Home Screen -->
     <string name="home_tagline">用說的，比打字更快</string>
