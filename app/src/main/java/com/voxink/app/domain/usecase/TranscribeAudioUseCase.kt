@@ -15,12 +15,13 @@ class TranscribeAudioUseCase
             language: SttLanguage,
             apiKey: String,
             model: String = "whisper-large-v3-turbo",
+            vocabularyHint: String? = null,
             sampleRate: Int = SAMPLE_RATE,
             channels: Int = CHANNELS,
             bitsPerSample: Int = BITS_PER_SAMPLE,
         ): Result<String> {
             val wavBytes = AudioEncoder.pcmToWav(pcmData, sampleRate, channels, bitsPerSample)
-            return sttRepository.transcribe(wavBytes, language, apiKey, model)
+            return sttRepository.transcribe(wavBytes, language, apiKey, model, vocabularyHint)
         }
 
         companion object {

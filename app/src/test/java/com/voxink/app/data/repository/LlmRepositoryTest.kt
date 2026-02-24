@@ -137,4 +137,23 @@ class LlmRepositoryTest {
             val body = request.body.readUtf8()
             assertThat(body).contains("\"model\":\"gpt-oss-120b\"")
         }
+
+    @Test
+    fun `should include vocabulary in system prompt when provided`() =
+        runTest {
+            server.enqueue(
+                MockResponse()
+                    .setBody(
+                        """{"id":"c5","choices":[{"index":0,"message":{"role":"assistant","content":"ok"}}]}""",
+                    )
+                    .setHeader("Content-Type", "application/json"),
+            )
+
+            repository.refine("text", SttLanguage.Chinese, "key", vocabulary = listOf("語墨", "Claude"))
+
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).contains("術語表")
+            assertThat(body).contains("語墨")
+        }
 }
