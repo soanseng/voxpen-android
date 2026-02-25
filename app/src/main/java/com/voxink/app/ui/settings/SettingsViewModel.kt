@@ -104,6 +104,11 @@ class SettingsViewModel
             billingManager.restorePurchases()
         }
 
+        fun toggleDebugPro() {
+            val current = billingManager.proStatus.value
+            billingManager.debugOverrideProStatus(!current.isPro)
+        }
+
         fun refreshUsage() {
             _uiState.update {
                 it.copy(

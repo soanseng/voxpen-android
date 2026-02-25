@@ -148,6 +148,12 @@ class BillingManager
             }
         }
 
+        fun debugOverrideProStatus(isPro: Boolean) {
+            if (!com.voxink.app.BuildConfig.DEBUG) return
+            _proStatus.value = if (isPro) ProStatus.Pro else ProStatus.Free
+            Timber.d("Debug override pro status: ${_proStatus.value}")
+        }
+
         fun destroy() {
             billingClient?.endConnection()
             billingClient = null

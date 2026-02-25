@@ -45,6 +45,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.voxink.app.BuildConfig
 import com.voxink.app.R
 import com.voxink.app.ads.BannerAdView
 import com.voxink.app.data.model.RecordingMode
@@ -95,6 +96,9 @@ fun SettingsScreenContent(
                     .verticalScroll(rememberScrollState()),
         ) {
             ProStatusSection(state, context as? Activity)
+            if (BuildConfig.DEBUG) {
+                DebugProToggle(state, viewModel)
+            }
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             ApiKeySection(state, apiKeyInput, { apiKeyInput = it }) {
                 viewModel.saveApiKey(apiKeyInput)
@@ -378,6 +382,30 @@ private fun RadioRow(
     ) {
         RadioButton(selected = selected, onClick = onClick)
         Text(label, modifier = Modifier.padding(start = 8.dp))
+    }
+}
+
+@Composable
+private fun DebugProToggle(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            "\uD83D\uDEE0 Debug: Force Pro",
+            modifier = Modifier.weight(1f),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+        )
+        Switch(
+            checked = state.proStatus.isPro,
+            onCheckedChange = { viewModel.toggleDebugPro() },
+        )
     }
 }
 
