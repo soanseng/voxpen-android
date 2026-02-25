@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -114,6 +115,8 @@ fun SettingsScreenContent(
             RecordingModeSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             RefinementSection(state, viewModel)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            CustomPromptSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             DictionaryEntryRow(onNavigateToDictionary)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
@@ -242,7 +245,21 @@ private fun LanguageSection(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
 ) {
+    var showMore by remember { mutableStateOf(false) }
+    val isExtraLanguageSelected =
+        state.language in
+            listOf(
+                SttLanguage.Korean,
+                SttLanguage.French,
+                SttLanguage.German,
+                SttLanguage.Spanish,
+                SttLanguage.Vietnamese,
+                SttLanguage.Indonesian,
+                SttLanguage.Thai,
+            )
+
     SectionHeader(stringResource(R.string.settings_language_section))
+
     listOf(
         SttLanguage.Auto to stringResource(R.string.lang_auto),
         SttLanguage.Chinese to stringResource(R.string.lang_zh),
@@ -250,6 +267,45 @@ private fun LanguageSection(
         SttLanguage.Japanese to stringResource(R.string.lang_ja),
     ).forEach { (lang, label) ->
         RadioRow(label, state.language == lang) { viewModel.setLanguage(lang) }
+        if (lang == SttLanguage.Chinese) {
+            Text(
+                stringResource(R.string.lang_zh_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 48.dp, bottom = 4.dp),
+            )
+        }
+    }
+
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable { showMore = !showMore }
+            .padding(vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.lang_more) + if (showMore) " ▲" else " ▼",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = 16.dp),
+        )
+    }
+
+    AnimatedVisibility(visible = showMore || isExtraLanguageSelected) {
+        Column {
+            listOf(
+                SttLanguage.Korean to stringResource(R.string.lang_ko),
+                SttLanguage.French to stringResource(R.string.lang_fr),
+                SttLanguage.German to stringResource(R.string.lang_de),
+                SttLanguage.Spanish to stringResource(R.string.lang_es),
+                SttLanguage.Vietnamese to stringResource(R.string.lang_vi),
+                SttLanguage.Indonesian to stringResource(R.string.lang_id),
+                SttLanguage.Thai to stringResource(R.string.lang_th),
+            ).forEach { (lang, label) ->
+                SmallRadioRow(label, state.language == lang) { viewModel.setLanguage(lang) }
+            }
+        }
     }
 }
 
@@ -406,6 +462,66 @@ private fun DebugProToggle(
             checked = state.proStatus.isPro,
             onCheckedChange = { viewModel.toggleDebugPro() },
         )
+    }
+}
+
+@Composable
+private fun SmallRadioRow(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        RadioButton(selected = selected, onClick = onClick)
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(start = 8.dp),
+        )
+    }
+}
+
+@Composable
+private fun CustomPromptSection(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    SectionHeader(stringResource(R.string.settings_custom_prompt_section))
+    OutlinedTextField(
+        value = state.customPromptDraft,
+        onValueChange = { viewModel.updateCustomPromptDraft(it) },
+        label = { Text(stringResource(R.string.settings_custom_prompt_hint)) },
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(200.dp),
+        maxLines = 10,
+    )
+    Text(
+        stringResource(R.string.settings_custom_prompt_dictionary_note),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp),
+    )
+    Row(modifier = Modifier.padding(top = 8.dp)) {
+        Button(
+            onClick = { viewModel.saveCustomPrompt() },
+            modifier = Modifier.weight(1f),
+        ) {
+            Text(stringResource(R.string.settings_custom_prompt_save))
+        }
+        Spacer(Modifier.padding(horizontal = 4.dp))
+        OutlinedButton(
+            onClick = { viewModel.resetCustomPrompt() },
+        ) {
+            Text(stringResource(R.string.settings_custom_prompt_reset))
+        }
     }
 }
 

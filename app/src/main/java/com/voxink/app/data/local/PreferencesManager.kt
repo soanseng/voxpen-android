@@ -101,6 +101,25 @@ class PreferencesManager
             }
         }
 
+        fun customPromptFlow(languageKey: String): Flow<String?> =
+            context.dataStore.data.map { prefs ->
+                prefs[stringPreferencesKey("custom_prompt_$languageKey")]
+            }
+
+        suspend fun setCustomPrompt(
+            languageKey: String,
+            prompt: String?,
+        ) {
+            context.dataStore.edit { prefs ->
+                val key = stringPreferencesKey("custom_prompt_$languageKey")
+                if (prompt.isNullOrBlank()) {
+                    prefs.remove(key)
+                } else {
+                    prefs[key] = prompt
+                }
+            }
+        }
+
         companion object {
             val DEFAULT_LANGUAGE: SttLanguage = SttLanguage.Auto
             val DEFAULT_RECORDING_MODE: RecordingMode = RecordingMode.TAP_TO_TOGGLE
@@ -121,6 +140,13 @@ class PreferencesManager
                     "zh" -> SttLanguage.Chinese
                     "en" -> SttLanguage.English
                     "ja" -> SttLanguage.Japanese
+                    "ko" -> SttLanguage.Korean
+                    "fr" -> SttLanguage.French
+                    "de" -> SttLanguage.German
+                    "es" -> SttLanguage.Spanish
+                    "vi" -> SttLanguage.Vietnamese
+                    "id" -> SttLanguage.Indonesian
+                    "th" -> SttLanguage.Thai
                     else -> SttLanguage.Auto
                 }
 
@@ -130,6 +156,13 @@ class PreferencesManager
                     SttLanguage.Chinese -> "zh"
                     SttLanguage.English -> "en"
                     SttLanguage.Japanese -> "ja"
+                    SttLanguage.Korean -> "ko"
+                    SttLanguage.French -> "fr"
+                    SttLanguage.German -> "de"
+                    SttLanguage.Spanish -> "es"
+                    SttLanguage.Vietnamese -> "vi"
+                    SttLanguage.Indonesian -> "id"
+                    SttLanguage.Thai -> "th"
                 }
         }
     }

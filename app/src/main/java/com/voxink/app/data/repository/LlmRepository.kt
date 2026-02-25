@@ -21,6 +21,7 @@ class LlmRepository
             apiKey: String,
             model: String = LLM_MODEL,
             vocabulary: List<String> = emptyList(),
+            customPrompt: String? = null,
         ): Result<String> {
             if (apiKey.isBlank()) {
                 return Result.failure(IllegalStateException("API key not configured"))
@@ -30,7 +31,7 @@ class LlmRepository
             }
 
             return try {
-                val systemPrompt = RefinementPrompt.forLanguage(language, vocabulary)
+                val systemPrompt = RefinementPrompt.forLanguage(language, vocabulary, customPrompt)
                 val request =
                     ChatCompletionRequest(
                         model = model,

@@ -35,6 +35,15 @@
     <string name="lang_zh">中文（繁體）</string>
     <string name="lang_en">English</string>
     <string name="lang_ja">日本語</string>
+    <string name="lang_ko">한국어</string>
+    <string name="lang_fr">Français</string>
+    <string name="lang_de">Deutsch</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_vi">Tiếng Việt</string>
+    <string name="lang_id">Bahasa Indonesia</string>
+    <string name="lang_th">ภาษาไทย</string>
+    <string name="lang_zh_hint">Also supports Taiwanese Hokkien speech (transcribed as Chinese text)</string>
+    <string name="lang_more">More languages</string>
     <string name="recording">Recording…</string>
     <string name="processing">Processing…</string>
     <string name="mic_permission_required">Microphone permission required. Open Settings to grant.</string>
@@ -168,4 +177,13 @@
     <string name="dictionary_duplicate">Word already exists</string>
     <string name="dictionary_upgrade">Upgrade to Pro for unlimited vocabulary</string>
     <string name="dictionary_help">Words you add here help the voice engine recognize names, places, and special terms more accurately.</string>
+
+    <!-- Custom Prompt -->
+    <string name="settings_custom_prompt_section">Refinement Prompt</string>
+    <string name="settings_custom_prompt_hint">Enter custom prompt…</string>
+    <string name="settings_custom_prompt_reset">Reset to Default</string>
+    <string name="settings_custom_prompt_save">Save Prompt</string>
+    <string name="settings_custom_prompt_saved">Prompt saved</string>
+    <string name="settings_custom_prompt_reset_done">Prompt reset to default</string>
+    <string name="settings_custom_prompt_dictionary_note">Dictionary entries are automatically appended — no need to include them here.</string>
 </resources>

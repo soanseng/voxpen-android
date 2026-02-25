@@ -35,6 +35,15 @@
     <string name="lang_zh">中文（繁體）</string>
     <string name="lang_en">English</string>
     <string name="lang_ja">日本語</string>
+    <string name="lang_ko">한국어</string>
+    <string name="lang_fr">Français</string>
+    <string name="lang_de">Deutsch</string>
+    <string name="lang_es">Español</string>
+    <string name="lang_vi">Tiếng Việt</string>
+    <string name="lang_id">Bahasa Indonesia</string>
+    <string name="lang_th">ภาษาไทย</string>
+    <string name="lang_zh_hint">也支援台語語音（轉為中文字）</string>
+    <string name="lang_more">更多語言</string>
     <string name="recording">錄音中…</string>
     <string name="processing">處理中…</string>
     <string name="mic_permission_required">需要麥克風權限。請前往設定授權。</string>
@@ -168,4 +177,13 @@
     <string name="dictionary_duplicate">此詞彙已存在</string>
     <string name="dictionary_upgrade">升級 Pro 版解鎖無限詞彙</string>
     <string name="dictionary_help">加入的詞彙會協助語音引擎更準確地辨識人名、地名與專有名詞。</string>
+
+    <!-- Custom Prompt -->
+    <string name="settings_custom_prompt_section">潤稿 Prompt</string>
+    <string name="settings_custom_prompt_hint">輸入自訂 Prompt…</string>
+    <string name="settings_custom_prompt_reset">恢復預設</string>
+    <string name="settings_custom_prompt_save">儲存 Prompt</string>
+    <string name="settings_custom_prompt_saved">Prompt 已儲存</string>
+    <string name="settings_custom_prompt_reset_done">已恢復預設 Prompt</string>
+    <string name="settings_custom_prompt_dictionary_note">自定義詞典會自動附加，無需手動寫入。</string>
 </resources>

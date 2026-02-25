@@ -15,5 +15,6 @@ class RefineTextUseCase
             apiKey: String,
             model: String = "llama-3.3-70b-versatile",
             vocabulary: List<String> = emptyList(),
-        ): Result<String> = llmRepository.refine(text, language, apiKey, model, vocabulary)
+            customPrompt: String? = null,
+        ): Result<String> = llmRepository.refine(text, language, apiKey, model, vocabulary, customPrompt)
     }

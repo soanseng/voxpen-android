@@ -9,8 +9,10 @@ import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.RecordingMode
+import com.voxink.app.data.model.RefinementPrompt
 import com.voxink.app.data.model.SttLanguage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,6 +33,7 @@ class SettingsViewModel
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SettingsUiState())
         val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+        private var customPromptJob: Job? = null
 
         init {
             _uiState.update {
@@ -45,6 +48,7 @@ class SettingsViewModel
             viewModelScope.launch {
                 preferencesManager.languageFlow.collect { lang ->
                     _uiState.update { it.copy(language = lang) }
+                    loadCustomPromptForLanguage(lang)
                 }
             }
             viewModelScope.launch {
@@ -145,6 +149,64 @@ class SettingsViewModel
 
         fun clearAdError() {
             _uiState.update { it.copy(adError = null) }
+        }
+
+        fun updateCustomPromptDraft(draft: String) {
+            _uiState.update { it.copy(customPromptDraft = draft) }
+        }
+
+        fun saveCustomPrompt() {
+            val state = _uiState.value
+            val langKey = PreferencesManager.languageToKey(state.language)
+            val draft = state.customPromptDraft
+            val defaultPrompt = RefinementPrompt.defaultForLanguage(state.language)
+            val promptToSave = if (draft.isBlank() || draft == defaultPrompt) null else draft
+            viewModelScope.launch {
+                preferencesManager.setCustomPrompt(langKey, promptToSave)
+                _uiState.update {
+                    it.copy(
+                        customPrompt = promptToSave,
+                        promptSnackbar = "saved",
+                    )
+                }
+            }
+        }
+
+        fun resetCustomPrompt() {
+            val state = _uiState.value
+            val langKey = PreferencesManager.languageToKey(state.language)
+            val defaultPrompt = RefinementPrompt.defaultForLanguage(state.language)
+            viewModelScope.launch {
+                preferencesManager.setCustomPrompt(langKey, null)
+                _uiState.update {
+                    it.copy(
+                        customPrompt = null,
+                        customPromptDraft = defaultPrompt,
+                        promptSnackbar = "reset",
+                    )
+                }
+            }
+        }
+
+        fun clearPromptSnackbar() {
+            _uiState.update { it.copy(promptSnackbar = null) }
+        }
+
+        private fun loadCustomPromptForLanguage(language: SttLanguage) {
+            customPromptJob?.cancel()
+            customPromptJob =
+                viewModelScope.launch {
+                    val langKey = PreferencesManager.languageToKey(language)
+                    preferencesManager.customPromptFlow(langKey).collect { saved ->
+                        val defaultPrompt = RefinementPrompt.defaultForLanguage(language)
+                        _uiState.update {
+                            it.copy(
+                                customPrompt = saved,
+                                customPromptDraft = saved ?: defaultPrompt,
+                            )
+                        }
+                    }
+                }
         }
 
         private fun maskApiKey(key: String?): String {

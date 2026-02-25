@@ -44,7 +44,7 @@ class VocabularyPromptBuilderTest {
                 SttLanguage.Chinese,
                 listOf("語墨", "Anthropic"),
             )
-        assertThat(result).contains("術語表")
+        assertThat(result).contains("自定義詞典")
         assertThat(result).contains("語墨")
         assertThat(result).contains("Anthropic")
     }
@@ -56,7 +56,7 @@ class VocabularyPromptBuilderTest {
                 SttLanguage.English,
                 listOf("VoxInk", "Claude"),
             )
-        assertThat(result).contains("Vocabulary")
+        assertThat(result).contains("Custom dictionary")
         assertThat(result).contains("VoxInk")
         assertThat(result).contains("Claude")
     }
@@ -68,7 +68,7 @@ class VocabularyPromptBuilderTest {
                 SttLanguage.Japanese,
                 listOf("語墨"),
             )
-        assertThat(result).contains("用語集")
+        assertThat(result).contains("カスタム辞書")
         assertThat(result).contains("語墨")
     }
 

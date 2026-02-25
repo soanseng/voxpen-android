@@ -16,6 +16,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class RecordingController(
@@ -95,7 +96,9 @@ class RecordingController(
                         usageLimiter.incrementRefinement()
                     }
                     val allVocabulary = dictionaryRepository.getWords(500)
-                    val refinedResult = refineTextUseCase(originalText, language, apiKey, llmModel, allVocabulary)
+                    val langKey = PreferencesManager.languageToKey(language)
+                    val customPrompt = preferencesManager.customPromptFlow(langKey).first()
+                    val refinedResult = refineTextUseCase(originalText, language, apiKey, llmModel, allVocabulary, customPrompt)
                     _uiState.value =
                         refinedResult.fold(
                             onSuccess = { ImeUiState.Refined(originalText, it) },

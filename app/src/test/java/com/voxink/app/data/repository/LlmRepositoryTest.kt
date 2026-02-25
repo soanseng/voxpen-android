@@ -153,7 +153,7 @@ class LlmRepositoryTest {
 
             val request = server.takeRequest()
             val body = request.body.readUtf8()
-            assertThat(body).contains("術語表")
+            assertThat(body).contains("自定義詞典")
             assertThat(body).contains("語墨")
         }
 }

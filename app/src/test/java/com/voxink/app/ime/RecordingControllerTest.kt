@@ -57,6 +57,7 @@ class RecordingControllerTest {
         every { preferencesManager.refinementEnabledFlow } returns refinementEnabledFlow
         every { preferencesManager.sttModelFlow } returns sttModelFlow
         every { preferencesManager.llmModelFlow } returns llmModelFlow
+        every { preferencesManager.customPromptFlow(any()) } returns MutableStateFlow(null)
         coEvery { dictionaryRepository.getWords(any()) } returns listOf("語墨", "Claude")
 
         val sttRepository = SttRepository(groqApi)

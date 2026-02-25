@@ -19,4 +19,7 @@ data class SettingsUiState(
     val remainingFileTranscriptions: Int = 0,
     val isLoadingAd: Boolean = false,
     val adError: String? = null,
+    val customPrompt: String? = null,
+    val customPromptDraft: String = "",
+    val promptSnackbar: String? = null,
 )

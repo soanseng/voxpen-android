@@ -1,5 +1,6 @@
 package com.voxink.app.domain.usecase
 
+import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.local.TranscriptionEntity
 import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.data.repository.SttRepository
@@ -37,7 +38,7 @@ class TranscribeFileUseCase
             }
 
             val mergedText = transcriptions.joinToString(" ")
-            val languageKey = languageToKey(language)
+            val languageKey = PreferencesManager.languageToKey(language)
             val entity =
                 TranscriptionEntity(
                     fileName = fileName,
@@ -49,14 +50,6 @@ class TranscribeFileUseCase
             val id = transcriptionRepository.insert(entity)
             return Result.success(entity.copy(id = id))
         }
-
-        private fun languageToKey(language: SttLanguage): String =
-            when (language) {
-                SttLanguage.Auto -> "auto"
-                SttLanguage.Chinese -> "zh"
-                SttLanguage.English -> "en"
-                SttLanguage.Japanese -> "ja"
-            }
 
         companion object {
             private const val DEFAULT_MAX_CHUNK_BYTES = 25 * 1024 * 1024

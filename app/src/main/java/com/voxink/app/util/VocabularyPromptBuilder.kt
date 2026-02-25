@@ -39,11 +39,25 @@ object VocabularyPromptBuilder {
         val words = vocabulary.joinToString(", ")
         return when (language) {
             SttLanguage.English ->
-                "\nVocabulary (prefer these terms): $words"
+                "\nCustom dictionary (voice recognition may produce near-homophone errors, please correct accordingly): $words"
             SttLanguage.Japanese ->
-                "\n用語集（これらの用語を優先してください）：$words"
+                "\nカスタム辞書（音声認識で類似音の誤変換が発生する可能性があります。以下の語彙で修正してください）：$words"
+            SttLanguage.Korean ->
+                "\n사용자 사전 (음성 인식에서 유사 발음 오류가 발생할 수 있습니다. 다음 단어로 수정해 주세요): $words"
+            SttLanguage.French ->
+                "\nDictionnaire personnalisé (la reconnaissance vocale peut produire des erreurs d'homophones, veuillez corriger en conséquence) : $words"
+            SttLanguage.German ->
+                "\nBenutzerwörterbuch (Spracherkennung kann Homophon-Fehler erzeugen, bitte entsprechend korrigieren): $words"
+            SttLanguage.Spanish ->
+                "\nDiccionario personalizado (el reconocimiento de voz puede producir errores de homófonos, corrija en consecuencia): $words"
+            SttLanguage.Vietnamese ->
+                "\nTừ điển tùy chỉnh (nhận dạng giọng nói có thể tạo lỗi đồng âm, vui lòng sửa theo danh sách sau): $words"
+            SttLanguage.Indonesian ->
+                "\nKamus kustom (pengenalan suara mungkin menghasilkan kesalahan homofon, mohon koreksi sesuai daftar berikut): $words"
+            SttLanguage.Thai ->
+                "\nพจนานุกรมกำหนดเอง (การรู้จำเสียงอาจเกิดข้อผิดพลาดจากคำพ้องเสียง กรุณาแก้ไขตามรายการต่อไปนี้): $words"
             else ->
-                "\n術語表（請優先使用這些詞彙）：$words"
+                "\n自定義詞典（語音辨識可能產生音近詞錯誤，請依此修正）：$words"
         }
     }
 
