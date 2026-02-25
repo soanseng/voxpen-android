@@ -52,12 +52,13 @@ class RewardedAdLoader
         fun loadAndShow(
             activity: Activity,
             onRewarded: (Int) -> Unit,
+            onAdDismissed: () -> Unit = {},
             onAdNotAvailable: () -> Unit = {},
         ) {
             // If already loaded, show immediately
             val existing = rewardedAd
             if (existing != null) {
-                showAd(activity, existing, onRewarded, onAdNotAvailable)
+                showAd(activity, existing, onRewarded, onAdDismissed, onAdNotAvailable)
                 return
             }
 
@@ -73,7 +74,7 @@ class RewardedAdLoader
                         isLoading = false
                         rewardedAd = ad
                         Timber.d("Rewarded ad loaded, showing now")
-                        showAd(activity, ad, onRewarded, onAdNotAvailable)
+                        showAd(activity, ad, onRewarded, onAdDismissed, onAdNotAvailable)
                     }
 
                     override fun onAdFailedToLoad(error: LoadAdError) {
@@ -91,7 +92,7 @@ class RewardedAdLoader
             onRewarded: (Int) -> Unit,
         ): Boolean {
             val ad = rewardedAd ?: return false
-            showAd(activity, ad, onRewarded) {}
+            showAd(activity, ad, onRewarded, {}, {})
             return true
         }
 
@@ -99,12 +100,15 @@ class RewardedAdLoader
             activity: Activity,
             ad: RewardedAd,
             onRewarded: (Int) -> Unit,
+            onAdDismissed: () -> Unit,
             onAdNotAvailable: () -> Unit,
         ) {
             ad.fullScreenContentCallback =
                 object : FullScreenContentCallback() {
                     override fun onAdDismissedFullScreenContent() {
+                        Timber.d("Rewarded ad dismissed")
                         rewardedAd = null
+                        onAdDismissed()
                         preload(activity)
                     }
 

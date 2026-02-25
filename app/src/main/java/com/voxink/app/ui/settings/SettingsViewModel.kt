@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -127,9 +128,14 @@ class SettingsViewModel
             rewardedAdLoader.loadAndShow(
                 activity = activity,
                 onRewarded = { _ ->
+                    Timber.d("Reward granted, adding bonus voice inputs")
                     usageLimiter.addBonusVoiceInputs(UsageLimiter.REWARDED_AD_BONUS)
                     refreshUsage()
+                },
+                onAdDismissed = {
+                    Timber.d("Ad dismissed, refreshing usage")
                     _uiState.update { it.copy(isLoadingAd = false) }
+                    refreshUsage()
                 },
                 onAdNotAvailable = {
                     _uiState.update { it.copy(isLoadingAd = false, adError = "Ad not available") }
