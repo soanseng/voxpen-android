@@ -1,7 +1,9 @@
 package com.voxink.app.ui.settings
 
+import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.voxink.app.ads.RewardedAdLoader
 import com.voxink.app.billing.BillingManager
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
@@ -24,6 +26,7 @@ class SettingsViewModel
         private val preferencesManager: PreferencesManager,
         private val billingManager: BillingManager,
         private val usageLimiter: UsageLimiter,
+        private val rewardedAdLoader: RewardedAdLoader,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SettingsUiState())
         val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -116,6 +119,14 @@ class SettingsViewModel
                     remainingRefinements = usageLimiter.remainingRefinements(),
                     remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
                 )
+            }
+        }
+
+        fun watchRewardedAd(activity: Activity) {
+            rewardedAdLoader.preload(activity)
+            rewardedAdLoader.show(activity) { _ ->
+                usageLimiter.addBonusVoiceInputs(UsageLimiter.REWARDED_AD_BONUS)
+                refreshUsage()
             }
         }
 

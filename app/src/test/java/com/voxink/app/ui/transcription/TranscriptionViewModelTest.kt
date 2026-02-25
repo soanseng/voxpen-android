@@ -162,7 +162,7 @@ class TranscriptionViewModelTest {
         }
 
     @Test
-    fun `should block file transcription when limit reached for Free users`() =
+    fun `should show rewarded ad prompt when limit reached for Free users`() =
         runTest {
             repeat(UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT) { usageLimiter.incrementFileTranscription() }
             viewModel = createViewModel()
@@ -171,7 +171,7 @@ class TranscriptionViewModelTest {
 
             viewModel.uiState.test {
                 val state = awaitItem()
-                assertThat(state.error).contains("limit reached")
+                assertThat(state.showRewardedAdPrompt).isTrue()
                 assertThat(state.isTranscribing).isFalse()
             }
         }

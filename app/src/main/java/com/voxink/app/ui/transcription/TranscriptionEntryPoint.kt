@@ -1,5 +1,7 @@
 package com.voxink.app.ui.transcription
 
+import com.voxink.app.ads.InterstitialAdLoader
+import com.voxink.app.ads.RewardedAdLoader
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.domain.usecase.TranscribeFileUseCase
 import dagger.hilt.EntryPoint
@@ -12,4 +14,8 @@ interface TranscriptionEntryPoint {
     fun transcribeFileUseCase(): TranscribeFileUseCase
 
     fun apiKeyManager(): ApiKeyManager
+
+    fun interstitialAdLoader(): InterstitialAdLoader
+
+    fun rewardedAdLoader(): RewardedAdLoader
 }

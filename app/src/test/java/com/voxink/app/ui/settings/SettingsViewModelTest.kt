@@ -2,6 +2,7 @@ package com.voxink.app.ui.settings
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.voxink.app.ads.RewardedAdLoader
 import com.voxink.app.billing.BillingManager
 import com.voxink.app.billing.ProStatus
 import com.voxink.app.billing.UsageLimiter
@@ -31,6 +32,7 @@ class SettingsViewModelTest {
     private val preferencesManager: PreferencesManager = mockk(relaxed = true)
     private val billingManager: BillingManager = mockk(relaxed = true)
     private val usageLimiter = UsageLimiter()
+    private val rewardedAdLoader: RewardedAdLoader = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
     private val proStatusFlow = MutableStateFlow<ProStatus>(ProStatus.Free)
 
@@ -50,7 +52,7 @@ class SettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = SettingsViewModel(apiKeyManager, preferencesManager, billingManager, usageLimiter)
+    private fun createViewModel() = SettingsViewModel(apiKeyManager, preferencesManager, billingManager, usageLimiter, rewardedAdLoader)
 
     @Test
     fun `should emit initial state with defaults`() =

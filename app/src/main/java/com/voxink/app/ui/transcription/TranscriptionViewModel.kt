@@ -73,9 +73,7 @@ class TranscriptionViewModel
         fun onFileSelected(uri: Uri) {
             val proStatus = billingManager.proStatus.value
             if (!proStatus.isPro && !usageLimiter.canUseFileTranscription()) {
-                _uiState.update {
-                    it.copy(error = "Daily file transcription limit reached. Upgrade to Pro for unlimited use.")
-                }
+                _uiState.update { it.copy(showRewardedAdPrompt = true) }
                 return
             }
             _uiState.update { it.copy(isTranscribing = true, progress = "Preparing…") }
@@ -93,8 +91,28 @@ class TranscriptionViewModel
                     selectedTranscription = entity,
                     canTranscribeFile = proStatus.isPro || usageLimiter.canUseFileTranscription(),
                     remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
+                    showInterstitialAfterTranscription = !proStatus.isPro,
                 )
             }
+        }
+
+        fun onRewardedAdWatched() {
+            usageLimiter.addBonusVoiceInputs(UsageLimiter.REWARDED_AD_BONUS)
+            _uiState.update {
+                it.copy(
+                    showRewardedAdPrompt = false,
+                    canTranscribeFile = billingManager.proStatus.value.isPro || usageLimiter.canUseFileTranscription(),
+                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
+                )
+            }
+        }
+
+        fun dismissRewardedPrompt() {
+            _uiState.update { it.copy(showRewardedAdPrompt = false) }
+        }
+
+        fun onInterstitialShown() {
+            _uiState.update { it.copy(showInterstitialAfterTranscription = false) }
         }
 
         fun onTranscriptionError(message: String) {

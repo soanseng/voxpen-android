@@ -1,6 +1,7 @@
 package com.voxink.app.ui
 
 import android.Manifest
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
@@ -23,6 +24,7 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -82,6 +84,11 @@ fun HomeScreenContent(
             onNavigateToSettings = onNavigateToSettings,
             onNavigateToTranscription = onNavigateToTranscription,
             onGrantMicPermission = { micPermLauncher.launch(Manifest.permission.RECORD_AUDIO) },
+            onWatchAd = {
+                (context as? Activity)?.let { activity ->
+                    viewModel.watchRewardedAd(activity)
+                }
+            },
         )
     }
 }
@@ -110,6 +117,7 @@ private fun HomeBody(
     onNavigateToSettings: () -> Unit,
     onNavigateToTranscription: () -> Unit,
     onGrantMicPermission: () -> Unit,
+    onWatchAd: () -> Unit = {},
 ) {
     Column(
         modifier
@@ -122,7 +130,7 @@ private fun HomeBody(
         WelcomeHeader()
         Spacer(Modifier.height(24.dp))
         if (!state.proStatus.isPro) {
-            UsageSummaryCard(state)
+            UsageSummaryCard(state = state, onWatchAd = onWatchAd)
             Spacer(Modifier.height(16.dp))
         }
         SetupChecklist(
@@ -143,7 +151,10 @@ private fun HomeBody(
 }
 
 @Composable
-private fun UsageSummaryCard(state: SettingsUiState) {
+private fun UsageSummaryCard(
+    state: SettingsUiState,
+    onWatchAd: () -> Unit = {},
+) {
     val voiceLimit = UsageLimiter.FREE_VOICE_INPUT_LIMIT
     val refineLimit = UsageLimiter.FREE_REFINEMENT_LIMIT
     val transcribeLimit = UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT
@@ -192,6 +203,16 @@ private fun UsageSummaryCard(state: SettingsUiState) {
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            Spacer(Modifier.height(8.dp))
+
+            TextButton(
+                onClick = onWatchAd,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    stringResource(R.string.usage_watch_ad, UsageLimiter.REWARDED_AD_BONUS),
+                )
+            }
         }
     }
 }
