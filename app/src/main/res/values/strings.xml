@@ -127,6 +127,8 @@
     <string name="usage_limit_refinement">Refinement limit reached for today.</string>
     <string name="usage_limit_transcription">File transcription limit reached for today.</string>
     <string name="usage_watch_ad">Watch ad for %1$d extra uses</string>
+    <string name="usage_ad_loading">Loading ad…</string>
+    <string name="usage_ad_unavailable">Ad not available, try again later</string>
     <string name="usage_upgrade_pro">Upgrade to Pro</string>
 
     <!-- Monetization — Pro -->

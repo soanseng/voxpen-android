@@ -205,13 +205,27 @@ private fun UsageSummaryCard(
             )
             Spacer(Modifier.height(8.dp))
 
+            if (state.adError != null) {
+                Text(
+                    stringResource(R.string.usage_ad_unavailable),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Spacer(Modifier.height(4.dp))
+            }
+
             TextButton(
                 onClick = onWatchAd,
                 modifier = Modifier.fillMaxWidth(),
+                enabled = !state.isLoadingAd,
             ) {
-                Text(
-                    stringResource(R.string.usage_watch_ad, UsageLimiter.REWARDED_AD_BONUS),
-                )
+                if (state.isLoadingAd) {
+                    Text(stringResource(R.string.usage_ad_loading))
+                } else {
+                    Text(
+                        stringResource(R.string.usage_watch_ad, UsageLimiter.REWARDED_AD_BONUS),
+                    )
+                }
             }
         }
     }

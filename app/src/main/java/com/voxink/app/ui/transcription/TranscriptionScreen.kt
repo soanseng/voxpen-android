@@ -154,13 +154,15 @@ fun TranscriptionScreenContent(
                                 TranscriptionEntryPoint::class.java,
                             )
                         val rewardedAdLoader = entryPoint.rewardedAdLoader()
-                        rewardedAdLoader.preload(act)
-                        val shown = rewardedAdLoader.show(act) { _ ->
-                            viewModel.onRewardedAdWatched()
-                        }
-                        if (!shown) {
-                            viewModel.dismissRewardedPrompt()
-                        }
+                        rewardedAdLoader.loadAndShow(
+                            activity = act,
+                            onRewarded = { _ ->
+                                viewModel.onRewardedAdWatched()
+                            },
+                            onAdNotAvailable = {
+                                viewModel.dismissRewardedPrompt()
+                            },
+                        )
                     }
                 }) {
                     Text(stringResource(R.string.usage_watch_ad, UsageLimiter.REWARDED_AD_BONUS))

@@ -123,11 +123,22 @@ class SettingsViewModel
         }
 
         fun watchRewardedAd(activity: Activity) {
-            rewardedAdLoader.preload(activity)
-            rewardedAdLoader.show(activity) { _ ->
-                usageLimiter.addBonusVoiceInputs(UsageLimiter.REWARDED_AD_BONUS)
-                refreshUsage()
-            }
+            _uiState.update { it.copy(isLoadingAd = true, adError = null) }
+            rewardedAdLoader.loadAndShow(
+                activity = activity,
+                onRewarded = { _ ->
+                    usageLimiter.addBonusVoiceInputs(UsageLimiter.REWARDED_AD_BONUS)
+                    refreshUsage()
+                    _uiState.update { it.copy(isLoadingAd = false) }
+                },
+                onAdNotAvailable = {
+                    _uiState.update { it.copy(isLoadingAd = false, adError = "Ad not available") }
+                },
+            )
+        }
+
+        fun clearAdError() {
+            _uiState.update { it.copy(adError = null) }
         }
 
         private fun maskApiKey(key: String?): String {

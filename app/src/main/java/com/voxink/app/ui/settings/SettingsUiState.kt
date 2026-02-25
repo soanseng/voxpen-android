@@ -17,4 +17,6 @@ data class SettingsUiState(
     val remainingVoiceInputs: Int = 0,
     val remainingRefinements: Int = 0,
     val remainingFileTranscriptions: Int = 0,
+    val isLoadingAd: Boolean = false,
+    val adError: String? = null,
 )

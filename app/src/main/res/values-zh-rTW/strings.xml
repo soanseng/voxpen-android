@@ -127,6 +127,8 @@
     <string name="usage_limit_refinement">今日潤稿次數已用完。</string>
     <string name="usage_limit_transcription">今日音檔轉錄次數已用完。</string>
     <string name="usage_watch_ad">觀看廣告獲取 %1$d 次額外使用</string>
+    <string name="usage_ad_loading">廣告載入中…</string>
+    <string name="usage_ad_unavailable">廣告暫時無法使用，請稍後再試</string>
     <string name="usage_upgrade_pro">升級 Pro</string>
 
     <!-- Monetization — Pro -->
