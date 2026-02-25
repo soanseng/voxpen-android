@@ -88,10 +88,20 @@ class OnboardingViewModel
             }
         }
 
+        fun skipPractice() {
+            _uiState.update {
+                it.copy(hasPracticed = true)
+            }
+        }
+
         fun startPractice(audioData: ByteArray) {
-            _uiState.update { it.copy(isPracticing = true) }
+            _uiState.update { it.copy(isPracticing = true, practiceError = null) }
             viewModelScope.launch {
-                val apiKey = apiKeyManager.getGroqApiKey() ?: return@launch
+                val apiKey = apiKeyManager.getGroqApiKey()
+                if (apiKey.isNullOrBlank()) {
+                    _uiState.update { it.copy(isPracticing = false, practiceError = "API key not configured") }
+                    return@launch
+                }
                 val language = preferencesManager.languageFlow.first()
                 val sttModel = preferencesManager.sttModelFlow.first()
                 val llmModel = preferencesManager.llmModelFlow.first()
@@ -102,9 +112,12 @@ class OnboardingViewModel
                         val refineResult = refineTextUseCase(original, language, apiKey, llmModel)
                         setPracticeResult(original, refineResult.getOrNull())
                     },
-                    onFailure = {
+                    onFailure = { error ->
                         _uiState.update { state ->
-                            state.copy(isPracticing = false)
+                            state.copy(
+                                isPracticing = false,
+                                practiceError = error.message ?: "Transcription failed",
+                            )
                         }
                     },
                 )

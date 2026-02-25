@@ -9,6 +9,7 @@ data class OnboardingUiState(
     val practiceOriginal: String? = null,
     val practiceRefined: String? = null,
     val isPracticing: Boolean = false,
+    val practiceError: String? = null,
 )
 
 enum class OnboardingStep {

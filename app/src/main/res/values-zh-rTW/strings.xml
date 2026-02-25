@@ -91,6 +91,7 @@
     <string name="onboarding_practice_original">原文：</string>
     <string name="onboarding_practice_refined">潤稿：</string>
     <string name="onboarding_practice_retry">再試一次</string>
+    <string name="onboarding_practice_skip">先跳過</string>
     <string name="onboarding_progress_few_more">還有幾步\u2026</string>
     <string name="onboarding_progress_almost">快完成了</string>
     <string name="onboarding_progress_last">最後一步！</string>

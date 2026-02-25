@@ -15,8 +15,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
@@ -27,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -44,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.voxink.app.R
+import com.voxink.app.ime.AudioRecorder
 
 @Composable
 fun OnboardingScreenContent(
@@ -261,6 +265,14 @@ private fun PracticeStep(
     state: OnboardingUiState,
     viewModel: OnboardingViewModel,
 ) {
+    val context = LocalContext.current
+    var isRecording by remember { mutableStateOf(false) }
+    val recorder = remember { AudioRecorder(context) }
+
+    DisposableEffect(Unit) {
+        onDispose { recorder.release() }
+    }
+
     Text(
         stringResource(R.string.onboarding_practice_title),
         style = MaterialTheme.typography.headlineMedium,
@@ -311,9 +323,47 @@ private fun PracticeStep(
             Text(stringResource(R.string.onboarding_practice_retry))
         }
     } else {
-        // Simple record button for practice
-        Button(onClick = { /* Recording wired in practice -- for now show placeholder */ }) {
-            Text(stringResource(R.string.keyboard_record))
+        state.practiceError?.let { error ->
+            Text(
+                error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(8.dp))
+        }
+        if (isRecording) {
+            Button(
+                onClick = {
+                    isRecording = false
+                    val pcmData = recorder.stopRecording()
+                    viewModel.startPractice(pcmData)
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                ),
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = MaterialTheme.colorScheme.onError,
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.recording))
+            }
+        } else {
+            Button(
+                onClick = {
+                    if (recorder.startRecording()) {
+                        isRecording = true
+                    }
+                },
+            ) {
+                Text(stringResource(R.string.keyboard_record))
+            }
+        }
+        Spacer(Modifier.height(16.dp))
+        TextButton(onClick = { viewModel.skipPractice() }) {
+            Text(stringResource(R.string.onboarding_practice_skip))
         }
     }
 }
