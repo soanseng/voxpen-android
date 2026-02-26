@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.voxink.app.data.model.LlmProvider
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.data.model.ToneStyle
@@ -48,6 +49,16 @@ class PreferencesManager
         val llmModelFlow: Flow<String> =
             context.dataStore.data.map { prefs ->
                 prefs[LLM_MODEL_KEY] ?: DEFAULT_LLM_MODEL
+            }
+
+        val llmProviderFlow: Flow<LlmProvider> =
+            context.dataStore.data.map { prefs ->
+                LlmProvider.fromKey(prefs[LLM_PROVIDER_KEY] ?: LlmProvider.DEFAULT.key)
+            }
+
+        val customLlmModelFlow: Flow<String> =
+            context.dataStore.data.map { prefs ->
+                prefs[CUSTOM_LLM_MODEL_KEY] ?: ""
             }
 
         val toneStyleFlow: Flow<ToneStyle> =
@@ -92,6 +103,18 @@ class PreferencesManager
         suspend fun setLlmModel(model: String) {
             context.dataStore.edit { prefs ->
                 prefs[LLM_MODEL_KEY] = model
+            }
+        }
+
+        suspend fun setLlmProvider(provider: LlmProvider) {
+            context.dataStore.edit { prefs ->
+                prefs[LLM_PROVIDER_KEY] = provider.key
+            }
+        }
+
+        suspend fun setCustomLlmModel(model: String) {
+            context.dataStore.edit { prefs ->
+                prefs[CUSTOM_LLM_MODEL_KEY] = model
             }
         }
 
@@ -147,6 +170,8 @@ class PreferencesManager
             private val STT_MODEL_KEY = stringPreferencesKey("stt_model")
             private val LLM_MODEL_KEY = stringPreferencesKey("llm_model")
             private val TONE_STYLE_KEY = stringPreferencesKey("tone_style")
+            private val LLM_PROVIDER_KEY = stringPreferencesKey("llm_provider")
+            private val CUSTOM_LLM_MODEL_KEY = stringPreferencesKey("custom_llm_model")
 
             fun languageFromKey(key: String): SttLanguage =
                 when (key) {
