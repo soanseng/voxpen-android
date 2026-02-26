@@ -85,7 +85,10 @@ class OnboardingViewModelTest {
             viewModel.nextStep() // GRANT_PERMISSION -> PRACTICE
             assertThat(viewModel.uiState.value.currentStep).isEqualTo(OnboardingStep.PRACTICE)
 
-            viewModel.nextStep() // PRACTICE -> DONE
+            viewModel.nextStep() // PRACTICE -> TIPS
+            assertThat(viewModel.uiState.value.currentStep).isEqualTo(OnboardingStep.TIPS)
+
+            viewModel.nextStep() // TIPS -> DONE
             assertThat(viewModel.uiState.value.currentStep).isEqualTo(OnboardingStep.DONE)
         }
 
@@ -154,11 +157,13 @@ class OnboardingViewModelTest {
         }
 
     @Test
-    fun `PRACTICE step should exist between GRANT_PERMISSION and DONE`() {
+    fun `PRACTICE step should exist between GRANT_PERMISSION and TIPS`() {
         assertThat(OnboardingStep.PRACTICE.ordinal)
             .isEqualTo(OnboardingStep.GRANT_PERMISSION.ordinal + 1)
-        assertThat(OnboardingStep.DONE.ordinal)
+        assertThat(OnboardingStep.TIPS.ordinal)
             .isEqualTo(OnboardingStep.PRACTICE.ordinal + 1)
+        assertThat(OnboardingStep.DONE.ordinal)
+            .isEqualTo(OnboardingStep.TIPS.ordinal + 1)
     }
 
     @Test

@@ -93,6 +93,7 @@ fun OnboardingScreenContent(
                 OnboardingStep.ENABLE_KEYBOARD -> EnableKeyboardStep(state)
                 OnboardingStep.GRANT_PERMISSION -> PermissionStep(state, viewModel)
                 OnboardingStep.PRACTICE -> PracticeStep(state, viewModel)
+                OnboardingStep.TIPS -> TipsStep()
                 OnboardingStep.DONE -> DoneStep()
             }
             Spacer(Modifier.height(32.dp))
@@ -121,8 +122,9 @@ private fun StepProgress(currentStep: OnboardingStep) {
         when (currentStep) {
             OnboardingStep.WELCOME, OnboardingStep.API_KEY -> null
             OnboardingStep.ENABLE_KEYBOARD -> stringResource(R.string.onboarding_progress_few_more)
-            OnboardingStep.GRANT_PERMISSION -> stringResource(R.string.onboarding_progress_almost)
-            OnboardingStep.PRACTICE -> stringResource(R.string.onboarding_progress_last)
+            OnboardingStep.GRANT_PERMISSION -> stringResource(R.string.onboarding_progress_few_more)
+            OnboardingStep.PRACTICE -> stringResource(R.string.onboarding_progress_almost)
+            OnboardingStep.TIPS -> stringResource(R.string.onboarding_progress_last)
             OnboardingStep.DONE -> null
         }
     progressText?.let {
@@ -382,6 +384,27 @@ private fun DoneStep() {
 }
 
 @Composable
+private fun TipsStep() {
+    Text(
+        stringResource(R.string.onboarding_tips_title),
+        style = MaterialTheme.typography.headlineMedium,
+    )
+    Spacer(Modifier.height(24.dp))
+    val tips = listOf(
+        R.string.onboarding_tip_language,
+        R.string.onboarding_tip_refinement,
+        R.string.onboarding_tip_tone,
+    )
+    tips.forEach { tipRes ->
+        Text(
+            "\u2022 ${stringResource(tipRes)}",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(vertical = 6.dp),
+        )
+    }
+}
+
+@Composable
 private fun NavigationButtons(
     state: OnboardingUiState,
     onBack: () -> Unit,
@@ -395,6 +418,7 @@ private fun NavigationButtons(
             OnboardingStep.ENABLE_KEYBOARD -> state.isKeyboardEnabled
             OnboardingStep.GRANT_PERMISSION -> state.hasMicPermission
             OnboardingStep.PRACTICE -> state.hasPracticed
+            OnboardingStep.TIPS -> true
             OnboardingStep.DONE -> true
         }
 
