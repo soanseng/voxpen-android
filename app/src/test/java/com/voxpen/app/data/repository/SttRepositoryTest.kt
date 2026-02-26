@@ -5,6 +5,7 @@ import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.remote.GroqApi
 import com.voxpen.app.data.remote.SttApiFactory
 import com.voxpen.app.data.remote.WhisperResponse
+import com.voxpen.app.data.remote.WhisperSegment
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -42,7 +43,7 @@ class SttRepositoryTest {
                 )
 
             assertThat(result.isSuccess).isTrue()
-            assertThat(result.getOrNull()).isEqualTo("你好世界")
+            assertThat(result.getOrNull()?.text).isEqualTo("你好世界")
         }
 
     @Test
@@ -143,7 +144,7 @@ class SttRepositoryTest {
                     customSttBaseUrl = "https://my-whisper.example.com/",
                 )
 
-            assertThat(result.getOrNull()).isEqualTo("custom result")
+            assertThat(result.getOrNull()?.text).isEqualTo("custom result")
             coVerify(exactly = 0) { groqApi.transcribe(any(), any(), any(), any(), any(), any()) }
         }
 
@@ -161,6 +162,25 @@ class SttRepositoryTest {
                     customSttBaseUrl = null,
                 )
 
-            assertThat(result.getOrNull()).isEqualTo("groq result")
+            assertThat(result.getOrNull()?.text).isEqualTo("groq result")
+        }
+
+    @Test
+    fun `should return segments from Whisper response`() =
+        runTest {
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(
+                text = "Hello",
+                segments = listOf(
+                    WhisperSegment(id = 0, start = 0.0, end = 1.5, text = "Hello"),
+                ),
+            )
+
+            val result = repository.transcribe(ByteArray(10), SttLanguage.Auto, "key")
+
+            assertThat(result.getOrNull()?.segments).hasSize(1)
+            assertThat(result.getOrNull()?.segments?.first()?.startMs).isEqualTo(0L)
+            assertThat(result.getOrNull()?.segments?.first()?.endMs).isEqualTo(1500L)
         }
 }

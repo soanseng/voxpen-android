@@ -1,6 +1,8 @@
 package com.voxpen.app.util
 
 import com.voxpen.app.data.local.TranscriptionEntity
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 object ExportHelper {
     private const val ESTIMATED_SECONDS_PER_SENTENCE = 5L
@@ -22,6 +24,20 @@ object ExportHelper {
         }
 
     fun toSrt(entity: TranscriptionEntity): String {
+        val segments = parseSegments(entity.segmentsJson)
+
+        if (segments != null) {
+            return buildString {
+                segments.forEachIndexed { index, seg ->
+                    appendLine("${index + 1}")
+                    appendLine("${formatSrtTimestamp(seg.startMs)} --> ${formatSrtTimestamp(seg.endMs)}")
+                    appendLine(seg.text.trim())
+                    appendLine()
+                }
+            }
+        }
+
+        // Fallback to estimated timestamps for old entries without segments
         val text = entity.displayText
         val sentences = splitIntoSentences(text)
 
@@ -45,6 +61,17 @@ object ExportHelper {
         return "%02d:%02d:%02d,%03d".format(hours, minutes, seconds, millis)
     }
 
+    private fun parseSegments(json: String?): List<ParsedSegment>? {
+        if (json.isNullOrBlank()) return null
+        return try {
+            Json.decodeFromString<List<StoredSegment>>(json).map {
+                ParsedSegment(it.s, it.e, it.t)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
     private fun splitIntoSentences(text: String): List<String> {
         val sentences =
             text.split(Regex("(?<=[.!?。！？])[\\s]+"))
@@ -52,3 +79,8 @@ object ExportHelper {
         return sentences.ifEmpty { listOf(text) }
     }
 }
+
+private data class ParsedSegment(val startMs: Long, val endMs: Long, val text: String)
+
+@Serializable
+private data class StoredSegment(val s: Long, val e: Long, val t: String)

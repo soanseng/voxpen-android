@@ -23,6 +23,7 @@ class TranscribeAudioUseCase
         ): Result<String> {
             val wavBytes = AudioEncoder.pcmToWav(pcmData, sampleRate, channels, bitsPerSample)
             return sttRepository.transcribe(wavBytes, language, apiKey, model, vocabularyHint, customSttBaseUrl)
+                .map { it.text }
         }
 
         companion object {

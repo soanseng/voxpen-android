@@ -7,7 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [TranscriptionEntity::class, DictionaryEntry::class],
-    version = 2,
+    version = 3,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -29,6 +29,13 @@ abstract class AppDatabase : RoomDatabase() {
                     db.execSQL(
                         "CREATE UNIQUE INDEX IF NOT EXISTS index_dictionary_entries_word ON dictionary_entries (word)",
                     )
+                }
+            }
+
+        val MIGRATION_2_3 =
+            object : Migration(2, 3) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE transcriptions ADD COLUMN segmentsJson TEXT DEFAULT NULL")
                 }
             }
     }

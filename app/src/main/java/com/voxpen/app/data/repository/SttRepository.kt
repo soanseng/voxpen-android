@@ -24,7 +24,7 @@ class SttRepository
             model: String = WHISPER_MODEL,
             vocabularyHint: String? = null,
             customSttBaseUrl: String? = null,
-        ): Result<String> {
+        ): Result<TranscriptionResult> {
             if (apiKey.isBlank()) {
                 return Result.failure(IllegalStateException("API key not configured"))
             }
@@ -58,7 +58,14 @@ class SttRepository
                         prompt = promptBody,
                     )
 
-                Result.success(response.text)
+                val segments = response.segments?.map { seg ->
+                    TranscriptionSegment(
+                        startMs = (seg.start * 1000).toLong(),
+                        endMs = (seg.end * 1000).toLong(),
+                        text = seg.text,
+                    )
+                } ?: emptyList()
+                Result.success(TranscriptionResult(response.text, segments))
             } catch (e: IOException) {
                 Result.failure(e)
             }

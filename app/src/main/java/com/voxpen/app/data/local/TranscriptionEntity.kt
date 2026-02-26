@@ -13,6 +13,7 @@ data class TranscriptionEntity(
     val language: String,
     val durationMs: Long? = null,
     val fileSizeBytes: Long? = null,
+    val segmentsJson: String? = null,
     val createdAt: Long,
 ) {
     val displayText: String

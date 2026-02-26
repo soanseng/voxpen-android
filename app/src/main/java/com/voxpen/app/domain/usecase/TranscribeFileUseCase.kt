@@ -7,7 +7,11 @@ import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.model.ToneStyle
 import com.voxpen.app.data.repository.SttRepository
 import com.voxpen.app.data.repository.TranscriptionRepository
+import com.voxpen.app.data.repository.TranscriptionSegment
 import com.voxpen.app.util.AudioChunker
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class TranscribeFileUseCase
@@ -39,10 +43,25 @@ class TranscribeFileUseCase
                 }
 
             val transcriptions = mutableListOf<String>()
+            val allSegments = mutableListOf<TranscriptionSegment>()
+            var segmentOffsetMs = 0L
+
             for (chunk in chunks) {
                 val result = sttRepository.transcribe(chunk, language, apiKey)
                 result.fold(
-                    onSuccess = { transcriptions.add(it) },
+                    onSuccess = { tr ->
+                        transcriptions.add(tr.text)
+                        tr.segments.forEach { seg ->
+                            allSegments.add(
+                                TranscriptionSegment(
+                                    startMs = seg.startMs + segmentOffsetMs,
+                                    endMs = seg.endMs + segmentOffsetMs,
+                                    text = seg.text,
+                                ),
+                            )
+                        }
+                        tr.segments.lastOrNull()?.let { segmentOffsetMs += it.endMs }
+                    },
                     onFailure = { return Result.failure(it) },
                 )
             }
@@ -65,6 +84,12 @@ class TranscribeFileUseCase
                 null
             }
 
+            val segmentsJson = if (allSegments.isNotEmpty()) {
+                Json.encodeToString(allSegments.map { StoredSegment(it.startMs, it.endMs, it.text) })
+            } else {
+                null
+            }
+
             val languageKey = PreferencesManager.languageToKey(language)
             val entity =
                 TranscriptionEntity(
@@ -73,6 +98,7 @@ class TranscribeFileUseCase
                     refinedText = refinedText,
                     language = languageKey,
                     fileSizeBytes = fileBytes.size.toLong(),
+                    segmentsJson = segmentsJson,
                     createdAt = System.currentTimeMillis(),
                 )
             val id = transcriptionRepository.insert(entity)
@@ -83,3 +109,6 @@ class TranscribeFileUseCase
             private const val DEFAULT_MAX_CHUNK_BYTES = 25 * 1024 * 1024
         }
     }
+
+@Serializable
+private data class StoredSegment(val s: Long, val e: Long, val t: String)

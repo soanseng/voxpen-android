@@ -102,4 +102,39 @@ class ExportHelperTest {
         assertThat(srt).startsWith("1\n")
         assertThat(srt).contains("Just one sentence.")
     }
+
+    @Test
+    fun `should use real segments for SRT when available`() {
+        val segments = """[{"s":0,"e":2500,"t":"Hello world."},{"s":2500,"e":5000,"t":"How are you?"}]"""
+        val entity =
+            TranscriptionEntity(
+                fileName = "test.wav",
+                originalText = "Hello world. How are you?",
+                language = "en",
+                segmentsJson = segments,
+                createdAt = 1000L,
+            )
+
+        val srt = ExportHelper.toSrt(entity)
+
+        assertThat(srt).contains("00:00:00,000 --> 00:00:02,500")
+        assertThat(srt).contains("00:00:02,500 --> 00:00:05,000")
+        assertThat(srt).contains("Hello world.")
+        assertThat(srt).contains("How are you?")
+    }
+
+    @Test
+    fun `should fall back to estimated timestamps when no segments`() {
+        val entity =
+            TranscriptionEntity(
+                fileName = "test.wav",
+                originalText = "One sentence. Two sentence.",
+                language = "en",
+                createdAt = 1000L,
+            )
+
+        val srt = ExportHelper.toSrt(entity)
+
+        assertThat(srt).contains("00:00:00,000 --> 00:00:05,000")
+    }
 }
