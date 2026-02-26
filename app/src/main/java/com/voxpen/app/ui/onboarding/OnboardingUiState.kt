@@ -18,5 +18,6 @@ enum class OnboardingStep {
     ENABLE_KEYBOARD,
     GRANT_PERMISSION,
     PRACTICE,
+    TIPS,
     DONE,
 }
