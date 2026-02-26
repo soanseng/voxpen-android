@@ -118,10 +118,8 @@ dependencies {
     // Navigation
     implementation(libs.navigation.compose)
 
-    // Billing & Ads
+    // Billing
     implementation(libs.billing)
-    implementation(libs.play.services.ads)
-    implementation(libs.ump)
 
     // Material (XML theme support)
     implementation(libs.google.material)

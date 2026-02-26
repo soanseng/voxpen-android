@@ -3,7 +3,7 @@ package com.voxink.app.ui.transcription
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.ProStatusResolver
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.TranscriptionEntity
 import com.voxink.app.data.repository.TranscriptionRepository
@@ -20,7 +20,7 @@ class TranscriptionViewModel
     @Inject
     constructor(
         private val transcriptionRepository: TranscriptionRepository,
-        private val billingManager: BillingManager,
+        private val proStatusResolver: ProStatusResolver,
         private val usageLimiter: UsageLimiter,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(TranscriptionUiState())
@@ -33,7 +33,7 @@ class TranscriptionViewModel
                 }
             }
             viewModelScope.launch {
-                billingManager.proStatus.collect { status ->
+                proStatusResolver.proStatus.collect { status ->
                     _uiState.update {
                         it.copy(
                             proStatus = status,
@@ -71,16 +71,16 @@ class TranscriptionViewModel
         }
 
         fun onFileSelected(uri: Uri) {
-            val proStatus = billingManager.proStatus.value
+            val proStatus = proStatusResolver.proStatus.value
             if (!proStatus.isPro && !usageLimiter.canTranscribeFile(0)) {
-                _uiState.update { it.copy(showRewardedAdPrompt = true) }
+                _uiState.update { it.copy(showUpgradePrompt = true) }
                 return
             }
             _uiState.update { it.copy(isTranscribing = true, progress = "Preparing…") }
         }
 
         fun onTranscriptionComplete(entity: TranscriptionEntity) {
-            val proStatus = billingManager.proStatus.value
+            val proStatus = proStatusResolver.proStatus.value
             if (!proStatus.isPro) {
                 usageLimiter.addFileTranscriptionDuration(0)
             }
@@ -91,28 +91,12 @@ class TranscriptionViewModel
                     selectedTranscription = entity,
                     canTranscribeFile = proStatus.isPro || usageLimiter.canTranscribeFile(0),
                     remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
-                    showInterstitialAfterTranscription = !proStatus.isPro,
                 )
             }
         }
 
-        fun onRewardedAdWatched() {
-            // Bonus voice inputs removed in monetization v2
-            _uiState.update {
-                it.copy(
-                    showRewardedAdPrompt = false,
-                    canTranscribeFile = billingManager.proStatus.value.isPro || usageLimiter.canTranscribeFile(0),
-                    remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
-                )
-            }
-        }
-
-        fun dismissRewardedPrompt() {
-            _uiState.update { it.copy(showRewardedAdPrompt = false) }
-        }
-
-        fun onInterstitialShown() {
-            _uiState.update { it.copy(showInterstitialAfterTranscription = false) }
+        fun dismissUpgradePrompt() {
+            _uiState.update { it.copy(showUpgradePrompt = false) }
         }
 
         fun onTranscriptionError(message: String) {

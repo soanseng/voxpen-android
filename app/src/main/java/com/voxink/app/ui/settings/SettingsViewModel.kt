@@ -3,8 +3,9 @@ package com.voxink.app.ui.settings
 import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.voxink.app.ads.RewardedAdLoader
 import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.LicenseManager
+import com.voxink.app.billing.ProStatusResolver
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
@@ -18,7 +19,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
@@ -29,7 +29,8 @@ class SettingsViewModel
         private val preferencesManager: PreferencesManager,
         private val billingManager: BillingManager,
         private val usageLimiter: UsageLimiter,
-        private val rewardedAdLoader: RewardedAdLoader,
+        private val licenseManager: LicenseManager,
+        private val proStatusResolver: ProStatusResolver,
     ) : ViewModel() {
         private val _uiState = MutableStateFlow(SettingsUiState())
         val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -72,7 +73,7 @@ class SettingsViewModel
                 }
             }
             viewModelScope.launch {
-                billingManager.proStatus.collect { status ->
+                proStatusResolver.proStatus.collect { status ->
                     _uiState.update { it.copy(proStatus = status) }
                 }
             }
@@ -108,6 +109,10 @@ class SettingsViewModel
             viewModelScope.launch { preferencesManager.setLlmModel(model) }
         }
 
+        fun launchPurchaseFlow(activity: Activity) {
+            billingManager.launchPurchaseFlow(activity)
+        }
+
         fun restorePurchases() {
             billingManager.restorePurchases()
         }
@@ -127,28 +132,31 @@ class SettingsViewModel
             }
         }
 
-        fun watchRewardedAd(activity: Activity) {
-            _uiState.update { it.copy(isLoadingAd = true, adError = null) }
-            rewardedAdLoader.loadAndShow(
-                activity = activity,
-                onRewarded = { _ ->
-                    Timber.d("Reward granted, adding bonus voice inputs")
-                    // Bonus voice inputs removed in monetization v2
-                    refreshUsage()
-                },
-                onAdDismissed = {
-                    Timber.d("Ad dismissed, refreshing usage")
-                    _uiState.update { it.copy(isLoadingAd = false) }
-                    refreshUsage()
-                },
-                onAdNotAvailable = {
-                    _uiState.update { it.copy(isLoadingAd = false, adError = "Ad not available") }
-                },
-            )
+        fun activateLicense(key: String) {
+            viewModelScope.launch {
+                _uiState.update { it.copy(isActivatingLicense = true, licenseError = null) }
+                val result = licenseManager.activateLicense(key)
+                result.fold(
+                    onSuccess = {
+                        _uiState.update { it.copy(isActivatingLicense = false) }
+                    },
+                    onFailure = { error ->
+                        _uiState.update {
+                            it.copy(isActivatingLicense = false, licenseError = error.message)
+                        }
+                    },
+                )
+            }
         }
 
-        fun clearAdError() {
-            _uiState.update { it.copy(adError = null) }
+        fun deactivateLicense() {
+            viewModelScope.launch {
+                licenseManager.deactivateLicense()
+            }
+        }
+
+        fun clearLicenseError() {
+            _uiState.update { it.copy(licenseError = null) }
         }
 
         fun updateCustomPromptDraft(draft: String) {

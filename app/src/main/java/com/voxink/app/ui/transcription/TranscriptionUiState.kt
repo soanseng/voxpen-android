@@ -12,6 +12,5 @@ data class TranscriptionUiState(
     val proStatus: ProStatus = ProStatus.Free,
     val canTranscribeFile: Boolean = true,
     val remainingFileTranscriptionSeconds: Int = 0,
-    val showRewardedAdPrompt: Boolean = false,
-    val showInterstitialAfterTranscription: Boolean = false,
+    val showUpgradePrompt: Boolean = false,
 )

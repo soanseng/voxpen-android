@@ -2,9 +2,9 @@ package com.voxink.app.ui.transcription
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.voxink.app.billing.BillingManager
 import com.voxink.app.billing.ProSource
 import com.voxink.app.billing.ProStatus
+import com.voxink.app.billing.ProStatusResolver
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.TranscriptionEntity
 import com.voxink.app.data.repository.TranscriptionRepository
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test
 class TranscriptionViewModelTest {
     private val testDispatcher = UnconfinedTestDispatcher()
     private lateinit var transcriptionRepository: TranscriptionRepository
-    private lateinit var billingManager: BillingManager
+    private lateinit var proStatusResolver: ProStatusResolver
     private lateinit var usageLimiter: UsageLimiter
     private lateinit var viewModel: TranscriptionViewModel
     private val proStatusFlow = MutableStateFlow<ProStatus>(ProStatus.Free)
@@ -36,10 +36,10 @@ class TranscriptionViewModelTest {
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         transcriptionRepository = mockk(relaxed = true)
-        billingManager = mockk(relaxed = true)
+        proStatusResolver = mockk(relaxed = true)
         usageLimiter = UsageLimiter()
         every { transcriptionRepository.getAll() } returns flowOf(emptyList())
-        every { billingManager.proStatus } returns proStatusFlow
+        every { proStatusResolver.proStatus } returns proStatusFlow
     }
 
     @AfterEach
@@ -48,7 +48,7 @@ class TranscriptionViewModelTest {
     }
 
     private fun createViewModel(): TranscriptionViewModel =
-        TranscriptionViewModel(transcriptionRepository, billingManager, usageLimiter)
+        TranscriptionViewModel(transcriptionRepository, proStatusResolver, usageLimiter)
 
     @Test
     fun `should start with empty transcription list`() =
@@ -163,7 +163,7 @@ class TranscriptionViewModelTest {
         }
 
     @Test
-    fun `should show rewarded ad prompt when limit reached for Free users`() =
+    fun `should show upgrade prompt when limit reached for Free users`() =
         runTest {
             usageLimiter.addFileTranscriptionDuration(UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION + 1)
             viewModel = createViewModel()
@@ -172,7 +172,7 @@ class TranscriptionViewModelTest {
 
             viewModel.uiState.test {
                 val state = awaitItem()
-                assertThat(state.showRewardedAdPrompt).isTrue()
+                assertThat(state.showUpgradePrompt).isTrue()
                 assertThat(state.isTranscribing).isFalse()
             }
         }
