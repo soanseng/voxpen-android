@@ -11,11 +11,19 @@ sealed class ToneStyle(
     data object Custom : ToneStyle("custom")
 
     companion object {
-        val DEFAULT: ToneStyle = Casual
+        val DEFAULT: ToneStyle get() = Casual
 
-        val all: List<ToneStyle> = listOf(Casual, Professional, Email, Note, Social, Custom)
+        val all: List<ToneStyle> get() = listOf(Casual, Professional, Email, Note, Social, Custom)
 
         fun fromKey(key: String): ToneStyle =
-            all.find { it.key == key } ?: DEFAULT
+            when (key) {
+                "casual" -> Casual
+                "professional" -> Professional
+                "email" -> Email
+                "note" -> Note
+                "social" -> Social
+                "custom" -> Custom
+                else -> DEFAULT
+            }
     }
 }

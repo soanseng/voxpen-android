@@ -2,6 +2,7 @@ package com.voxink.app.data.repository
 
 import com.voxink.app.data.model.RefinementPrompt
 import com.voxink.app.data.model.SttLanguage
+import com.voxink.app.data.model.ToneStyle
 import com.voxink.app.data.remote.ChatCompletionRequest
 import com.voxink.app.data.remote.ChatMessage
 import com.voxink.app.data.remote.GroqApi
@@ -22,6 +23,7 @@ class LlmRepository
             model: String = LLM_MODEL,
             vocabulary: List<String> = emptyList(),
             customPrompt: String? = null,
+            tone: ToneStyle = ToneStyle.Casual,
         ): Result<String> {
             if (apiKey.isBlank()) {
                 return Result.failure(IllegalStateException("API key not configured"))
@@ -31,7 +33,7 @@ class LlmRepository
             }
 
             return try {
-                val systemPrompt = RefinementPrompt.forLanguage(language, vocabulary, customPrompt)
+                val systemPrompt = RefinementPrompt.forLanguage(language, vocabulary, customPrompt, tone)
                 val request =
                     ChatCompletionRequest(
                         model = model,

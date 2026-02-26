@@ -8,6 +8,7 @@ import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.SttLanguage
+import com.voxink.app.data.model.ToneStyle
 import com.voxink.app.data.remote.ChatChoice
 import com.voxink.app.data.remote.ChatCompletionResponse
 import com.voxink.app.data.remote.ChatMessage
@@ -44,6 +45,7 @@ class RecordingControllerTest {
     private val refinementEnabledFlow = MutableStateFlow(true)
     private val sttModelFlow = MutableStateFlow(PreferencesManager.DEFAULT_STT_MODEL)
     private val llmModelFlow = MutableStateFlow(PreferencesManager.DEFAULT_LLM_MODEL)
+    private val toneStyleFlow = MutableStateFlow<ToneStyle>(ToneStyle.Casual)
     private var fakeRecordedAudio: ByteArray = ByteArray(100) { it.toByte() }
     private var isRecording = false
     private val startRecording: () -> Unit = { isRecording = true }
@@ -58,6 +60,7 @@ class RecordingControllerTest {
         every { preferencesManager.refinementEnabledFlow } returns refinementEnabledFlow
         every { preferencesManager.sttModelFlow } returns sttModelFlow
         every { preferencesManager.llmModelFlow } returns llmModelFlow
+        every { preferencesManager.toneStyleFlow } returns toneStyleFlow
         every { preferencesManager.customPromptFlow(any()) } returns MutableStateFlow(null)
         coEvery { dictionaryRepository.getWords(any()) } returns listOf("語墨", "Claude")
 
