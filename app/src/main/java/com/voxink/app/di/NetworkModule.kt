@@ -2,6 +2,7 @@ package com.voxink.app.di
 
 import com.voxink.app.BuildConfig
 import com.voxink.app.data.remote.GroqApi
+import com.voxink.app.data.remote.LemonSqueezyApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -59,5 +60,19 @@ object NetworkModule {
             .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
             .build()
             .create(GroqApi::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideLemonSqueezyApi(
+        client: OkHttpClient,
+        json: Json,
+    ): LemonSqueezyApi {
+        return Retrofit.Builder()
+            .baseUrl("https://api.lemonsqueezy.com/")
+            .client(client)
+            .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
+            .build()
+            .create(LemonSqueezyApi::class.java)
     }
 }

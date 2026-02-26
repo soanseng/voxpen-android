@@ -78,6 +78,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.process)
     implementation(libs.androidx.activity.compose)
 
     // Compose
@@ -118,10 +119,8 @@ dependencies {
     // Navigation
     implementation(libs.navigation.compose)
 
-    // Billing & Ads
+    // Billing
     implementation(libs.billing)
-    implementation(libs.play.services.ads)
-    implementation(libs.ump)
 
     // Material (XML theme support)
     implementation(libs.google.material)

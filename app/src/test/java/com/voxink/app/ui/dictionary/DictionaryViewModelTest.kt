@@ -3,6 +3,7 @@ package com.voxink.app.ui.dictionary
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.ProSource
 import com.voxink.app.billing.ProStatus
 import com.voxink.app.data.local.DictionaryEntry
 import com.voxink.app.data.repository.DictionaryRepository
@@ -73,7 +74,7 @@ class DictionaryViewModelTest {
     fun `should expose isPro from billing manager`() =
         runTest {
             val vm = createViewModel()
-            proStatusFlow.value = ProStatus.Pro
+            proStatusFlow.value = ProStatus.Pro(ProSource.GOOGLE_PLAY)
 
             vm.isPro.test {
                 assertThat(awaitItem()).isTrue()
@@ -143,7 +144,7 @@ class DictionaryViewModelTest {
         runTest {
             val vm = createViewModel()
             countFlow.value = 100
-            proStatusFlow.value = ProStatus.Pro
+            proStatusFlow.value = ProStatus.Pro(ProSource.GOOGLE_PLAY)
 
             vm.isLimitReached.test {
                 assertThat(awaitItem()).isFalse()

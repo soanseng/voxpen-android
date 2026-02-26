@@ -2,9 +2,11 @@ package com.voxink.app.ui.settings
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
-import com.voxink.app.ads.RewardedAdLoader
 import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.LicenseManager
+import com.voxink.app.billing.ProSource
 import com.voxink.app.billing.ProStatus
+import com.voxink.app.billing.ProStatusResolver
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
@@ -32,7 +34,8 @@ class SettingsViewModelTest {
     private val preferencesManager: PreferencesManager = mockk(relaxed = true)
     private val billingManager: BillingManager = mockk(relaxed = true)
     private val usageLimiter = UsageLimiter()
-    private val rewardedAdLoader: RewardedAdLoader = mockk(relaxed = true)
+    private val licenseManager: LicenseManager = mockk(relaxed = true)
+    private val proStatusResolver: ProStatusResolver = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
     private val proStatusFlow = MutableStateFlow<ProStatus>(ProStatus.Free)
 
@@ -44,6 +47,7 @@ class SettingsViewModelTest {
         every { preferencesManager.languageFlow } returns flowOf(SttLanguage.Auto)
         every { preferencesManager.recordingModeFlow } returns flowOf(RecordingMode.TAP_TO_TOGGLE)
         every { preferencesManager.refinementEnabledFlow } returns flowOf(true)
+        every { proStatusResolver.proStatus } returns proStatusFlow
         every { billingManager.proStatus } returns proStatusFlow
     }
 
@@ -52,7 +56,8 @@ class SettingsViewModelTest {
         Dispatchers.resetMain()
     }
 
-    private fun createViewModel() = SettingsViewModel(apiKeyManager, preferencesManager, billingManager, usageLimiter, rewardedAdLoader)
+    private fun createViewModel() =
+        SettingsViewModel(apiKeyManager, preferencesManager, billingManager, usageLimiter, licenseManager, proStatusResolver)
 
     @Test
     fun `should emit initial state with defaults`() =
@@ -99,12 +104,12 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun `should reflect Pro status from BillingManager`() =
+    fun `should reflect Pro status from ProStatusResolver`() =
         runTest {
             val vm = createViewModel()
-            proStatusFlow.value = ProStatus.Pro
+            proStatusFlow.value = ProStatus.Pro(ProSource.GOOGLE_PLAY)
             vm.uiState.test {
-                assertThat(awaitItem().proStatus).isEqualTo(ProStatus.Pro)
+                assertThat(awaitItem().proStatus).isEqualTo(ProStatus.Pro(ProSource.GOOGLE_PLAY))
             }
         }
 

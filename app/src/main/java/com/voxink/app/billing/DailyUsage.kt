@@ -6,5 +6,5 @@ data class DailyUsage(
     val date: LocalDate,
     val voiceInputCount: Int = 0,
     val refinementCount: Int = 0,
-    val fileTranscriptionCount: Int = 0,
+    val fileTranscriptionSeconds: Int = 0,
 )

@@ -5,6 +5,9 @@ import android.content.SharedPreferences
 import androidx.room.Room
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
+import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.LicenseManager
+import com.voxink.app.billing.ProStatusResolver
 import com.voxink.app.data.local.AppDatabase
 import com.voxink.app.data.local.DictionaryDao
 import com.voxink.app.data.local.TranscriptionDao
@@ -13,6 +16,11 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -48,4 +56,36 @@ object AppModule {
 
     @Provides
     fun provideDictionaryDao(database: AppDatabase): DictionaryDao = database.dictionaryDao()
+
+    @Provides
+    @Singleton
+    @Named("licenseInstanceName")
+    fun provideLicenseInstanceName(
+        @ApplicationContext context: Context,
+    ): String {
+        val androidId = android.provider.Settings.Secure.getString(
+            context.contentResolver,
+            android.provider.Settings.Secure.ANDROID_ID,
+        )
+        return "android-$androidId"
+    }
+
+    @Provides
+    @Singleton
+    @Named("ioDispatcher")
+    fun provideIoDispatcher(): CoroutineDispatcher = Dispatchers.IO
+
+    @Provides
+    @Singleton
+    fun provideProStatusResolver(
+        billingManager: BillingManager,
+        licenseManager: LicenseManager,
+    ): ProStatusResolver {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+        return ProStatusResolver(
+            billingStatusFlow = billingManager.proStatus,
+            licenseStatusFlow = licenseManager.proStatus,
+            scope = scope,
+        )
+    }
 }

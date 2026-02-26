@@ -1,7 +1,6 @@
 package com.voxink.app.ui
 
 import android.Manifest
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.Settings
@@ -24,7 +23,6 @@ import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -42,7 +40,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.voxink.app.R
-import com.voxink.app.ads.BannerAdView
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.ui.settings.SettingsUiState
 import com.voxink.app.ui.settings.SettingsViewModel
@@ -84,11 +81,6 @@ fun HomeScreenContent(
             onNavigateToSettings = onNavigateToSettings,
             onNavigateToTranscription = onNavigateToTranscription,
             onGrantMicPermission = { micPermLauncher.launch(Manifest.permission.RECORD_AUDIO) },
-            onWatchAd = {
-                (context as? Activity)?.let { activity ->
-                    viewModel.watchRewardedAd(activity)
-                }
-            },
         )
     }
 }
@@ -117,7 +109,6 @@ private fun HomeBody(
     onNavigateToSettings: () -> Unit,
     onNavigateToTranscription: () -> Unit,
     onGrantMicPermission: () -> Unit,
-    onWatchAd: () -> Unit = {},
 ) {
     Column(
         modifier
@@ -130,7 +121,7 @@ private fun HomeBody(
         WelcomeHeader()
         Spacer(Modifier.height(24.dp))
         if (!state.proStatus.isPro) {
-            UsageSummaryCard(state = state, onWatchAd = onWatchAd)
+            UsageSummaryCard(state = state)
             Spacer(Modifier.height(16.dp))
         }
         SetupChecklist(
@@ -143,25 +134,18 @@ private fun HomeBody(
         )
         Spacer(Modifier.height(24.dp))
         HomeActions(onNavigateToSettings, onNavigateToTranscription)
-        if (!state.proStatus.isPro) {
-            Spacer(Modifier.height(16.dp))
-            BannerAdView()
-        }
     }
 }
 
 @Composable
-private fun UsageSummaryCard(
-    state: SettingsUiState,
-    onWatchAd: () -> Unit = {},
-) {
+private fun UsageSummaryCard(state: SettingsUiState) {
     val voiceLimit = UsageLimiter.FREE_VOICE_INPUT_LIMIT
     val refineLimit = UsageLimiter.FREE_REFINEMENT_LIMIT
-    val transcribeLimit = UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT
+    val transcribeLimit = UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION
 
     val voiceUsed = voiceLimit - state.remainingVoiceInputs
     val refineUsed = refineLimit - state.remainingRefinements
-    val transcribeUsed = transcribeLimit - state.remainingFileTranscriptions
+    val transcribeUsed = transcribeLimit - state.remainingFileTranscriptionSeconds
 
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -203,30 +187,6 @@ private fun UsageSummaryCard(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-            Spacer(Modifier.height(8.dp))
-
-            if (state.adError != null) {
-                Text(
-                    stringResource(R.string.usage_ad_unavailable),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.error,
-                )
-                Spacer(Modifier.height(4.dp))
-            }
-
-            TextButton(
-                onClick = onWatchAd,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !state.isLoadingAd,
-            ) {
-                if (state.isLoadingAd) {
-                    Text(stringResource(R.string.usage_ad_loading))
-                } else {
-                    Text(
-                        stringResource(R.string.usage_watch_ad, UsageLimiter.REWARDED_AD_BONUS),
-                    )
-                }
-            }
         }
     }
 }

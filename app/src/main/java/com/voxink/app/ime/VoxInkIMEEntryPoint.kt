@@ -1,7 +1,6 @@
 package com.voxink.app.ime
 
-import com.voxink.app.ads.RewardedAdLoader
-import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.ProStatusResolver
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
@@ -27,7 +26,5 @@ interface VoxInkIMEEntryPoint {
 
     fun usageLimiter(): UsageLimiter
 
-    fun billingManager(): BillingManager
-
-    fun rewardedAdLoader(): RewardedAdLoader
+    fun proStatusResolver(): ProStatusResolver
 }

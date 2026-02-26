@@ -34,10 +34,8 @@ datastore = "1.2.0"
 securityCrypto = "1.1.0-alpha06"
 room = "2.6.1"
 
-# Billing & Ads
+# Billing
 billing = "7.1.1"
-playServicesAds = "23.5.0"
-ump = "3.1.0"
 
 # Navigation
 navigationCompose = "2.8.6"
@@ -54,6 +52,7 @@ ktlint = "12.1.2"
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycle" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 
 # Compose
@@ -102,10 +101,8 @@ google-material = { group = "com.google.android.material", name = "material", ve
 # Compose Extended
 compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 
-# Billing & Ads
+# Billing
 billing = { group = "com.android.billingclient", name = "billing-ktx", version.ref = "billing" }
-play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
-ump = { group = "com.google.android.ump", name = "user-messaging-platform", version.ref = "ump" }
 
 # Testing
 junit5-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit5" }

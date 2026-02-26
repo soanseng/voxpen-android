@@ -2,6 +2,7 @@ package com.voxink.app.ime
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
+import com.voxink.app.billing.ProSource
 import com.voxink.app.billing.ProStatus
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
@@ -231,7 +232,7 @@ class RecordingControllerTest {
     @Test
     fun `should allow recording when Pro even at limit`() =
         runTest {
-            proStatus = ProStatus.Pro
+            proStatus = ProStatus.Pro(ProSource.GOOGLE_PLAY)
             repeat(UsageLimiter.FREE_VOICE_INPUT_LIMIT) { usageLimiter.incrementVoiceInput() }
 
             controller.uiState.test {

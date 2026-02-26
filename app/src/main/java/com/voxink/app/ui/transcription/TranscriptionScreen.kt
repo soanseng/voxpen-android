@@ -1,6 +1,5 @@
 package com.voxink.app.ui.transcription
 
-import android.app.Activity
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -40,7 +39,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,8 +53,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.voxink.app.R
-import com.voxink.app.ads.BannerAdView
-import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.TranscriptionEntity
 import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.util.ExportHelper
@@ -130,69 +126,28 @@ fun TranscriptionScreenContent(
             }
         }
 
-    val activity = context as? Activity
-
-    // Rewarded ad dialog when file transcription limit reached
-    if (state.showRewardedAdPrompt) {
+    if (state.showUpgradePrompt) {
         AlertDialog(
-            onDismissRequest = { viewModel.dismissRewardedPrompt() },
-            title = { Text(stringResource(R.string.usage_limit_reached)) },
+            onDismissRequest = { viewModel.dismissUpgradePrompt() },
+            title = { Text(stringResource(R.string.upgrade_prompt_title)) },
             text = {
                 Text(
                     stringResource(
-                        R.string.ad_reward_prompt,
-                        UsageLimiter.REWARDED_AD_BONUS,
+                        R.string.usage_limit_transcription,
                     ),
                 )
             },
             confirmButton = {
-                TextButton(onClick = {
-                    activity?.let { act ->
-                        val entryPoint =
-                            EntryPointAccessors.fromApplication(
-                                context.applicationContext,
-                                TranscriptionEntryPoint::class.java,
-                            )
-                        val rewardedAdLoader = entryPoint.rewardedAdLoader()
-                        rewardedAdLoader.loadAndShow(
-                            activity = act,
-                            onRewarded = { _ ->
-                                viewModel.onRewardedAdWatched()
-                            },
-                            onAdNotAvailable = {
-                                viewModel.dismissRewardedPrompt()
-                            },
-                        )
-                    }
-                }) {
-                    Text(stringResource(R.string.usage_watch_ad, UsageLimiter.REWARDED_AD_BONUS))
+                TextButton(onClick = { viewModel.dismissUpgradePrompt() }) {
+                    Text(stringResource(R.string.upgrade_prompt_button))
                 }
             },
             dismissButton = {
-                TextButton(onClick = { viewModel.dismissRewardedPrompt() }) {
-                    Text(stringResource(R.string.transcription_cancel))
+                TextButton(onClick = { viewModel.dismissUpgradePrompt() }) {
+                    Text(stringResource(android.R.string.cancel))
                 }
             },
         )
-    }
-
-    // Interstitial ad after transcription completes (free users only)
-    LaunchedEffect(state.showInterstitialAfterTranscription) {
-        if (state.showInterstitialAfterTranscription && activity != null) {
-            val entryPoint =
-                EntryPointAccessors.fromApplication(
-                    context.applicationContext,
-                    TranscriptionEntryPoint::class.java,
-                )
-            val interstitialAdLoader = entryPoint.interstitialAdLoader()
-            interstitialAdLoader.preload(activity)
-            val shown = interstitialAdLoader.show(activity) {
-                viewModel.onInterstitialShown()
-            }
-            if (!shown) {
-                viewModel.onInterstitialShown()
-            }
-        }
     }
 
     if (state.selectedTranscription != null) {
@@ -231,7 +186,7 @@ fun TranscriptionScreenContent(
             ) {
                 if (!state.proStatus.isPro) {
                     Text(
-                        stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptions),
+                        stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptionSeconds),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -250,10 +205,6 @@ fun TranscriptionScreenContent(
                         transcriptions = state.transcriptions,
                         onSelect = { viewModel.selectTranscription(it) },
                     )
-                }
-                if (!state.proStatus.isPro) {
-                    Spacer(Modifier.weight(1f))
-                    BannerAdView(modifier = Modifier.padding(bottom = 8.dp))
                 }
             }
         }

@@ -35,7 +35,7 @@ class VoxInkIME : InputMethodService() {
     private lateinit var recordingController: RecordingController
     private lateinit var audioRecorder: AudioRecorder
     private lateinit var preferencesManager: PreferencesManager
-    private lateinit var billingManager: com.voxink.app.billing.BillingManager
+    private lateinit var proStatusResolver: com.voxink.app.billing.ProStatusResolver
 
     private var candidateBar: LinearLayout? = null
     private var candidateStatusRow: LinearLayout? = null
@@ -76,7 +76,7 @@ class VoxInkIME : InputMethodService() {
 
         audioRecorder = AudioRecorder(this)
         preferencesManager = entryPoint.preferencesManager()
-        billingManager = entryPoint.billingManager()
+        proStatusResolver = entryPoint.proStatusResolver()
         recordingController =
             RecordingController(
                 transcribeUseCase = entryPoint.transcribeAudioUseCase(),
@@ -85,7 +85,7 @@ class VoxInkIME : InputMethodService() {
                 preferencesManager = preferencesManager,
                 dictionaryRepository = entryPoint.dictionaryRepository(),
                 usageLimiter = entryPoint.usageLimiter(),
-                proStatusProvider = { billingManager.proStatus.value },
+                proStatusProvider = { proStatusResolver.proStatus.value },
                 ioDispatcher = Dispatchers.IO,
             )
 
