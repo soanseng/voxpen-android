@@ -1,11 +1,11 @@
-# CLAUDE.md — VoxInk (語墨)
+# CLAUDE.md — VoxPen (語墨)
 
 ## Project Overview
 
-VoxInk is an Android AI voice keyboard and transcription app, forked from [Dictate Keyboard](https://github.com/DevEmperor/Dictate) (Apache 2.0). The goal is to build a Typeless-quality UX with a BYOK (Bring Your Own Key) model, supporting Traditional Chinese and English.
+VoxPen is an Android AI voice keyboard and transcription app, forked from [Dictate Keyboard](https://github.com/DevEmperor/Dictate) (Apache 2.0). The goal is to build a Typeless-quality UX with a BYOK (Bring Your Own Key) model, supporting Traditional Chinese and English.
 
-**App Name**: VoxInk (語墨)
-**Package**: `com.voxink.app`
+**App Name**: VoxPen (語墨)
+**Package**: `com.voxpen.app`
 **Original Fork**: `net.devemperor.dictate` → full rewrite to Kotlin
 
 ## Tech Stack
@@ -108,8 +108,8 @@ Height: as compact as possible (~180dp total)
 
 ```
 app/src/main/
-├── java/com/voxink/app/
-│   ├── VoxInkApplication.kt          # Hilt application
+├── java/com/voxpen/app/
+│   ├── VoxPenApplication.kt          # Hilt application
 │   ├── di/                             # Dependency injection modules
 │   │   ├── AppModule.kt
 │   │   ├── NetworkModule.kt
@@ -141,7 +141,7 @@ app/src/main/
 │   │   └── model/
 │   │       └── VoiceInputResult.kt    # Original + Refined pair
 │   ├── ime/
-│   │   ├── VoxInkIME.kt            # InputMethodService
+│   │   ├── VoxPenIME.kt            # InputMethodService
 │   │   ├── AudioRecorder.kt          # Mic recording handler
 │   │   ├── KeyboardView.kt           # Compose-based keyboard UI
 │   │   └── CandidateView.kt          # Original vs Refined display
