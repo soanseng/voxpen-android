@@ -187,6 +187,15 @@
     <string name="dictionary_upgrade">升級 Pro 版解鎖無限詞彙</string>
     <string name="dictionary_help">加入的詞彙會協助語音引擎更準確地辨識人名、地名與專有名詞。</string>
 
+    <!-- Tone styles -->
+    <string name="settings_tone_section">語氣風格</string>
+    <string name="tone_casual">日常聊天</string>
+    <string name="tone_professional">正式書面</string>
+    <string name="tone_email">電子郵件</string>
+    <string name="tone_note">筆記</string>
+    <string name="tone_social">社群貼文</string>
+    <string name="tone_custom">自訂</string>
+
     <!-- Custom Prompt -->
     <string name="settings_custom_prompt_section">潤稿 Prompt</string>
     <string name="settings_custom_prompt_hint">輸入自訂 Prompt…</string>

@@ -12,6 +12,7 @@ import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.RefinementPrompt
 import com.voxink.app.data.model.SttLanguage
+import com.voxink.app.data.model.ToneStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,6 +74,11 @@ class SettingsViewModel
                 }
             }
             viewModelScope.launch {
+                preferencesManager.toneStyleFlow.collect { tone ->
+                    _uiState.update { it.copy(toneStyle = tone) }
+                }
+            }
+            viewModelScope.launch {
                 proStatusResolver.proStatus.collect { status ->
                     _uiState.update { it.copy(proStatus = status) }
                 }
@@ -107,6 +113,10 @@ class SettingsViewModel
 
         fun setLlmModel(model: String) {
             viewModelScope.launch { preferencesManager.setLlmModel(model) }
+        }
+
+        fun setToneStyle(tone: ToneStyle) {
+            viewModelScope.launch { preferencesManager.setToneStyle(tone) }
         }
 
         fun launchPurchaseFlow(activity: Activity) {

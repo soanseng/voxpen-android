@@ -7,7 +7,10 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +25,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -55,6 +59,7 @@ import com.voxink.app.billing.ProSource
 import com.voxink.app.billing.ProStatus
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.SttLanguage
+import com.voxink.app.data.model.ToneStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,8 +125,15 @@ fun SettingsScreenContent(
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             RefinementSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-            CustomPromptSection(state, viewModel)
+            ToneStyleSection(
+                selectedTone = state.toneStyle,
+                onToneSelected = { viewModel.setToneStyle(it) },
+            )
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            if (state.toneStyle == ToneStyle.Custom) {
+                CustomPromptSection(state, viewModel)
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            }
             DictionaryEntryRow(onNavigateToDictionary)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             PermissionSection(hasMicPermission) {
@@ -550,6 +562,35 @@ private fun SmallRadioRow(
             style = MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(start = 8.dp),
         )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ToneStyleSection(
+    selectedTone: ToneStyle,
+    onToneSelected: (ToneStyle) -> Unit,
+) {
+    SectionHeader(stringResource(R.string.settings_tone_section))
+    val toneLabels = mapOf(
+        ToneStyle.Casual to stringResource(R.string.tone_casual),
+        ToneStyle.Professional to stringResource(R.string.tone_professional),
+        ToneStyle.Email to stringResource(R.string.tone_email),
+        ToneStyle.Note to stringResource(R.string.tone_note),
+        ToneStyle.Social to stringResource(R.string.tone_social),
+        ToneStyle.Custom to stringResource(R.string.tone_custom),
+    )
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        ToneStyle.all.forEach { tone ->
+            FilterChip(
+                selected = tone == selectedTone,
+                onClick = { onToneSelected(tone) },
+                label = { Text(toneLabels[tone] ?: tone.key) },
+            )
+        }
     }
 }
 

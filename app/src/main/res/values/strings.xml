@@ -187,6 +187,15 @@
     <string name="dictionary_upgrade">Upgrade to Pro for unlimited vocabulary</string>
     <string name="dictionary_help">Words you add here help the voice engine recognize names, places, and special terms more accurately.</string>
 
+    <!-- Tone styles -->
+    <string name="settings_tone_section">Tone Style</string>
+    <string name="tone_casual">Casual</string>
+    <string name="tone_professional">Professional</string>
+    <string name="tone_email">Email</string>
+    <string name="tone_note">Note</string>
+    <string name="tone_social">Social</string>
+    <string name="tone_custom">Custom</string>
+
     <!-- Custom Prompt -->
     <string name="settings_custom_prompt_section">Refinement Prompt</string>
     <string name="settings_custom_prompt_hint">Enter custom prompt…</string>
