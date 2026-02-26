@@ -465,6 +465,15 @@ private fun SttModelSection(
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = 4.dp),
     )
+    Spacer(Modifier.height(8.dp))
+    OutlinedTextField(
+        value = state.customSttBaseUrl,
+        onValueChange = { viewModel.setCustomSttBaseUrl(it) },
+        label = { Text(stringResource(R.string.settings_custom_stt_url_hint)) },
+        placeholder = { Text("https://api.example.com/") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)

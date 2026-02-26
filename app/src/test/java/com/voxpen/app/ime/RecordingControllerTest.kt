@@ -55,6 +55,7 @@ class RecordingControllerTest {
     private val toneStyleFlow = MutableStateFlow<ToneStyle>(ToneStyle.Casual)
     private val llmProviderFlow = MutableStateFlow<LlmProvider>(LlmProvider.Groq)
     private val customLlmModelFlow = MutableStateFlow("")
+    private val customSttBaseUrlFlow = MutableStateFlow("")
     private var fakeRecordedAudio: ByteArray = ByteArray(100) { it.toByte() }
     private var isRecording = false
     private val startRecording: () -> Unit = { isRecording = true }
@@ -73,6 +74,7 @@ class RecordingControllerTest {
         every { preferencesManager.toneStyleFlow } returns toneStyleFlow
         every { preferencesManager.llmProviderFlow } returns llmProviderFlow
         every { preferencesManager.customLlmModelFlow } returns customLlmModelFlow
+        every { preferencesManager.customSttBaseUrlFlow } returns customSttBaseUrlFlow
         every { preferencesManager.customPromptFlow(any()) } returns MutableStateFlow(null)
         coEvery { dictionaryRepository.getWords(any()) } returns listOf("語墨", "Claude")
         every { apiFactory.create(any()) } returns chatCompletionApi

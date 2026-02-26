@@ -94,6 +94,11 @@ class SettingsViewModel
                 }
             }
             viewModelScope.launch {
+                preferencesManager.customSttBaseUrlFlow.collect { url ->
+                    _uiState.update { it.copy(customSttBaseUrl = url) }
+                }
+            }
+            viewModelScope.launch {
                 proStatusResolver.proStatus.collect { status ->
                     _uiState.update { it.copy(proStatus = status) }
                 }
@@ -154,6 +159,10 @@ class SettingsViewModel
 
         fun setCustomLlmModel(model: String) {
             viewModelScope.launch { preferencesManager.setCustomLlmModel(model) }
+        }
+
+        fun setCustomSttBaseUrl(url: String) {
+            viewModelScope.launch { preferencesManager.setCustomSttBaseUrl(url) }
         }
 
         fun setCustomBaseUrl(url: String) {

@@ -19,6 +19,7 @@ data class SettingsUiState(
     val llmProvider: LlmProvider = LlmProvider.DEFAULT,
     val customLlmModel: String = "",
     val customBaseUrl: String = "",
+    val customSttBaseUrl: String = "",
     val providerApiKeys: Map<String, Boolean> = emptyMap(),
     val proStatus: ProStatus = ProStatus.Free,
     val remainingVoiceInputs: Int = 0,

@@ -38,6 +38,7 @@ class RecordingController(
     private var toneStyle: ToneStyle = ToneStyle.DEFAULT
     private var llmProvider: LlmProvider = LlmProvider.DEFAULT
     private var customLlmModel: String = ""
+    private var customSttBaseUrl: String = ""
 
     init {
         scope.launch {
@@ -48,6 +49,7 @@ class RecordingController(
         scope.launch { preferencesManager.toneStyleFlow.collect { toneStyle = it } }
         scope.launch { preferencesManager.llmProviderFlow.collect { llmProvider = it } }
         scope.launch { preferencesManager.customLlmModelFlow.collect { customLlmModel = it } }
+        scope.launch { preferencesManager.customSttBaseUrlFlow.collect { customSttBaseUrl = it } }
     }
 
     private val _uiState = MutableStateFlow<ImeUiState>(ImeUiState.Idle)
@@ -88,7 +90,8 @@ class RecordingController(
                 } else {
                     null
                 }
-            val result = transcribeUseCase(pcmData, language, apiKey, sttModel, vocabularyHint = whisperPrompt)
+            val sttBaseUrl = customSttBaseUrl.ifBlank { null }
+            val result = transcribeUseCase(pcmData, language, apiKey, sttModel, vocabularyHint = whisperPrompt, customSttBaseUrl = sttBaseUrl)
             result.fold(
                 onSuccess = { originalText ->
                     if (!proStatus.isPro) {

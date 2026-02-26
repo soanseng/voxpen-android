@@ -57,6 +57,9 @@
     <string name="settings_stt_model_v3">V3 — More accurate, WER 8.4% (US$0.111/hr)</string>
     <string name="settings_stt_model_description">Turbo is ~2.8x cheaper and recommended for daily use. V3 has higher accuracy for critical work.</string>
 
+    <!-- Custom STT -->
+    <string name="settings_custom_stt_url_hint">Custom STT Base URL (OpenAI-compatible)</string>
+
     <!-- Transcription Screen -->
     <string name="transcribe_audio">Transcribe Audio File</string>
     <string name="transcription_title">Transcriptions</string>

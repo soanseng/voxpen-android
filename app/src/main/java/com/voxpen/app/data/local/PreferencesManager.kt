@@ -61,6 +61,11 @@ class PreferencesManager
                 prefs[CUSTOM_LLM_MODEL_KEY] ?: ""
             }
 
+        val customSttBaseUrlFlow: Flow<String> =
+            context.dataStore.data.map { prefs ->
+                prefs[CUSTOM_STT_BASE_URL_KEY] ?: ""
+            }
+
         val toneStyleFlow: Flow<ToneStyle> =
             context.dataStore.data.map { prefs ->
                 ToneStyle.fromKey(prefs[TONE_STYLE_KEY] ?: ToneStyle.DEFAULT.key)
@@ -118,6 +123,12 @@ class PreferencesManager
             }
         }
 
+        suspend fun setCustomSttBaseUrl(url: String) {
+            context.dataStore.edit { prefs ->
+                prefs[CUSTOM_STT_BASE_URL_KEY] = url
+            }
+        }
+
         suspend fun setToneStyle(tone: ToneStyle) {
             context.dataStore.edit { prefs ->
                 prefs[TONE_STYLE_KEY] = tone.key
@@ -172,6 +183,7 @@ class PreferencesManager
             private val TONE_STYLE_KEY = stringPreferencesKey("tone_style")
             private val LLM_PROVIDER_KEY = stringPreferencesKey("llm_provider")
             private val CUSTOM_LLM_MODEL_KEY = stringPreferencesKey("custom_llm_model")
+            private val CUSTOM_STT_BASE_URL_KEY = stringPreferencesKey("custom_stt_base_url_pref")
 
             fun languageFromKey(key: String): SttLanguage =
                 when (key) {

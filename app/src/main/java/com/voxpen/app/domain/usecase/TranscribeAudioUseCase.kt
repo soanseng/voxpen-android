@@ -19,9 +19,10 @@ class TranscribeAudioUseCase
             sampleRate: Int = SAMPLE_RATE,
             channels: Int = CHANNELS,
             bitsPerSample: Int = BITS_PER_SAMPLE,
+            customSttBaseUrl: String? = null,
         ): Result<String> {
             val wavBytes = AudioEncoder.pcmToWav(pcmData, sampleRate, channels, bitsPerSample)
-            return sttRepository.transcribe(wavBytes, language, apiKey, model, vocabularyHint)
+            return sttRepository.transcribe(wavBytes, language, apiKey, model, vocabularyHint, customSttBaseUrl)
         }
 
         companion object {

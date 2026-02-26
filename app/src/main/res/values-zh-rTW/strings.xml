@@ -57,6 +57,9 @@
     <string name="settings_stt_model_v3">V3 — 更精確，WER 8.4%（US$0.111/hr）</string>
     <string name="settings_stt_model_description">Turbo 便宜約 2.8 倍，日常使用推薦。V3 精確度更高，適合重要場合。</string>
 
+    <!-- Custom STT -->
+    <string name="settings_custom_stt_url_hint">自訂語音辨識伺服器網址（相容 OpenAI API）</string>
+
     <!-- Transcription Screen -->
     <string name="transcribe_audio">音檔轉逐字稿</string>
     <string name="transcription_title">逐字稿</string>
