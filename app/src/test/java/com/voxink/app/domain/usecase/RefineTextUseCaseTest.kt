@@ -1,24 +1,21 @@
 package com.voxink.app.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
+import com.voxink.app.data.model.LlmProvider
 import com.voxink.app.data.model.SttLanguage
-import com.voxink.app.data.remote.GroqApi
+import com.voxink.app.data.remote.ChatCompletionApiFactory
 import com.voxink.app.data.repository.LlmRepository
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import retrofit2.Retrofit
-import retrofit2.converter.kotlinx.serialization.asConverterFactory
 
 class RefineTextUseCaseTest {
     private lateinit var server: MockWebServer
-    private lateinit var api: GroqApi
     private lateinit var repository: LlmRepository
     private lateinit var useCase: RefineTextUseCase
 
@@ -27,14 +24,8 @@ class RefineTextUseCaseTest {
         server = MockWebServer()
         server.start()
         val json = Json { ignoreUnknownKeys = true }
-        api =
-            Retrofit.Builder()
-                .baseUrl(server.url("/"))
-                .client(OkHttpClient())
-                .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
-                .build()
-                .create(GroqApi::class.java)
-        repository = LlmRepository(api)
+        val factory = ChatCompletionApiFactory(OkHttpClient(), json)
+        repository = LlmRepository(factory)
         useCase = RefineTextUseCase(repository)
     }
 
@@ -54,7 +45,11 @@ class RefineTextUseCaseTest {
                     .setHeader("Content-Type", "application/json"),
             )
 
-            val result = useCase("um raw text", SttLanguage.English, "key")
+            val result = useCase(
+                "um raw text", SttLanguage.English, "key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
 
             assertThat(result.isSuccess).isTrue()
             assertThat(result.getOrNull()).isEqualTo("Clean text")
@@ -65,7 +60,11 @@ class RefineTextUseCaseTest {
         runTest {
             server.enqueue(MockResponse().setResponseCode(500))
 
-            val result = useCase("text", SttLanguage.Auto, "key")
+            val result = useCase(
+                "text", SttLanguage.Auto, "key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
 
             assertThat(result.isFailure).isTrue()
         }

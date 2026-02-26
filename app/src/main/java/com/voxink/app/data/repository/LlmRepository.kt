@@ -1,11 +1,12 @@
 package com.voxink.app.data.repository
 
+import com.voxink.app.data.model.LlmProvider
 import com.voxink.app.data.model.RefinementPrompt
 import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.data.model.ToneStyle
+import com.voxink.app.data.remote.ChatCompletionApiFactory
 import com.voxink.app.data.remote.ChatCompletionRequest
 import com.voxink.app.data.remote.ChatMessage
-import com.voxink.app.data.remote.GroqApi
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -14,7 +15,7 @@ import javax.inject.Singleton
 class LlmRepository
     @Inject
     constructor(
-        private val groqApi: GroqApi,
+        private val apiFactory: ChatCompletionApiFactory,
     ) {
         suspend fun refine(
             text: String,
@@ -24,6 +25,8 @@ class LlmRepository
             vocabulary: List<String> = emptyList(),
             customPrompt: String? = null,
             tone: ToneStyle = ToneStyle.Casual,
+            provider: LlmProvider = LlmProvider.Groq,
+            customBaseUrl: String? = null,
         ): Result<String> {
             if (apiKey.isBlank()) {
                 return Result.failure(IllegalStateException("API key not configured"))
@@ -33,6 +36,11 @@ class LlmRepository
             }
 
             return try {
+                val api = if (provider == LlmProvider.Custom && !customBaseUrl.isNullOrBlank()) {
+                    apiFactory.createForCustom(customBaseUrl)
+                } else {
+                    apiFactory.create(provider)
+                }
                 val systemPrompt = RefinementPrompt.forLanguage(language, vocabulary, customPrompt, tone)
                 val request =
                     ChatCompletionRequest(
@@ -45,7 +53,7 @@ class LlmRepository
                         temperature = TEMPERATURE,
                         maxTokens = MAX_TOKENS,
                     )
-                val response = groqApi.chatCompletion("Bearer $apiKey", request)
+                val response = api.chatCompletion("Bearer $apiKey", request)
                 val content =
                     response.choices.firstOrNull()?.message?.content
                         ?: return Result.failure(IllegalStateException("No response content"))

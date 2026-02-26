@@ -10,6 +10,8 @@ import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.data.model.ToneStyle
 import com.voxink.app.data.remote.ChatChoice
+import com.voxink.app.data.remote.ChatCompletionApi
+import com.voxink.app.data.remote.ChatCompletionApiFactory
 import com.voxink.app.data.remote.ChatCompletionResponse
 import com.voxink.app.data.remote.ChatMessage
 import com.voxink.app.data.remote.GroqApi
@@ -34,6 +36,8 @@ import java.io.IOException
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecordingControllerTest {
     private val groqApi: GroqApi = mockk()
+    private val chatCompletionApi: ChatCompletionApi = mockk()
+    private val apiFactory: ChatCompletionApiFactory = mockk()
     private val apiKeyManager: ApiKeyManager = mockk()
     private val preferencesManager: PreferencesManager = mockk()
     private val dictionaryRepository: DictionaryRepository = mockk()
@@ -63,9 +67,10 @@ class RecordingControllerTest {
         every { preferencesManager.toneStyleFlow } returns toneStyleFlow
         every { preferencesManager.customPromptFlow(any()) } returns MutableStateFlow(null)
         coEvery { dictionaryRepository.getWords(any()) } returns listOf("語墨", "Claude")
+        every { apiFactory.create(any()) } returns chatCompletionApi
 
         val sttRepository = SttRepository(groqApi)
-        val llmRepository = LlmRepository(groqApi)
+        val llmRepository = LlmRepository(apiFactory)
         val transcribeUseCase = TranscribeAudioUseCase(sttRepository)
         val refineTextUseCase = RefineTextUseCase(llmRepository)
 
@@ -107,7 +112,7 @@ class RecordingControllerTest {
                 groqApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "嗯那個明天開會")
             coEvery {
-                groqApi.chatCompletion(any(), any())
+                chatCompletionApi.chatCompletion(any(), any())
             } returns chatResponse("明天開會")
 
             controller.uiState.test {
@@ -152,7 +157,7 @@ class RecordingControllerTest {
                 groqApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "raw text")
             coEvery {
-                groqApi.chatCompletion(any(), any())
+                chatCompletionApi.chatCompletion(any(), any())
             } throws IOException("LLM error")
 
             controller.uiState.test {
@@ -272,7 +277,7 @@ class RecordingControllerTest {
                 groqApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "語末你好")
             coEvery {
-                groqApi.chatCompletion(any(), any())
+                chatCompletionApi.chatCompletion(any(), any())
             } returns chatResponse("語墨你好")
 
             controller.uiState.test {
