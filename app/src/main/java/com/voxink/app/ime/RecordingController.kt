@@ -4,6 +4,7 @@ import com.voxink.app.billing.ProStatus
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
+import com.voxink.app.data.model.LlmProvider
 import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.data.model.ToneStyle
 import com.voxink.app.data.repository.DictionaryRepository
@@ -35,6 +36,8 @@ class RecordingController(
     private var sttModel: String = PreferencesManager.DEFAULT_STT_MODEL
     private var llmModel: String = PreferencesManager.DEFAULT_LLM_MODEL
     private var toneStyle: ToneStyle = ToneStyle.DEFAULT
+    private var llmProvider: LlmProvider = LlmProvider.DEFAULT
+    private var customLlmModel: String = ""
 
     init {
         scope.launch {
@@ -43,6 +46,8 @@ class RecordingController(
         scope.launch { preferencesManager.sttModelFlow.collect { sttModel = it } }
         scope.launch { preferencesManager.llmModelFlow.collect { llmModel = it } }
         scope.launch { preferencesManager.toneStyleFlow.collect { toneStyle = it } }
+        scope.launch { preferencesManager.llmProviderFlow.collect { llmProvider = it } }
+        scope.launch { preferencesManager.customLlmModelFlow.collect { customLlmModel = it } }
     }
 
     private val _uiState = MutableStateFlow<ImeUiState>(ImeUiState.Idle)
@@ -65,7 +70,8 @@ class RecordingController(
         language: SttLanguage,
     ) {
         val pcmData = stopRecording()
-        val apiKey = apiKeyManager.getGroqApiKey()
+        val apiKey = apiKeyManager.getApiKey(llmProvider)
+            ?: apiKeyManager.getGroqApiKey()  // fallback to Groq key for backward compat
 
         if (apiKey.isNullOrBlank()) {
             _uiState.value = ImeUiState.Error("API key not configured")
@@ -101,7 +107,20 @@ class RecordingController(
                     val allVocabulary = dictionaryRepository.getWords(500)
                     val langKey = PreferencesManager.languageToKey(language)
                     val customPrompt = preferencesManager.customPromptFlow(langKey).first()
-                    val refinedResult = refineTextUseCase(originalText, language, apiKey, llmModel, allVocabulary, customPrompt, toneStyle)
+                    val resolvedModel = if (llmProvider == LlmProvider.Custom) {
+                        customLlmModel.ifBlank { llmModel }
+                    } else {
+                        llmModel
+                    }
+                    val customBaseUrl = if (llmProvider == LlmProvider.Custom) {
+                        apiKeyManager.getCustomBaseUrl()
+                    } else {
+                        null
+                    }
+                    val refinedResult = refineTextUseCase(
+                        originalText, language, apiKey, resolvedModel, allVocabulary,
+                        customPrompt, toneStyle, llmProvider, customBaseUrl,
+                    )
                     _uiState.value =
                         refinedResult.fold(
                             onSuccess = { ImeUiState.Refined(originalText, it) },

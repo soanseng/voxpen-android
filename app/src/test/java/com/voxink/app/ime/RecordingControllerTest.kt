@@ -7,6 +7,7 @@ import com.voxink.app.billing.ProStatus
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
+import com.voxink.app.data.model.LlmProvider
 import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.data.model.ToneStyle
 import com.voxink.app.data.remote.ChatChoice
@@ -50,6 +51,8 @@ class RecordingControllerTest {
     private val sttModelFlow = MutableStateFlow(PreferencesManager.DEFAULT_STT_MODEL)
     private val llmModelFlow = MutableStateFlow(PreferencesManager.DEFAULT_LLM_MODEL)
     private val toneStyleFlow = MutableStateFlow<ToneStyle>(ToneStyle.Casual)
+    private val llmProviderFlow = MutableStateFlow<LlmProvider>(LlmProvider.Groq)
+    private val customLlmModelFlow = MutableStateFlow("")
     private var fakeRecordedAudio: ByteArray = ByteArray(100) { it.toByte() }
     private var isRecording = false
     private val startRecording: () -> Unit = { isRecording = true }
@@ -61,10 +64,13 @@ class RecordingControllerTest {
     @BeforeEach
     fun setUp() {
         every { apiKeyManager.getGroqApiKey() } returns "test-key"
+        every { apiKeyManager.getApiKey(any()) } returns "test-key"
         every { preferencesManager.refinementEnabledFlow } returns refinementEnabledFlow
         every { preferencesManager.sttModelFlow } returns sttModelFlow
         every { preferencesManager.llmModelFlow } returns llmModelFlow
         every { preferencesManager.toneStyleFlow } returns toneStyleFlow
+        every { preferencesManager.llmProviderFlow } returns llmProviderFlow
+        every { preferencesManager.customLlmModelFlow } returns customLlmModelFlow
         every { preferencesManager.customPromptFlow(any()) } returns MutableStateFlow(null)
         coEvery { dictionaryRepository.getWords(any()) } returns listOf("語墨", "Claude")
         every { apiFactory.create(any()) } returns chatCompletionApi
@@ -197,6 +203,7 @@ class RecordingControllerTest {
     @Test
     fun `should show error when API key not configured`() =
         runTest {
+            every { apiKeyManager.getApiKey(any()) } returns null
             every { apiKeyManager.getGroqApiKey() } returns null
 
             controller.uiState.test {
