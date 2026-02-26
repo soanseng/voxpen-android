@@ -1,0 +1,142 @@
+package com.voxpen.app.data.repository
+
+import com.google.common.truth.Truth.assertThat
+import com.voxpen.app.data.model.LlmProvider
+import com.voxpen.app.data.model.SttLanguage
+import com.voxpen.app.data.remote.ChatCompletionApiFactory
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
+import okhttp3.OkHttpClient
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+
+class LlmRepositoryTest {
+    private lateinit var server: MockWebServer
+    private lateinit var repository: LlmRepository
+
+    @BeforeEach
+    fun setUp() {
+        server = MockWebServer()
+        server.start()
+        val json = Json { ignoreUnknownKeys = true }
+        val client = OkHttpClient()
+        val factory = ChatCompletionApiFactory(client, json)
+        repository = LlmRepository(factory)
+    }
+
+    @AfterEach
+    fun tearDown() {
+        server.shutdown()
+    }
+
+    private fun enqueueSuccess(content: String = "Polished text") {
+        server.enqueue(
+            MockResponse()
+                .setBody(
+                    """{"id":"c1","choices":[{"index":0,"message":{"role":"assistant","content":"$content"}}]}""",
+                )
+                .setHeader("Content-Type", "application/json"),
+        )
+    }
+
+    @Test
+    fun `should return refined text on success`() =
+        runTest {
+            enqueueSuccess()
+            val result = repository.refine(
+                "raw text", SttLanguage.English, "test-key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrNull()).isEqualTo("Polished text")
+        }
+
+    @Test
+    fun `should send Bearer authorization header`() =
+        runTest {
+            enqueueSuccess("ok")
+            repository.refine(
+                "text", SttLanguage.Auto, "my-api-key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            val request = server.takeRequest()
+            assertThat(request.getHeader("Authorization")).isEqualTo("Bearer my-api-key")
+        }
+
+    @Test
+    fun `should include system prompt and user text in request body`() =
+        runTest {
+            enqueueSuccess("ok")
+            repository.refine(
+                "test input", SttLanguage.Chinese, "key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).contains("\"role\":\"system\"")
+            assertThat(body).contains("\"role\":\"user\"")
+            assertThat(body).contains("test input")
+        }
+
+    @Test
+    fun `should return failure on empty API key`() =
+        runTest {
+            val result = repository.refine("text", SttLanguage.Auto, "")
+            assertThat(result.isFailure).isTrue()
+        }
+
+    @Test
+    fun `should return failure on empty text`() =
+        runTest {
+            val result = repository.refine("", SttLanguage.Auto, "key")
+            assertThat(result.isFailure).isTrue()
+        }
+
+    @Test
+    fun `should return failure on server error`() =
+        runTest {
+            server.enqueue(MockResponse().setResponseCode(500))
+            val result = repository.refine(
+                "text", SttLanguage.English, "key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            assertThat(result.isFailure).isTrue()
+        }
+
+    @Test
+    fun `should use provided model name in request body`() =
+        runTest {
+            enqueueSuccess("ok")
+            repository.refine(
+                "text", SttLanguage.English, "key",
+                model = "gpt-4o-mini",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).contains("\"model\":\"gpt-4o-mini\"")
+        }
+
+    @Test
+    fun `should include vocabulary in system prompt when provided`() =
+        runTest {
+            enqueueSuccess("ok")
+            repository.refine(
+                "text", SttLanguage.Chinese, "key",
+                vocabulary = listOf("語墨", "Claude"),
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).contains("語墨")
+        }
+}
