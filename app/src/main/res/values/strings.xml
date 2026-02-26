@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">VoxInk</string>
-    <string name="ime_name">VoxInk Voice</string>
+    <string name="app_name">VoxPen</string>
+    <string name="ime_name">VoxPen Voice</string>
     <string name="ime_subtype_auto">Auto-detect</string>
     <string name="ime_subtype_zh">Chinese (Traditional)</string>
     <string name="ime_subtype_en">English</string>
     <string name="ime_subtype_ja">Japanese</string>
-    <string name="welcome_message">Welcome to VoxInk</string>
+    <string name="welcome_message">Welcome to VoxPen</string>
     <string name="welcome_description">AI voice keyboard with BYOK (Bring Your Own Key)</string>
-    <string name="enable_keyboard_prompt">Enable VoxInk keyboard in system settings to get started.</string>
+    <string name="enable_keyboard_prompt">Enable VoxPen keyboard in system settings to get started.</string>
     <string name="open_keyboard_settings">Open Keyboard Settings</string>
     <string name="open_settings">Settings</string>
     <string name="setup_keyboard">Keyboard: %1$s</string>
@@ -73,24 +73,24 @@
     <string name="transcription_cancel">Cancel</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_welcome_title">Welcome to VoxInk</string>
-    <string name="onboarding_welcome_description">VoxInk is an AI-powered voice keyboard. Speak naturally, get polished text. Let\'s get set up in a few steps.</string>
+    <string name="onboarding_welcome_title">Welcome to VoxPen</string>
+    <string name="onboarding_welcome_description">VoxPen is an AI-powered voice keyboard. Speak naturally, get polished text. Let\'s get set up in a few steps.</string>
     <string name="onboarding_api_key_title">Set Up Your API Key</string>
-    <string name="onboarding_api_key_description">VoxInk uses Groq\'s Whisper API for speech-to-text. Enter your Groq API key to get started. You can get one free at groq.com.</string>
+    <string name="onboarding_api_key_description">VoxPen uses Groq\'s Whisper API for speech-to-text. Enter your Groq API key to get started. You can get one free at groq.com.</string>
     <string name="onboarding_api_key_saved">API key saved</string>
-    <string name="onboarding_keyboard_title">Enable VoxInk Keyboard</string>
-    <string name="onboarding_keyboard_description">Open system settings and enable VoxInk Voice as an input method. Then switch to it when typing.</string>
+    <string name="onboarding_keyboard_title">Enable VoxPen Keyboard</string>
+    <string name="onboarding_keyboard_description">Open system settings and enable VoxPen Voice as an input method. Then switch to it when typing.</string>
     <string name="onboarding_keyboard_enabled">Keyboard enabled</string>
     <string name="onboarding_permission_title">Microphone Permission</string>
-    <string name="onboarding_permission_description">VoxInk needs microphone access to record your voice for transcription.</string>
+    <string name="onboarding_permission_description">VoxPen needs microphone access to record your voice for transcription.</string>
     <string name="onboarding_permission_granted">Microphone permission granted</string>
     <string name="onboarding_done_title">All Set!</string>
-    <string name="onboarding_done_description">You\'re ready to use VoxInk. Switch to VoxInk Voice keyboard in any app and tap the mic button to start speaking.</string>
+    <string name="onboarding_done_description">You\'re ready to use VoxPen. Switch to VoxPen Voice keyboard in any app and tap the mic button to start speaking.</string>
     <string name="onboarding_back">Back</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_finish">Get Started</string>
     <string name="onboarding_practice_title">Try It Out!</string>
-    <string name="onboarding_practice_description">Tap the mic button below and say something. See how VoxInk transforms your speech into polished text.</string>
+    <string name="onboarding_practice_description">Tap the mic button below and say something. See how VoxPen transforms your speech into polished text.</string>
     <string name="onboarding_practice_success">Great!</string>
     <string name="onboarding_practice_original">Original:</string>
     <string name="onboarding_practice_refined">Refined:</string>
@@ -135,7 +135,7 @@
     <!-- Monetization — Pro -->
     <string name="pro_status_free">Free</string>
     <string name="pro_status_pro">Pro</string>
-    <string name="pro_upgrade_title">Upgrade to VoxInk Pro</string>
+    <string name="pro_upgrade_title">Upgrade to VoxPen Pro</string>
     <string name="pro_upgrade_description">Unlimited voice input, refinements, and file transcriptions. No ads.</string>
     <string name="pro_restore_purchase">Restore Purchase</string>
     <string name="pro_purchase_success">Pro upgrade successful!</string>
@@ -145,7 +145,7 @@
 
     <!-- License activation -->
     <string name="license_activate_title">Activate License Key</string>
-    <string name="license_activate_hint">Enter your VoxInk Bundle key</string>
+    <string name="license_activate_hint">Enter your VoxPen Bundle key</string>
     <string name="license_activate_button">Activate</string>
     <string name="license_deactivate_button">Deactivate License</string>
     <string name="license_activating">Activating…</string>

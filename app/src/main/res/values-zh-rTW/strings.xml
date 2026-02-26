@@ -135,7 +135,7 @@
     <!-- Monetization — Pro -->
     <string name="pro_status_free">免費版</string>
     <string name="pro_status_pro">Pro</string>
-    <string name="pro_upgrade_title">升級至 VoxInk Pro</string>
+    <string name="pro_upgrade_title">升級至 VoxPen Pro</string>
     <string name="pro_upgrade_description">無限語音輸入、潤稿及音檔轉錄，無廣告。</string>
     <string name="pro_restore_purchase">恢復購買</string>
     <string name="pro_purchase_success">Pro 升級成功！</string>
@@ -145,7 +145,7 @@
 
     <!-- License activation -->
     <string name="license_activate_title">啟用授權碼</string>
-    <string name="license_activate_hint">輸入你的 VoxInk Bundle 授權碼</string>
+    <string name="license_activate_hint">輸入你的 VoxPen Bundle 授權碼</string>
     <string name="license_activate_button">啟用</string>
     <string name="license_deactivate_button">停用授權</string>
     <string name="license_activating">啟用中…</string>
