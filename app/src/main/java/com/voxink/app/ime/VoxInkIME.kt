@@ -18,6 +18,7 @@ import com.voxink.app.R
 import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.SttLanguage
+import com.voxink.app.data.model.ToneStyle
 import com.voxink.app.ui.MainActivity
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
@@ -391,6 +392,7 @@ class VoxInkIME : InputMethodService() {
         serviceScope.launch {
             val currentLang = preferencesManager.languageFlow.first()
             val refinementOn = preferencesManager.refinementEnabledFlow.first()
+            val currentTone = preferencesManager.toneStyleFlow.first()
             val dp = resources.displayMetrics.density
 
             val container = createQuickSettingsContainer(dp)
@@ -403,6 +405,8 @@ class VoxInkIME : InputMethodService() {
                 )
 
             addLanguageOptions(container, popup, currentLang, dp)
+            addQuickSettingsDivider(container, dp)
+            addToneOptions(container, popup, currentTone, dp)
             addQuickSettingsDivider(container, dp)
             addRefinementToggle(container, popup, refinementOn, dp)
 
@@ -448,6 +452,53 @@ class VoxInkIME : InputMethodService() {
                     setPadding(pad, pad, pad, pad)
                     setOnClickListener {
                         serviceScope.launch { preferencesManager.setLanguage(lang) }
+                        popup.dismiss()
+                    }
+                }
+            container.addView(tv)
+        }
+    }
+
+    private fun addToneOptions(
+        container: LinearLayout,
+        popup: PopupWindow,
+        currentTone: ToneStyle,
+        dp: Float,
+    ) {
+        val header =
+            TextView(this).apply {
+                text = getString(R.string.settings_tone_section)
+                textSize = 12f
+                setTextColor(0x99FFFFFF.toInt())
+                val pad = (8 * dp).toInt()
+                setPadding(pad, pad, pad, (4 * dp).toInt())
+            }
+        container.addView(header)
+
+        val tones =
+            listOf(
+                ToneStyle.Casual to getString(R.string.tone_casual),
+                ToneStyle.Professional to getString(R.string.tone_professional),
+                ToneStyle.Email to getString(R.string.tone_email),
+                ToneStyle.Note to getString(R.string.tone_note),
+                ToneStyle.Social to getString(R.string.tone_social),
+            )
+        tones.forEach { (tone, name) ->
+            val tv =
+                TextView(this).apply {
+                    text = name
+                    textSize = 14f
+                    setTextColor(
+                        if (tone == currentTone) {
+                            resources.getColor(R.color.mic_idle, null)
+                        } else {
+                            resources.getColor(R.color.key_text, null)
+                        },
+                    )
+                    val pad = (8 * dp).toInt()
+                    setPadding(pad, pad, pad, pad)
+                    setOnClickListener {
+                        serviceScope.launch { preferencesManager.setToneStyle(tone) }
                         popup.dismiss()
                     }
                 }
