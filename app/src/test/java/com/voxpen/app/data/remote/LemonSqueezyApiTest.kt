@@ -47,7 +47,7 @@ class LemonSqueezyApiTest {
                     "id": "inst-abc"
                 },
                 "meta": {
-                    "product_name": "VoxInk Bundle"
+                    "product_name": "VoxPen Bundle"
                 }
             }
         """.trimIndent()))
@@ -57,7 +57,7 @@ class LemonSqueezyApiTest {
         )
         assertThat(result.valid).isTrue()
         assertThat(result.instance?.id).isEqualTo("inst-abc")
-        assertThat(result.meta?.productName).isEqualTo("VoxInk Bundle")
+        assertThat(result.meta?.productName).isEqualTo("VoxPen Bundle")
 
         val request = server.takeRequest()
         assertThat(request.path).isEqualTo("/v1/licenses/activate")
@@ -76,7 +76,7 @@ class LemonSqueezyApiTest {
                 },
                 "instance": null,
                 "meta": {
-                    "product_name": "VoxInk Bundle"
+                    "product_name": "VoxPen Bundle"
                 }
             }
         """.trimIndent()))

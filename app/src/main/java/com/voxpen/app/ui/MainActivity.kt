@@ -14,7 +14,7 @@ import androidx.navigation.compose.rememberNavController
 import com.voxpen.app.ui.dictionary.DictionaryScreenContent
 import com.voxpen.app.ui.onboarding.OnboardingScreenContent
 import com.voxpen.app.ui.settings.SettingsScreenContent
-import com.voxpen.app.ui.theme.VoxInkTheme
+import com.voxpen.app.ui.theme.VoxPenTheme
 import com.voxpen.app.ui.transcription.TranscriptionScreenContent
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -24,15 +24,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            VoxInkTheme {
-                VoxInkNavHost()
+            VoxPenTheme {
+                VoxPenNavHost()
             }
         }
     }
 }
 
 @Composable
-private fun VoxInkNavHost() {
+private fun VoxPenNavHost() {
     val navController = rememberNavController()
     val mainViewModel: MainViewModel = hiltViewModel()
     val isOnboardingCompleted by mainViewModel.onboardingCompleted.collectAsState(initial = true)

@@ -31,7 +31,7 @@ class LicenseManagerTest {
         valid = true,
         licenseKey = LicenseKeyInfo(id = 1, key = "test-key", status = "active"),
         instance = InstanceInfo(id = "inst-123"),
-        meta = LicenseMeta(productName = "VoxInk Bundle"),
+        meta = LicenseMeta(productName = "VoxPen Bundle"),
     )
 
     private val invalidResponse = LicenseResponse(
@@ -116,7 +116,7 @@ class LicenseManagerTest {
         verify { editor.putString("license_key", "test-key") }
         verify { editor.putString("license_instance_id", "inst-123") }
         verify { editor.putBoolean("license_valid", true) }
-        verify { editor.putString("license_product_name", "VoxInk Bundle") }
+        verify { editor.putString("license_product_name", "VoxPen Bundle") }
     }
 
     @Test

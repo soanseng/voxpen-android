@@ -3,9 +3,9 @@ package com.voxpen.app.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Brand colors
-val VoxInkPurple = Color(0xFF6366F1)
-val VoxInkPurpleLight = Color(0xFF818CF8)
-val VoxInkPurpleDark = Color(0xFF4F46E5)
+val VoxPenPurple = Color(0xFF6366F1)
+val VoxPenPurpleLight = Color(0xFF818CF8)
+val VoxPenPurpleDark = Color(0xFF4F46E5)
 
 // Light scheme
 val LightPrimary = Color(0xFF4F46E5)

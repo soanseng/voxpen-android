@@ -54,10 +54,10 @@ class VocabularyPromptBuilderTest {
         val result =
             VocabularyPromptBuilder.buildLlmSuffix(
                 SttLanguage.English,
-                listOf("VoxInk", "Claude"),
+                listOf("VoxPen", "Claude"),
             )
         assertThat(result).contains("Custom dictionary")
-        assertThat(result).contains("VoxInk")
+        assertThat(result).contains("VoxPen")
         assertThat(result).contains("Claude")
     }
 

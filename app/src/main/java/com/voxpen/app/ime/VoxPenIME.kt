@@ -30,7 +30,7 @@ import kotlinx.coroutines.launch
 import timber.log.Timber
 
 @Suppress("TooManyFunctions")
-class VoxInkIME : InputMethodService() {
+class VoxPenIME : InputMethodService() {
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private lateinit var actionHandler: KeyboardActionHandler
     private lateinit var recordingController: RecordingController
@@ -73,7 +73,7 @@ class VoxInkIME : InputMethodService() {
         val entryPoint =
             EntryPointAccessors.fromApplication(
                 applicationContext,
-                VoxInkIMEEntryPoint::class.java,
+                VoxPenIMEEntryPoint::class.java,
             )
 
         audioRecorder = AudioRecorder(this)
@@ -117,7 +117,7 @@ class VoxInkIME : InputMethodService() {
                 toneButton?.text = tone.emoji
             }
         }
-        Timber.d("VoxInkIME input view created")
+        Timber.d("VoxPenIME input view created")
         return view
     }
 
@@ -445,7 +445,7 @@ class VoxInkIME : InputMethodService() {
             )
 
             tones.forEach { (tone, label) ->
-                val tv = TextView(this@VoxInkIME).apply {
+                val tv = TextView(this@VoxPenIME).apply {
                     text = label
                     textSize = 14f
                     setTextColor(

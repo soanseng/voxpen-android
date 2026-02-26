@@ -15,7 +15,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltAndroidApp
-class VoxInkApplication : Application() {
+class VoxPenApplication : Application() {
     @Inject lateinit var billingManager: BillingManager
     @Inject lateinit var licenseManager: LicenseManager
 

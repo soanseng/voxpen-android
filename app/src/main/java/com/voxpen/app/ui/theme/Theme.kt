@@ -43,7 +43,7 @@ private val LightColorScheme =
     )
 
 @Composable
-fun VoxInkTheme(
+fun VoxPenTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit,
@@ -64,7 +64,7 @@ fun VoxInkTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = VoxInkTypography,
+        typography = VoxPenTypography,
         content = content,
     )
 }
