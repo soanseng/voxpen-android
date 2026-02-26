@@ -191,6 +191,15 @@
     <string name="tone_social">社群貼文</string>
     <string name="tone_custom">自訂</string>
 
+    <!-- Tone quick-select (IME) -->
+    <string name="keyboard_tone">語氣</string>
+    <string name="tone_popup_casual">\uD83D\uDCAC 日常聊天</string>
+    <string name="tone_popup_professional">\uD83D\uDCBC 正式書面</string>
+    <string name="tone_popup_email">\uD83D\uDCE7 電子郵件</string>
+    <string name="tone_popup_note">\uD83D\uDCDD 筆記</string>
+    <string name="tone_popup_social">\uD83D\uDCF1 社群貼文</string>
+    <string name="tone_popup_custom">⚙ 自訂</string>
+
     <!-- LLM Provider -->
     <string name="settings_llm_provider_section">潤稿模型</string>
     <string name="provider_custom">自訂</string>

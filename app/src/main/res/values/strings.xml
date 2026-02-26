@@ -191,6 +191,15 @@
     <string name="tone_social">Social</string>
     <string name="tone_custom">Custom</string>
 
+    <!-- Tone quick-select (IME) -->
+    <string name="keyboard_tone">Tone</string>
+    <string name="tone_popup_casual">\uD83D\uDCAC Casual</string>
+    <string name="tone_popup_professional">\uD83D\uDCBC Professional</string>
+    <string name="tone_popup_email">\uD83D\uDCE7 Email</string>
+    <string name="tone_popup_note">\uD83D\uDCDD Note</string>
+    <string name="tone_popup_social">\uD83D\uDCF1 Social</string>
+    <string name="tone_popup_custom">⚙ Custom</string>
+
     <!-- LLM Provider -->
     <string name="settings_llm_provider_section">LLM Provider &amp; Model</string>
     <string name="provider_custom">Custom</string>
