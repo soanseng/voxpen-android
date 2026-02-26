@@ -138,6 +138,17 @@
             android:src="@drawable/ic_mic"
             android:layout_margin="2dp" />
 
+        <TextView
+            android:id="@+id/btn_tone"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/key_background"
+            android:gravity="center"
+            android:textSize="20sp"
+            android:text="\uD83D\uDCAC"
+            android:layout_margin="2dp" />
+
         <ImageButton
             android:id="@+id/btn_enter"
             android:layout_width="0dp"
