@@ -14,6 +14,6 @@ class BillingManagerTest {
 
     @Test
     fun `product ID should be correct`() {
-        assertThat(BillingManager.PRODUCT_ID_PRO).isEqualTo("voxink_pro")
+        assertThat(BillingManager.PRODUCT_ID_PRO).isEqualTo("voxpen_pro")
     }
 }

@@ -33,7 +33,7 @@ object AppModule {
     ): SharedPreferences {
         val masterKeyAlias = MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC)
         return EncryptedSharedPreferences.create(
-            "voxink_secure_prefs",
+            "voxpen_secure_prefs",
             masterKeyAlias,
             context,
             EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
@@ -47,7 +47,7 @@ object AppModule {
         @ApplicationContext context: Context,
     ): AppDatabase =
         Room
-            .databaseBuilder(context, AppDatabase::class.java, "voxink.db")
+            .databaseBuilder(context, AppDatabase::class.java, "voxpen.db")
             .addMigrations(AppDatabase.MIGRATION_1_2)
             .build()
 

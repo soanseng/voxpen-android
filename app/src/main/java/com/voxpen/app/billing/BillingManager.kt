@@ -160,6 +160,6 @@ class BillingManager
         }
 
         companion object {
-            const val PRODUCT_ID_PRO = "voxink_pro"
+            const val PRODUCT_ID_PRO = "voxpen_pro"
         }
     }
