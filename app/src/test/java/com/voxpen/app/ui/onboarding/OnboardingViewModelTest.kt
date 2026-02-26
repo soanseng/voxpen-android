@@ -167,6 +167,20 @@ class OnboardingViewModelTest {
     }
 
     @Test
+    fun `should clear api key and reset configured state`() =
+        runTest {
+            viewModel = createViewModel()
+
+            every { apiKeyManager.isGroqKeyConfigured() } returns true
+            viewModel.saveApiKey("gsk_test_key_123")
+            assertThat(viewModel.uiState.value.isApiKeyConfigured).isTrue()
+
+            every { apiKeyManager.isGroqKeyConfigured() } returns false
+            viewModel.clearApiKey()
+            assertThat(viewModel.uiState.value.isApiKeyConfigured).isFalse()
+        }
+
+    @Test
     fun `should update practice result after recording`() =
         runTest {
             viewModel = createViewModel()

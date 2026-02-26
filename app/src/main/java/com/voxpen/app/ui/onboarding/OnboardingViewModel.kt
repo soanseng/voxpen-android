@@ -54,6 +54,13 @@ class OnboardingViewModel
             }
         }
 
+        fun clearApiKey() {
+            apiKeyManager.setGroqApiKey("")
+            _uiState.update {
+                it.copy(isApiKeyConfigured = false)
+            }
+        }
+
         fun updateKeyboardEnabled(enabled: Boolean) {
             _uiState.update { it.copy(isKeyboardEnabled = enabled) }
         }

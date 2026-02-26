@@ -100,6 +100,8 @@
     <string name="onboarding_progress_almost">快完成了</string>
     <string name="onboarding_progress_last">最後一步！</string>
     <string name="onboarding_api_key_link">至 console.groq.com 免費取得金鑰</string>
+    <string name="onboarding_api_key_tutorial">圖文教學請看 voxpen.app</string>
+    <string name="onboarding_api_key_change">更換 API 金鑰</string>
 
     <!-- Onboarding — Tips -->
     <string name="onboarding_tips_title">鍵盤使用提示</string>

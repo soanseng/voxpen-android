@@ -100,6 +100,8 @@
     <string name="onboarding_progress_almost">Almost there</string>
     <string name="onboarding_progress_last">Last step!</string>
     <string name="onboarding_api_key_link">Get a free key at console.groq.com</string>
+    <string name="onboarding_api_key_tutorial">Step-by-step tutorial at voxpen.app</string>
+    <string name="onboarding_api_key_change">Change API Key</string>
 
     <!-- Onboarding — Tips -->
     <string name="onboarding_tips_title">Keyboard Tips</string>

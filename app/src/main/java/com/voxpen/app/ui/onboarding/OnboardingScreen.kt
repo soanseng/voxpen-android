@@ -33,12 +33,14 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -46,6 +48,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import com.voxpen.app.R
 import com.voxpen.app.ime.AudioRecorder
 
@@ -57,8 +61,21 @@ fun OnboardingScreenContent(
     val state by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
-    // Check keyboard and permission state on each composition
-    LaunchedEffect(state.currentStep) {
+    // Re-check keyboard and permission state when activity resumes
+    // (e.g., after returning from system settings or permission dialog)
+    var resumeCount by remember { mutableIntStateOf(0) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                resumeCount++
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(state.currentStep, resumeCount) {
         val isEnabled =
             try {
                 val imm = context.getSystemService(InputMethodManager::class.java)
@@ -155,6 +172,7 @@ private fun ApiKeyStep(
     viewModel: OnboardingViewModel,
 ) {
     var keyInput by remember { mutableStateOf("") }
+    val uriHandler = LocalUriHandler.current
 
     Text(
         stringResource(R.string.onboarding_api_key_title),
@@ -166,40 +184,54 @@ private fun ApiKeyStep(
         style = MaterialTheme.typography.bodyLarge,
     )
     Spacer(Modifier.height(16.dp))
-    OutlinedTextField(
-        value = keyInput,
-        onValueChange = { keyInput = it },
-        label = { Text(stringResource(R.string.settings_groq_api_key)) },
-        visualTransformation = PasswordVisualTransformation(),
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth(),
-    )
-    Spacer(Modifier.height(8.dp))
-    Button(
-        onClick = {
-            if (keyInput.isNotBlank()) {
-                viewModel.saveApiKey(keyInput)
-                keyInput = ""
-            }
-        },
-    ) {
-        Text(stringResource(R.string.settings_save))
-    }
     if (state.isApiKeyConfigured) {
-        Spacer(Modifier.height(8.dp))
         Text(
             stringResource(R.string.onboarding_api_key_saved),
             color = MaterialTheme.colorScheme.primary,
+            style = MaterialTheme.typography.titleMedium,
         )
-    }
-    Spacer(Modifier.height(8.dp))
-    val uriHandler = LocalUriHandler.current
-    TextButton(onClick = { uriHandler.openUri("https://console.groq.com") }) {
-        Text(
-            stringResource(R.string.onboarding_api_key_link),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.primary,
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(onClick = {
+            viewModel.clearApiKey()
+            keyInput = ""
+        }) {
+            Text(stringResource(R.string.onboarding_api_key_change))
+        }
+    } else {
+        OutlinedTextField(
+            value = keyInput,
+            onValueChange = { keyInput = it },
+            label = { Text(stringResource(R.string.settings_groq_api_key)) },
+            visualTransformation = PasswordVisualTransformation(),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
         )
+        Spacer(Modifier.height(8.dp))
+        Button(
+            onClick = {
+                if (keyInput.isNotBlank()) {
+                    viewModel.saveApiKey(keyInput)
+                    keyInput = ""
+                }
+            },
+        ) {
+            Text(stringResource(R.string.settings_save))
+        }
+        Spacer(Modifier.height(16.dp))
+        TextButton(onClick = { uriHandler.openUri("https://voxpen.app") }) {
+            Text(
+                stringResource(R.string.onboarding_api_key_tutorial),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+        TextButton(onClick = { uriHandler.openUri("https://console.groq.com") }) {
+            Text(
+                stringResource(R.string.onboarding_api_key_link),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
     }
 }
 
