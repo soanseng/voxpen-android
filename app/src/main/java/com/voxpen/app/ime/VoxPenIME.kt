@@ -49,13 +49,13 @@ class VoxPenIME : InputMethodService() {
     private var micButton: ImageButton? = null
     private var toneButton: TextView? = null
 
-    // Task 6: Mic pulse animation
+    // Mic pulse animation
     private var micPulseAnimator: android.animation.AnimatorSet? = null
 
-    // Task 7: Previous state tracking for haptic/sound feedback
+    // Previous state tracking for haptic/sound feedback
     private var previousUiState: ImeUiState = ImeUiState.Idle
 
-    // Task 8: Recording timer
+    // Recording timer
     private var recordingStartTime: Long = 0
     private val timerHandler = android.os.Handler(android.os.Looper.getMainLooper())
     private val timerRunnable =
@@ -227,7 +227,7 @@ class VoxPenIME : InputMethodService() {
         }
     }
 
-    // Task 6: Start mic pulse animation
+    // Start mic pulse animation
     private fun startMicPulse(micBtn: ImageButton) {
         val scaleX = android.animation.ObjectAnimator.ofFloat(micBtn, "scaleX", 1f, 1.15f, 1f)
         val scaleY = android.animation.ObjectAnimator.ofFloat(micBtn, "scaleY", 1f, 1.15f, 1f)
@@ -250,7 +250,7 @@ class VoxPenIME : InputMethodService() {
             }
     }
 
-    // Task 6: Stop mic pulse animation
+    // Stop mic pulse animation
     private fun stopMicPulse() {
         micPulseAnimator?.cancel()
         micPulseAnimator = null
@@ -261,12 +261,12 @@ class VoxPenIME : InputMethodService() {
         }
     }
 
-    // Task 7: Haptic feedback
+    // Haptic feedback
     private fun performHaptic(type: Int) {
         micButton?.performHapticFeedback(type)
     }
 
-    // Task 7: Sound effects
+    // Sound effects
     private fun playTone(toneType: Int) {
         try {
             val toneGen =

@@ -179,6 +179,7 @@ class SettingsViewModel
         }
 
         fun toggleDebugPro() {
+            if (!com.voxpen.app.BuildConfig.DEBUG) return
             val current = billingManager.proStatus.value
             billingManager.debugOverrideProStatus(!current.isPro)
         }
