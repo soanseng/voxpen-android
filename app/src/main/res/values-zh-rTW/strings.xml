@@ -101,6 +101,12 @@
     <string name="onboarding_progress_last">最後一步！</string>
     <string name="onboarding_api_key_link">至 console.groq.com 免費取得金鑰</string>
 
+    <!-- Onboarding — Tips -->
+    <string name="onboarding_tips_title">鍵盤使用提示</string>
+    <string name="onboarding_tip_language">長按 \uD83C\uDF10 快速切換聽寫語言</string>
+    <string name="onboarding_tip_refinement">長按 \u2699 開關文字潤飾</string>
+    <string name="onboarding_tip_tone">點擊語氣按鈕（\uD83D\uDCAC）切換寫作風格</string>
+
     <!-- Home Screen -->
     <string name="home_tagline">用說的，比打字更快</string>
     <string name="home_setup_title">設定進度</string>
