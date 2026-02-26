@@ -74,6 +74,8 @@
     <string name="transcription_delete_confirm">Are you sure you want to delete this transcription?</string>
     <string name="transcription_delete">Delete</string>
     <string name="transcription_cancel">Cancel</string>
+    <string name="transcription_export_srt">Export SRT</string>
+    <string name="transcription_language">Language</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome_title">Welcome to VoxPen</string>

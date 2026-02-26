@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,6 +30,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -118,7 +120,7 @@ fun TranscriptionScreenContent(
                     val refinementEnabled = prefsManager.refinementEnabledFlow.first()
                     val tone = prefsManager.toneStyleFlow.first()
                     val vocabulary = dictRepo.getWords(500)
-                    val language = SttLanguage.Auto
+                    val language = state.selectedLanguage
                     val langKey = PreferencesManager.languageToKey(language)
                     val customPrompt = prefsManager.customPromptFlow(langKey).first()
                     val customLlmBaseUrl = if (llmProvider == LlmProvider.Custom) {
@@ -224,6 +226,27 @@ fun TranscriptionScreenContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
+                }
+                // Language selector
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    val languages = listOf(
+                        SttLanguage.Auto to R.string.lang_auto,
+                        SttLanguage.Chinese to R.string.lang_zh,
+                        SttLanguage.English to R.string.lang_en,
+                        SttLanguage.Japanese to R.string.lang_ja,
+                    )
+                    languages.forEach { (lang, labelRes) ->
+                        FilterChip(
+                            selected = state.selectedLanguage == lang,
+                            onClick = { viewModel.setLanguage(lang) },
+                            label = { Text("${lang.emoji} ${stringResource(labelRes)}") },
+                        )
+                    }
                 }
                 if (state.isTranscribing) {
                     TranscribingIndicator(state.progress)
@@ -382,6 +405,20 @@ private fun TranscriptionDetailScreen(
                 actions = {
                     IconButton(onClick = { copyToClipboard(context, entity) }) {
                         Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
+                    }
+                    TextButton(onClick = {
+                        val srtText = ExportHelper.toSrt(entity)
+                        val intent = Intent(Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(Intent.EXTRA_TEXT, srtText)
+                            putExtra(
+                                Intent.EXTRA_SUBJECT,
+                                entity.fileName.substringBeforeLast('.') + ".srt",
+                            )
+                        }
+                        context.startActivity(Intent.createChooser(intent, null))
+                    }) {
+                        Text("SRT", style = MaterialTheme.typography.labelMedium)
                     }
                     if (isPro) {
                         IconButton(onClick = { shareTranscription(context, entity) }) {

@@ -74,6 +74,8 @@
     <string name="transcription_delete_confirm">確定要刪除此逐字稿嗎？</string>
     <string name="transcription_delete">刪除</string>
     <string name="transcription_cancel">取消</string>
+    <string name="transcription_export_srt">匯出 SRT 字幕</string>
+    <string name="transcription_language">語言</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome_title">歡迎使用語墨</string>

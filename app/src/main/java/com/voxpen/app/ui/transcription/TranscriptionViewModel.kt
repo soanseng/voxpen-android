@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.voxpen.app.billing.ProStatusResolver
 import com.voxpen.app.billing.UsageLimiter
 import com.voxpen.app.data.local.TranscriptionEntity
+import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.repository.TranscriptionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -97,6 +98,10 @@ class TranscriptionViewModel
 
         fun dismissUpgradePrompt() {
             _uiState.update { it.copy(showUpgradePrompt = false) }
+        }
+
+        fun setLanguage(language: SttLanguage) {
+            _uiState.update { it.copy(selectedLanguage = language) }
         }
 
         fun onTranscriptionError(message: String) {
