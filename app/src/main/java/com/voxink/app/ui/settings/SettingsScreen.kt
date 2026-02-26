@@ -175,7 +175,7 @@ private fun ProStatusSection(
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(
-                    stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptions),
+                    stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptionSeconds),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Spacer(Modifier.height(12.dp))

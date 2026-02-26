@@ -157,11 +157,11 @@ private fun UsageSummaryCard(
 ) {
     val voiceLimit = UsageLimiter.FREE_VOICE_INPUT_LIMIT
     val refineLimit = UsageLimiter.FREE_REFINEMENT_LIMIT
-    val transcribeLimit = UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT
+    val transcribeLimit = UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION
 
     val voiceUsed = voiceLimit - state.remainingVoiceInputs
     val refineUsed = refineLimit - state.remainingRefinements
-    val transcribeUsed = transcribeLimit - state.remainingFileTranscriptions
+    val transcribeUsed = transcribeLimit - state.remainingFileTranscriptionSeconds
 
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
@@ -223,7 +223,7 @@ private fun UsageSummaryCard(
                     Text(stringResource(R.string.usage_ad_loading))
                 } else {
                     Text(
-                        stringResource(R.string.usage_watch_ad, UsageLimiter.REWARDED_AD_BONUS),
+                        stringResource(R.string.usage_watch_ad, 0),
                     )
                 }
             }

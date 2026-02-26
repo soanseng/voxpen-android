@@ -18,7 +18,7 @@ class UsageLimiterTest {
         val usage = limiter.currentUsage
         assertThat(usage.voiceInputCount).isEqualTo(0)
         assertThat(usage.refinementCount).isEqualTo(0)
-        assertThat(usage.fileTranscriptionCount).isEqualTo(0)
+        assertThat(usage.fileTranscriptionSeconds).isEqualTo(0)
     }
 
     @Test
@@ -33,6 +33,11 @@ class UsageLimiterTest {
     }
 
     @Test
+    fun `voice input limit should be 15`() {
+        assertThat(UsageLimiter.FREE_VOICE_INPUT_LIMIT).isEqualTo(15)
+    }
+
+    @Test
     fun `canUseRefinement should return true when under limit`() {
         assertThat(limiter.canUseRefinement()).isTrue()
     }
@@ -44,14 +49,37 @@ class UsageLimiterTest {
     }
 
     @Test
-    fun `canUseFileTranscription should return true when under limit`() {
-        assertThat(limiter.canUseFileTranscription()).isTrue()
+    fun `refinement limit should be 3`() {
+        assertThat(UsageLimiter.FREE_REFINEMENT_LIMIT).isEqualTo(3)
     }
 
     @Test
-    fun `canUseFileTranscription should return false when at limit`() {
-        repeat(UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT) { limiter.incrementFileTranscription() }
-        assertThat(limiter.canUseFileTranscription()).isFalse()
+    fun `canTranscribeFile should return true when under duration limit`() {
+        assertThat(limiter.canTranscribeFile(60)).isTrue()
+    }
+
+    @Test
+    fun `canTranscribeFile should return false when file exceeds remaining duration`() {
+        limiter.addFileTranscriptionDuration(250)
+        assertThat(limiter.canTranscribeFile(60)).isFalse()
+    }
+
+    @Test
+    fun `canTranscribeFile should return true when file fits exactly`() {
+        limiter.addFileTranscriptionDuration(240)
+        assertThat(limiter.canTranscribeFile(60)).isTrue()
+    }
+
+    @Test
+    fun `file transcription duration limit should be 300 seconds`() {
+        assertThat(UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION).isEqualTo(300)
+    }
+
+    @Test
+    fun `remainingFileTranscriptionSeconds should decrease after adding duration`() {
+        assertThat(limiter.remainingFileTranscriptionSeconds()).isEqualTo(300)
+        limiter.addFileTranscriptionDuration(120)
+        assertThat(limiter.remainingFileTranscriptionSeconds()).isEqualTo(180)
     }
 
     @Test
@@ -67,21 +95,21 @@ class UsageLimiterTest {
     }
 
     @Test
-    fun `incrementFileTranscription should increase count by one`() {
-        limiter.incrementFileTranscription()
-        assertThat(limiter.currentUsage.fileTranscriptionCount).isEqualTo(1)
+    fun `addFileTranscriptionDuration should add seconds`() {
+        limiter.addFileTranscriptionDuration(90)
+        assertThat(limiter.currentUsage.fileTranscriptionSeconds).isEqualTo(90)
     }
 
     @Test
     fun `resetIfNewDay should reset counts when date changes`() {
         limiter.incrementVoiceInput()
         limiter.incrementRefinement()
-        limiter.incrementFileTranscription()
+        limiter.addFileTranscriptionDuration(120)
         val tomorrow = LocalDate.now().plusDays(1)
         limiter.resetIfNewDay(tomorrow)
         assertThat(limiter.currentUsage.voiceInputCount).isEqualTo(0)
         assertThat(limiter.currentUsage.refinementCount).isEqualTo(0)
-        assertThat(limiter.currentUsage.fileTranscriptionCount).isEqualTo(0)
+        assertThat(limiter.currentUsage.fileTranscriptionSeconds).isEqualTo(0)
     }
 
     @Test
@@ -89,15 +117,6 @@ class UsageLimiterTest {
         limiter.incrementVoiceInput()
         limiter.resetIfNewDay(LocalDate.now())
         assertThat(limiter.currentUsage.voiceInputCount).isEqualTo(1)
-    }
-
-    @Test
-    fun `addBonusVoiceInputs should increase remaining uses`() {
-        repeat(UsageLimiter.FREE_VOICE_INPUT_LIMIT) { limiter.incrementVoiceInput() }
-        assertThat(limiter.canUseVoiceInput()).isFalse()
-        limiter.addBonusVoiceInputs(5)
-        assertThat(limiter.canUseVoiceInput()).isTrue()
-        assertThat(limiter.remainingVoiceInputs()).isEqualTo(5)
     }
 
     @Test
@@ -110,10 +129,5 @@ class UsageLimiterTest {
     @Test
     fun `remainingRefinements should return correct count`() {
         assertThat(limiter.remainingRefinements()).isEqualTo(UsageLimiter.FREE_REFINEMENT_LIMIT)
-    }
-
-    @Test
-    fun `remainingFileTranscriptions should return correct count`() {
-        assertThat(limiter.remainingFileTranscriptions()).isEqualTo(UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT)
     }
 }

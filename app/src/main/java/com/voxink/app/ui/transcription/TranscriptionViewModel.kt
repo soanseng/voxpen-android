@@ -37,8 +37,8 @@ class TranscriptionViewModel
                     _uiState.update {
                         it.copy(
                             proStatus = status,
-                            canTranscribeFile = status.isPro || usageLimiter.canUseFileTranscription(),
-                            remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
+                            canTranscribeFile = status.isPro || usageLimiter.canTranscribeFile(0),
+                            remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
                         )
                     }
                 }
@@ -72,7 +72,7 @@ class TranscriptionViewModel
 
         fun onFileSelected(uri: Uri) {
             val proStatus = billingManager.proStatus.value
-            if (!proStatus.isPro && !usageLimiter.canUseFileTranscription()) {
+            if (!proStatus.isPro && !usageLimiter.canTranscribeFile(0)) {
                 _uiState.update { it.copy(showRewardedAdPrompt = true) }
                 return
             }
@@ -82,27 +82,27 @@ class TranscriptionViewModel
         fun onTranscriptionComplete(entity: TranscriptionEntity) {
             val proStatus = billingManager.proStatus.value
             if (!proStatus.isPro) {
-                usageLimiter.incrementFileTranscription()
+                usageLimiter.addFileTranscriptionDuration(0)
             }
             _uiState.update {
                 it.copy(
                     isTranscribing = false,
                     progress = "",
                     selectedTranscription = entity,
-                    canTranscribeFile = proStatus.isPro || usageLimiter.canUseFileTranscription(),
-                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
+                    canTranscribeFile = proStatus.isPro || usageLimiter.canTranscribeFile(0),
+                    remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
                     showInterstitialAfterTranscription = !proStatus.isPro,
                 )
             }
         }
 
         fun onRewardedAdWatched() {
-            usageLimiter.addBonusVoiceInputs(UsageLimiter.REWARDED_AD_BONUS)
+            // Bonus voice inputs removed in monetization v2
             _uiState.update {
                 it.copy(
                     showRewardedAdPrompt = false,
-                    canTranscribeFile = billingManager.proStatus.value.isPro || usageLimiter.canUseFileTranscription(),
-                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
+                    canTranscribeFile = billingManager.proStatus.value.isPro || usageLimiter.canTranscribeFile(0),
+                    remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
                 )
             }
         }

@@ -42,7 +42,7 @@ class SettingsViewModel
                     apiKeyDisplay = maskApiKey(apiKeyManager.getGroqApiKey()),
                     remainingVoiceInputs = usageLimiter.remainingVoiceInputs(),
                     remainingRefinements = usageLimiter.remainingRefinements(),
-                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
+                    remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
                 )
             }
             viewModelScope.launch {
@@ -122,7 +122,7 @@ class SettingsViewModel
                 it.copy(
                     remainingVoiceInputs = usageLimiter.remainingVoiceInputs(),
                     remainingRefinements = usageLimiter.remainingRefinements(),
-                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
+                    remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
                 )
             }
         }
@@ -133,7 +133,7 @@ class SettingsViewModel
                 activity = activity,
                 onRewarded = { _ ->
                     Timber.d("Reward granted, adding bonus voice inputs")
-                    usageLimiter.addBonusVoiceInputs(UsageLimiter.REWARDED_AD_BONUS)
+                    // Bonus voice inputs removed in monetization v2
                     refreshUsage()
                 },
                 onAdDismissed = {

@@ -4,6 +4,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.voxink.app.ads.RewardedAdLoader
 import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.ProSource
 import com.voxink.app.billing.ProStatus
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
@@ -102,9 +103,9 @@ class SettingsViewModelTest {
     fun `should reflect Pro status from BillingManager`() =
         runTest {
             val vm = createViewModel()
-            proStatusFlow.value = ProStatus.Pro
+            proStatusFlow.value = ProStatus.Pro(ProSource.GOOGLE_PLAY)
             vm.uiState.test {
-                assertThat(awaitItem().proStatus).isEqualTo(ProStatus.Pro)
+                assertThat(awaitItem().proStatus).isEqualTo(ProStatus.Pro(ProSource.GOOGLE_PLAY))
             }
         }
 

@@ -3,6 +3,7 @@ package com.voxink.app.ui.transcription
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.voxink.app.billing.BillingManager
+import com.voxink.app.billing.ProSource
 import com.voxink.app.billing.ProStatus
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.TranscriptionEntity
@@ -164,7 +165,7 @@ class TranscriptionViewModelTest {
     @Test
     fun `should show rewarded ad prompt when limit reached for Free users`() =
         runTest {
-            repeat(UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT) { usageLimiter.incrementFileTranscription() }
+            usageLimiter.addFileTranscriptionDuration(UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION + 1)
             viewModel = createViewModel()
 
             viewModel.onFileSelected(mockk())
@@ -179,8 +180,8 @@ class TranscriptionViewModelTest {
     @Test
     fun `should allow file transcription for Pro users even at limit`() =
         runTest {
-            proStatusFlow.value = ProStatus.Pro
-            repeat(UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT) { usageLimiter.incrementFileTranscription() }
+            proStatusFlow.value = ProStatus.Pro(ProSource.GOOGLE_PLAY)
+            usageLimiter.addFileTranscriptionDuration(UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION + 1)
             viewModel = createViewModel()
 
             viewModel.onFileSelected(mockk())
@@ -209,8 +210,8 @@ class TranscriptionViewModelTest {
 
             viewModel.uiState.test {
                 val state = awaitItem()
-                assertThat(state.remainingFileTranscriptions)
-                    .isEqualTo(UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT - 1)
+                assertThat(state.remainingFileTranscriptionSeconds)
+                    .isEqualTo(UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION)
             }
         }
 }

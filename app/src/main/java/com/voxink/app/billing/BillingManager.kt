@@ -72,7 +72,7 @@ class BillingManager
                             purchase.products.contains(PRODUCT_ID_PRO) &&
                                 purchase.purchaseState == Purchase.PurchaseState.PURCHASED
                         }
-                    _proStatus.value = if (hasPro) ProStatus.Pro else ProStatus.Free
+                    _proStatus.value = if (hasPro) ProStatus.Pro(ProSource.GOOGLE_PLAY) else ProStatus.Free
                     Timber.d("Pro status: ${_proStatus.value}")
                 }
             }
@@ -134,7 +134,7 @@ class BillingManager
                         if (purchase.products.contains(PRODUCT_ID_PRO) &&
                             purchase.purchaseState == Purchase.PurchaseState.PURCHASED
                         ) {
-                            _proStatus.value = ProStatus.Pro
+                            _proStatus.value = ProStatus.Pro(ProSource.GOOGLE_PLAY)
                             Timber.d("Pro purchased successfully")
                         }
                     }
@@ -150,7 +150,7 @@ class BillingManager
 
         fun debugOverrideProStatus(isPro: Boolean) {
             if (!com.voxink.app.BuildConfig.DEBUG) return
-            _proStatus.value = if (isPro) ProStatus.Pro else ProStatus.Free
+            _proStatus.value = if (isPro) ProStatus.Pro(ProSource.GOOGLE_PLAY) else ProStatus.Free
             Timber.d("Debug override pro status: ${_proStatus.value}")
         }
 

@@ -56,7 +56,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.voxink.app.R
 import com.voxink.app.ads.BannerAdView
-import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.TranscriptionEntity
 import com.voxink.app.data.model.SttLanguage
 import com.voxink.app.util.ExportHelper
@@ -141,7 +140,7 @@ fun TranscriptionScreenContent(
                 Text(
                     stringResource(
                         R.string.ad_reward_prompt,
-                        UsageLimiter.REWARDED_AD_BONUS,
+                        0,
                     ),
                 )
             },
@@ -165,7 +164,7 @@ fun TranscriptionScreenContent(
                         )
                     }
                 }) {
-                    Text(stringResource(R.string.usage_watch_ad, UsageLimiter.REWARDED_AD_BONUS))
+                    Text(stringResource(R.string.usage_watch_ad, 0))
                 }
             },
             dismissButton = {
@@ -231,7 +230,7 @@ fun TranscriptionScreenContent(
             ) {
                 if (!state.proStatus.isPro) {
                     Text(
-                        stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptions),
+                        stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptionSeconds),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
