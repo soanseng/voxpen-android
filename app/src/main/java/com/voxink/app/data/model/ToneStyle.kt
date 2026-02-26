@@ -2,13 +2,14 @@ package com.voxink.app.data.model
 
 sealed class ToneStyle(
     val key: String,
+    val emoji: String,
 ) {
-    data object Casual : ToneStyle("casual")
-    data object Professional : ToneStyle("professional")
-    data object Email : ToneStyle("email")
-    data object Note : ToneStyle("note")
-    data object Social : ToneStyle("social")
-    data object Custom : ToneStyle("custom")
+    data object Casual : ToneStyle("casual", "\uD83D\uDCAC")           // 💬
+    data object Professional : ToneStyle("professional", "\uD83D\uDCBC") // 💼
+    data object Email : ToneStyle("email", "\uD83D\uDCE7")              // 📧
+    data object Note : ToneStyle("note", "\uD83D\uDCDD")                // 📝
+    data object Social : ToneStyle("social", "\uD83D\uDCF1")            // 📱
+    data object Custom : ToneStyle("custom", "⚙")
 
     companion object {
         val DEFAULT: ToneStyle get() = Casual

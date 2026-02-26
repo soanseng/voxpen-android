@@ -34,4 +34,21 @@ class ToneStyleTest {
     fun `all should contain exactly 6 tones`() {
         assertThat(ToneStyle.all).hasSize(6)
     }
+
+    @Test
+    fun `each tone style has a unique emoji`() {
+        val emojis = ToneStyle.all.map { it.emoji }
+        assertThat(emojis).hasSize(6)
+        assertThat(emojis).containsNoDuplicates()
+    }
+
+    @Test
+    fun `emoji values match expected`() {
+        assertThat(ToneStyle.Casual.emoji).isEqualTo("\uD83D\uDCAC")           // 💬
+        assertThat(ToneStyle.Professional.emoji).isEqualTo("\uD83D\uDCBC")     // 💼
+        assertThat(ToneStyle.Email.emoji).isEqualTo("\uD83D\uDCE7")            // 📧
+        assertThat(ToneStyle.Note.emoji).isEqualTo("\uD83D\uDCDD")             // 📝
+        assertThat(ToneStyle.Social.emoji).isEqualTo("\uD83D\uDCF1")           // 📱
+        assertThat(ToneStyle.Custom.emoji).isEqualTo("⚙")
+    }
 }
