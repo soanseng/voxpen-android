@@ -426,12 +426,7 @@ class VoxInkIME : InputMethodService() {
             val currentTone = preferencesManager.toneStyleFlow.first()
             val dp = resources.displayMetrics.density
 
-            val container = LinearLayout(this@VoxInkIME).apply {
-                orientation = LinearLayout.VERTICAL
-                setBackgroundColor(resources.getColor(R.color.key_background, null))
-                val pad = (12 * dp).toInt()
-                setPadding(pad, pad, pad, pad)
-            }
+            val container = createQuickSettingsContainer(dp)
 
             val popup = PopupWindow(
                 container,
