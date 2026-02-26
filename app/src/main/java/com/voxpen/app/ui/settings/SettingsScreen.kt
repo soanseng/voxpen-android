@@ -340,10 +340,10 @@ private fun LanguageSection(
     SectionHeader(stringResource(R.string.settings_language_section))
 
     listOf(
-        SttLanguage.Auto to stringResource(R.string.lang_auto),
-        SttLanguage.Chinese to stringResource(R.string.lang_zh),
-        SttLanguage.English to stringResource(R.string.lang_en),
-        SttLanguage.Japanese to stringResource(R.string.lang_ja),
+        SttLanguage.Auto to "${SttLanguage.Auto.emoji} ${stringResource(R.string.lang_auto)}",
+        SttLanguage.Chinese to "${SttLanguage.Chinese.emoji} ${stringResource(R.string.lang_zh)}",
+        SttLanguage.English to "${SttLanguage.English.emoji} ${stringResource(R.string.lang_en)}",
+        SttLanguage.Japanese to "${SttLanguage.Japanese.emoji} ${stringResource(R.string.lang_ja)}",
     ).forEach { (lang, label) ->
         RadioRow(label, state.language == lang) { viewModel.setLanguage(lang) }
         if (lang == SttLanguage.Chinese) {
@@ -374,13 +374,13 @@ private fun LanguageSection(
     AnimatedVisibility(visible = showMore || isExtraLanguageSelected) {
         Column {
             listOf(
-                SttLanguage.Korean to stringResource(R.string.lang_ko),
-                SttLanguage.French to stringResource(R.string.lang_fr),
-                SttLanguage.German to stringResource(R.string.lang_de),
-                SttLanguage.Spanish to stringResource(R.string.lang_es),
-                SttLanguage.Vietnamese to stringResource(R.string.lang_vi),
-                SttLanguage.Indonesian to stringResource(R.string.lang_id),
-                SttLanguage.Thai to stringResource(R.string.lang_th),
+                SttLanguage.Korean to "${SttLanguage.Korean.emoji} ${stringResource(R.string.lang_ko)}",
+                SttLanguage.French to "${SttLanguage.French.emoji} ${stringResource(R.string.lang_fr)}",
+                SttLanguage.German to "${SttLanguage.German.emoji} ${stringResource(R.string.lang_de)}",
+                SttLanguage.Spanish to "${SttLanguage.Spanish.emoji} ${stringResource(R.string.lang_es)}",
+                SttLanguage.Vietnamese to "${SttLanguage.Vietnamese.emoji} ${stringResource(R.string.lang_vi)}",
+                SttLanguage.Indonesian to "${SttLanguage.Indonesian.emoji} ${stringResource(R.string.lang_id)}",
+                SttLanguage.Thai to "${SttLanguage.Thai.emoji} ${stringResource(R.string.lang_th)}",
             ).forEach { (lang, label) ->
                 SmallRadioRow(label, state.language == lang) { viewModel.setLanguage(lang) }
             }
