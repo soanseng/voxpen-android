@@ -71,6 +71,61 @@ class SttLanguageTest {
     }
 
     @Test
+    fun `Auto should have globe emoji`() {
+        assertThat(SttLanguage.Auto.emoji).isEqualTo("\uD83C\uDF10")
+    }
+
+    @Test
+    fun `Chinese should have Taiwan flag emoji`() {
+        assertThat(SttLanguage.Chinese.emoji).isEqualTo("\uD83C\uDDF9\uD83C\uDDFC")
+    }
+
+    @Test
+    fun `English should have US flag emoji`() {
+        assertThat(SttLanguage.English.emoji).isEqualTo("\uD83C\uDDFA\uD83C\uDDF8")
+    }
+
+    @Test
+    fun `Japanese should have Japan flag emoji`() {
+        assertThat(SttLanguage.Japanese.emoji).isEqualTo("\uD83C\uDDEF\uD83C\uDDF5")
+    }
+
+    @Test
+    fun `Korean should have Korea flag emoji`() {
+        assertThat(SttLanguage.Korean.emoji).isEqualTo("\uD83C\uDDF0\uD83C\uDDF7")
+    }
+
+    @Test
+    fun `French should have France flag emoji`() {
+        assertThat(SttLanguage.French.emoji).isEqualTo("\uD83C\uDDEB\uD83C\uDDF7")
+    }
+
+    @Test
+    fun `German should have Germany flag emoji`() {
+        assertThat(SttLanguage.German.emoji).isEqualTo("\uD83C\uDDE9\uD83C\uDDEA")
+    }
+
+    @Test
+    fun `Spanish should have Spain flag emoji`() {
+        assertThat(SttLanguage.Spanish.emoji).isEqualTo("\uD83C\uDDEA\uD83C\uDDF8")
+    }
+
+    @Test
+    fun `Vietnamese should have Vietnam flag emoji`() {
+        assertThat(SttLanguage.Vietnamese.emoji).isEqualTo("\uD83C\uDDFB\uD83C\uDDF3")
+    }
+
+    @Test
+    fun `Indonesian should have Indonesia flag emoji`() {
+        assertThat(SttLanguage.Indonesian.emoji).isEqualTo("\uD83C\uDDEE\uD83C\uDDE9")
+    }
+
+    @Test
+    fun `Thai should have Thailand flag emoji`() {
+        assertThat(SttLanguage.Thai.emoji).isEqualTo("\uD83C\uDDF9\uD83C\uDDED")
+    }
+
+    @Test
     fun `should be exhaustive in when expression`() {
         val languages =
             listOf(
