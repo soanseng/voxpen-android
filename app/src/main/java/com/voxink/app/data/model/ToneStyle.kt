@@ -1,0 +1,21 @@
+package com.voxink.app.data.model
+
+sealed class ToneStyle(
+    val key: String,
+) {
+    data object Casual : ToneStyle("casual")
+    data object Professional : ToneStyle("professional")
+    data object Email : ToneStyle("email")
+    data object Note : ToneStyle("note")
+    data object Social : ToneStyle("social")
+    data object Custom : ToneStyle("custom")
+
+    companion object {
+        val DEFAULT: ToneStyle = Casual
+
+        val all: List<ToneStyle> = listOf(Casual, Professional, Email, Note, Social, Custom)
+
+        fun fromKey(key: String): ToneStyle =
+            all.find { it.key == key } ?: DEFAULT
+    }
+}
