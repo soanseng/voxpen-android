@@ -18,11 +18,11 @@ val keystoreFile = rootProject.file("keystore.properties")
 if (keystoreFile.exists()) keystoreProperties.load(FileInputStream(keystoreFile))
 
 android {
-    namespace = "com.voxink.app"
+    namespace = "com.voxpen.app"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.voxink.app"
+        applicationId = "com.voxpen.app"
         minSdk = 26
         targetSdk = 35
         versionCode = 4

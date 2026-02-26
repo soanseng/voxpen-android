@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "VoxInk"
+rootProject.name = "VoxPen"
 include(":app")

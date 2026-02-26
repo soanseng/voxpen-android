@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand -->
-    <color name="voxink_primary">#FF4F46E5</color>
+    <color name="voxpen_primary">#FF4F46E5</color>
 
     <!-- Keyboard surface (always dark) -->
     <color name="keyboard_background">#FF1C1B1F</color>
