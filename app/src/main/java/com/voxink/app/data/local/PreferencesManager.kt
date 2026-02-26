@@ -9,6 +9,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.SttLanguage
+import com.voxink.app.data.model.ToneStyle
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -49,6 +50,11 @@ class PreferencesManager
                 prefs[LLM_MODEL_KEY] ?: DEFAULT_LLM_MODEL
             }
 
+        val toneStyleFlow: Flow<ToneStyle> =
+            context.dataStore.data.map { prefs ->
+                ToneStyle.fromKey(prefs[TONE_STYLE_KEY] ?: ToneStyle.DEFAULT.key)
+            }
+
         val onboardingCompletedFlow: Flow<Boolean> =
             context.dataStore.data.map { prefs ->
                 prefs[ONBOARDING_COMPLETED_KEY] ?: false
@@ -86,6 +92,12 @@ class PreferencesManager
         suspend fun setLlmModel(model: String) {
             context.dataStore.edit { prefs ->
                 prefs[LLM_MODEL_KEY] = model
+            }
+        }
+
+        suspend fun setToneStyle(tone: ToneStyle) {
+            context.dataStore.edit { prefs ->
+                prefs[TONE_STYLE_KEY] = tone.key
             }
         }
 
@@ -134,6 +146,7 @@ class PreferencesManager
             private val KEYBOARD_TOOLTIPS_SHOWN_KEY = booleanPreferencesKey("keyboard_tooltips_shown")
             private val STT_MODEL_KEY = stringPreferencesKey("stt_model")
             private val LLM_MODEL_KEY = stringPreferencesKey("llm_model")
+            private val TONE_STYLE_KEY = stringPreferencesKey("tone_style")
 
             fun languageFromKey(key: String): SttLanguage =
                 when (key) {
