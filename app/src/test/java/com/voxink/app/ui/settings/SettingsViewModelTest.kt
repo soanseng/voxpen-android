@@ -10,6 +10,7 @@ import com.voxink.app.billing.ProStatusResolver
 import com.voxink.app.billing.UsageLimiter
 import com.voxink.app.data.local.ApiKeyManager
 import com.voxink.app.data.local.PreferencesManager
+import com.voxink.app.data.model.LlmProvider
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.SttLanguage
 import io.mockk.coVerify
@@ -47,6 +48,8 @@ class SettingsViewModelTest {
         every { preferencesManager.languageFlow } returns flowOf(SttLanguage.Auto)
         every { preferencesManager.recordingModeFlow } returns flowOf(RecordingMode.TAP_TO_TOGGLE)
         every { preferencesManager.refinementEnabledFlow } returns flowOf(true)
+        every { preferencesManager.llmProviderFlow } returns flowOf(LlmProvider.Groq)
+        every { preferencesManager.customLlmModelFlow } returns flowOf("")
         every { proStatusResolver.proStatus } returns proStatusFlow
         every { billingManager.proStatus } returns proStatusFlow
     }

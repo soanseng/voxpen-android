@@ -4,6 +4,7 @@ import com.voxink.app.billing.ProStatus
 import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.SttLanguage
+import com.voxink.app.data.model.LlmProvider
 import com.voxink.app.data.model.ToneStyle
 
 data class SettingsUiState(
@@ -15,6 +16,10 @@ data class SettingsUiState(
     val sttModel: String = PreferencesManager.DEFAULT_STT_MODEL,
     val llmModel: String = PreferencesManager.DEFAULT_LLM_MODEL,
     val toneStyle: ToneStyle = ToneStyle.DEFAULT,
+    val llmProvider: LlmProvider = LlmProvider.DEFAULT,
+    val customLlmModel: String = "",
+    val customBaseUrl: String = "",
+    val providerApiKeys: Map<String, Boolean> = emptyMap(),
     val proStatus: ProStatus = ProStatus.Free,
     val remainingVoiceInputs: Int = 0,
     val remainingRefinements: Int = 0,

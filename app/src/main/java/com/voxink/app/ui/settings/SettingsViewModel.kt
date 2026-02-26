@@ -12,6 +12,7 @@ import com.voxink.app.data.local.PreferencesManager
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.RefinementPrompt
 import com.voxink.app.data.model.SttLanguage
+import com.voxink.app.data.model.LlmProvider
 import com.voxink.app.data.model.ToneStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -45,6 +46,10 @@ class SettingsViewModel
                     remainingVoiceInputs = usageLimiter.remainingVoiceInputs(),
                     remainingRefinements = usageLimiter.remainingRefinements(),
                     remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
+                    providerApiKeys = LlmProvider.all.associate { p ->
+                        p.key to apiKeyManager.isKeyConfigured(p)
+                    },
+                    customBaseUrl = apiKeyManager.getCustomBaseUrl() ?: "",
                 )
             }
             viewModelScope.launch {
@@ -76,6 +81,16 @@ class SettingsViewModel
             viewModelScope.launch {
                 preferencesManager.toneStyleFlow.collect { tone ->
                     _uiState.update { it.copy(toneStyle = tone) }
+                }
+            }
+            viewModelScope.launch {
+                preferencesManager.llmProviderFlow.collect { provider ->
+                    _uiState.update { it.copy(llmProvider = provider) }
+                }
+            }
+            viewModelScope.launch {
+                preferencesManager.customLlmModelFlow.collect { model ->
+                    _uiState.update { it.copy(customLlmModel = model) }
                 }
             }
             viewModelScope.launch {
@@ -117,6 +132,33 @@ class SettingsViewModel
 
         fun setToneStyle(tone: ToneStyle) {
             viewModelScope.launch { preferencesManager.setToneStyle(tone) }
+        }
+
+        fun setLlmProvider(provider: LlmProvider) {
+            viewModelScope.launch {
+                preferencesManager.setLlmProvider(provider)
+                preferencesManager.setLlmModel(provider.defaultModelId)
+            }
+        }
+
+        fun saveProviderApiKey(provider: LlmProvider, key: String) {
+            apiKeyManager.setApiKey(provider, key)
+            _uiState.update {
+                it.copy(
+                    providerApiKeys = it.providerApiKeys + (provider.key to key.isNotBlank()),
+                    isApiKeyConfigured = if (provider == LlmProvider.Groq) key.isNotBlank() else it.isApiKeyConfigured,
+                    apiKeyDisplay = if (provider == LlmProvider.Groq) maskApiKey(key) else it.apiKeyDisplay,
+                )
+            }
+        }
+
+        fun setCustomLlmModel(model: String) {
+            viewModelScope.launch { preferencesManager.setCustomLlmModel(model) }
+        }
+
+        fun setCustomBaseUrl(url: String) {
+            apiKeyManager.setCustomBaseUrl(url)
+            _uiState.update { it.copy(customBaseUrl = url) }
         }
 
         fun launchPurchaseFlow(activity: Activity) {

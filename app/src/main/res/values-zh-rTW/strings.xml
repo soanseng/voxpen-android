@@ -56,11 +56,6 @@
     <string name="settings_stt_model_turbo">Turbo — 更快、更便宜（US$0.04/hr）</string>
     <string name="settings_stt_model_v3">V3 — 更精確，WER 8.4%（US$0.111/hr）</string>
     <string name="settings_stt_model_description">Turbo 便宜約 2.8 倍，日常使用推薦。V3 精確度更高，適合重要場合。</string>
-    <string name="settings_llm_model_section">文字潤稿模型</string>
-    <string name="settings_llm_model_llama">LLaMA 3.3 70B — 平衡速度與品質</string>
-    <string name="settings_llm_model_gpt_oss_120b">GPT-OSS 120B — OpenAI 開源，≈ o4-mini</string>
-    <string name="settings_llm_model_gpt_oss_20b">GPT-OSS 20B — 輕量快速，≈ o3-mini</string>
-    <string name="settings_llm_model_description">GPT-OSS 是 OpenAI 的開源模型（Apache 2.0），可透過 Groq API 使用，無需額外金鑰。</string>
 
     <!-- Transcription Screen -->
     <string name="transcribe_audio">音檔轉逐字稿</string>
@@ -195,6 +190,19 @@
     <string name="tone_note">筆記</string>
     <string name="tone_social">社群貼文</string>
     <string name="tone_custom">自訂</string>
+
+    <!-- LLM Provider -->
+    <string name="settings_llm_provider_section">潤稿模型</string>
+    <string name="provider_custom">自訂</string>
+    <string name="provider_key_configured">API 金鑰已設定 ✓</string>
+    <string name="provider_api_key_hint">%1$s API 金鑰</string>
+    <string name="provider_custom_base_url">伺服器網址</string>
+    <string name="provider_custom_model">模型名稱</string>
+    <string name="model_tag_recommended">推薦</string>
+    <string name="model_tag_fast">極速</string>
+    <string name="model_tag_cheapest">最省錢</string>
+    <string name="model_tag_quality">品質最佳</string>
+    <string name="model_tag_best_chinese">中文最強</string>
 
     <!-- Custom Prompt -->
     <string name="settings_custom_prompt_section">潤稿 Prompt</string>

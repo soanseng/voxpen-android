@@ -59,6 +59,7 @@ import com.voxink.app.billing.ProSource
 import com.voxink.app.billing.ProStatus
 import com.voxink.app.data.model.RecordingMode
 import com.voxink.app.data.model.SttLanguage
+import com.voxink.app.data.model.LlmProvider
 import com.voxink.app.data.model.ToneStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -119,7 +120,7 @@ fun SettingsScreenContent(
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             SttModelSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-            LlmModelSection(state, viewModel)
+            LlmProviderSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             RecordingModeSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
@@ -466,31 +467,137 @@ private fun SttModelSection(
     )
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun LlmModelSection(
+private fun LlmProviderSection(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
 ) {
-    SectionHeader(stringResource(R.string.settings_llm_model_section))
-    RadioRow(
-        stringResource(R.string.settings_llm_model_llama),
-        state.llmModel == "llama-3.3-70b-versatile",
-    ) { viewModel.setLlmModel("llama-3.3-70b-versatile") }
-    RadioRow(
-        stringResource(R.string.settings_llm_model_gpt_oss_120b),
-        state.llmModel == "gpt-oss-120b",
-    ) { viewModel.setLlmModel("gpt-oss-120b") }
-    RadioRow(
-        stringResource(R.string.settings_llm_model_gpt_oss_20b),
-        state.llmModel == "gpt-oss-20b",
-    ) { viewModel.setLlmModel("gpt-oss-20b") }
-    Text(
-        stringResource(R.string.settings_llm_model_description),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    SectionHeader(stringResource(R.string.settings_llm_provider_section))
+
+    val providerLabels = mapOf(
+        LlmProvider.Groq to "Groq",
+        LlmProvider.OpenAI to "OpenAI",
+        LlmProvider.OpenRouter to "OpenRouter",
+        LlmProvider.Custom to stringResource(R.string.provider_custom),
+    )
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        LlmProvider.all.forEach { provider ->
+            FilterChip(
+                selected = provider == state.llmProvider,
+                onClick = { viewModel.setLlmProvider(provider) },
+                label = { Text(providerLabels[provider] ?: provider.key) },
+            )
+        }
+    }
+
+    Spacer(Modifier.height(12.dp))
+
+    if (state.llmProvider != LlmProvider.Groq) {
+        ProviderApiKeyField(state, viewModel)
+        Spacer(Modifier.height(8.dp))
+    }
+
+    if (state.llmProvider == LlmProvider.Custom) {
+        CustomProviderFields(state, viewModel)
+    } else {
+        ProviderModelList(state, viewModel)
+    }
+}
+
+@Composable
+private fun ProviderApiKeyField(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    var keyInput by remember { mutableStateOf("") }
+    val isConfigured = state.providerApiKeys[state.llmProvider.key] == true
+    if (isConfigured) {
+        Text(
+            stringResource(R.string.provider_key_configured),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
+    OutlinedTextField(
+        value = keyInput,
+        onValueChange = { keyInput = it },
+        label = { Text(stringResource(R.string.provider_api_key_hint, providerDisplayName(state.llmProvider))) },
+        visualTransformation = PasswordVisualTransformation(),
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Button(
+        onClick = {
+            if (keyInput.isNotBlank()) {
+                viewModel.saveProviderApiKey(state.llmProvider, keyInput)
+                keyInput = ""
+            }
+        },
         modifier = Modifier.padding(top = 4.dp),
+    ) { Text(stringResource(R.string.settings_save)) }
+}
+
+@Composable
+private fun ProviderModelList(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    val tagLabels = mapOf(
+        "recommended" to stringResource(R.string.model_tag_recommended),
+        "fast" to stringResource(R.string.model_tag_fast),
+        "cheapest" to stringResource(R.string.model_tag_cheapest),
+        "quality" to stringResource(R.string.model_tag_quality),
+        "best_chinese" to stringResource(R.string.model_tag_best_chinese),
+    )
+    state.llmProvider.models.forEach { model ->
+        val label = buildString {
+            append(model.label)
+            model.tag?.let { tag ->
+                append(" — ")
+                append(tagLabels[tag] ?: tag)
+            }
+        }
+        RadioRow(label, state.llmModel == model.id) {
+            viewModel.setLlmModel(model.id)
+        }
+    }
+}
+
+@Composable
+private fun CustomProviderFields(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    OutlinedTextField(
+        value = state.customBaseUrl,
+        onValueChange = { viewModel.setCustomBaseUrl(it) },
+        label = { Text(stringResource(R.string.provider_custom_base_url)) },
+        placeholder = { Text("https://api.example.com/") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Spacer(Modifier.height(8.dp))
+    OutlinedTextField(
+        value = state.customLlmModel,
+        onValueChange = { viewModel.setCustomLlmModel(it) },
+        label = { Text(stringResource(R.string.provider_custom_model)) },
+        placeholder = { Text("llama3.1:8b") },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
     )
 }
+
+private fun providerDisplayName(provider: LlmProvider): String =
+    when (provider) {
+        LlmProvider.Groq -> "Groq"
+        LlmProvider.OpenAI -> "OpenAI"
+        LlmProvider.OpenRouter -> "OpenRouter"
+        LlmProvider.Custom -> "Custom"
+    }
 
 @Composable
 private fun SectionHeader(title: String) {
