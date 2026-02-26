@@ -146,4 +146,75 @@ class RefinementPromptTest {
         assertThat(prompt).contains("自定義詞典")
         assertThat(prompt).contains("語墨")
     }
+
+    // --- Tone-specific prompt tests ---
+
+    @Test
+    fun `forLanguageAndTone should return casual prompt for Chinese`() {
+        val prompt = RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Casual)
+        assertThat(prompt).contains("輕鬆自然")
+    }
+
+    @Test
+    fun `forLanguageAndTone should return professional prompt for Chinese`() {
+        val prompt = RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Professional)
+        assertThat(prompt).contains("正式書面")
+    }
+
+    @Test
+    fun `forLanguageAndTone should return email prompt for Chinese`() {
+        val prompt = RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Email)
+        assertThat(prompt).contains("電子郵件")
+    }
+
+    @Test
+    fun `forLanguageAndTone should return note prompt for Chinese`() {
+        val prompt = RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Note)
+        assertThat(prompt).contains("條列式")
+    }
+
+    @Test
+    fun `forLanguageAndTone should return social prompt for Chinese`() {
+        val prompt = RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Social)
+        assertThat(prompt).contains("社群")
+    }
+
+    @Test
+    fun `forLanguageAndTone with Custom should return default prompt`() {
+        val prompt = RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Custom)
+        assertThat(prompt).isEqualTo(RefinementPrompt.defaultForLanguage(SttLanguage.Chinese))
+    }
+
+    @Test
+    fun `forLanguageAndTone should return casual prompt for English`() {
+        val prompt = RefinementPrompt.forLanguageAndTone(SttLanguage.English, ToneStyle.Casual)
+        assertThat(prompt).contains("casual")
+    }
+
+    @Test
+    fun `forLanguageAndTone should return professional prompt for English`() {
+        val prompt = RefinementPrompt.forLanguageAndTone(SttLanguage.English, ToneStyle.Professional)
+        assertThat(prompt).contains("formal")
+    }
+
+    @Test
+    fun `forLanguageAndTone should return professional prompt for Japanese`() {
+        val prompt = RefinementPrompt.forLanguageAndTone(SttLanguage.Japanese, ToneStyle.Professional)
+        assertThat(prompt).contains("敬語")
+    }
+
+    @Test
+    fun `forLanguageAndTone should return casual prompt for Japanese`() {
+        val prompt = RefinementPrompt.forLanguageAndTone(SttLanguage.Japanese, ToneStyle.Casual)
+        assertThat(prompt).contains("カジュアル")
+    }
+
+    @Test
+    fun `forLanguage with tone should thread tone into prompt resolution`() {
+        val prompt = RefinementPrompt.forLanguage(
+            language = SttLanguage.English,
+            tone = ToneStyle.Email,
+        )
+        assertThat(prompt).contains("email")
+    }
 }

@@ -7,10 +7,25 @@ object RefinementPrompt {
         language: SttLanguage,
         vocabulary: List<String> = emptyList(),
         customPrompt: String? = null,
+        tone: ToneStyle = ToneStyle.Casual,
     ): String {
-        val base = customPrompt?.takeIf { it.isNotBlank() } ?: defaultForLanguage(language)
+        val base = when {
+            customPrompt?.isNotBlank() == true -> customPrompt
+            tone == ToneStyle.Custom -> defaultForLanguage(language)
+            else -> forLanguageAndTone(language, tone)
+        }
         return base + VocabularyPromptBuilder.buildLlmSuffix(language, vocabulary)
     }
+
+    fun forLanguageAndTone(language: SttLanguage, tone: ToneStyle): String =
+        when (tone) {
+            ToneStyle.Custom -> defaultForLanguage(language)
+            ToneStyle.Casual -> casualForLanguage(language)
+            ToneStyle.Professional -> professionalForLanguage(language)
+            ToneStyle.Email -> emailForLanguage(language)
+            ToneStyle.Note -> noteForLanguage(language)
+            ToneStyle.Social -> socialForLanguage(language)
+        }
 
     fun defaultForLanguage(language: SttLanguage): String =
         when (language) {
@@ -127,4 +142,185 @@ object RefinementPrompt {
             "4. 適當加入標點符號\n" +
             "5. 不要把外語強制翻譯成中文\n" +
             "只輸出整理後的文字，不要加任何解釋。"
+
+    // --- Per-tone language selectors ---
+
+    private fun casualForLanguage(language: SttLanguage): String =
+        when (language) {
+            SttLanguage.Chinese -> CASUAL_ZH
+            SttLanguage.English -> CASUAL_EN
+            SttLanguage.Japanese -> CASUAL_JA
+            else -> defaultForLanguage(language)
+        }
+
+    private fun professionalForLanguage(language: SttLanguage): String =
+        when (language) {
+            SttLanguage.Chinese -> PROFESSIONAL_ZH
+            SttLanguage.English -> PROFESSIONAL_EN
+            SttLanguage.Japanese -> PROFESSIONAL_JA
+            else -> defaultForLanguage(language)
+        }
+
+    private fun emailForLanguage(language: SttLanguage): String =
+        when (language) {
+            SttLanguage.Chinese -> EMAIL_ZH
+            SttLanguage.English -> EMAIL_EN
+            SttLanguage.Japanese -> EMAIL_JA
+            else -> defaultForLanguage(language)
+        }
+
+    private fun noteForLanguage(language: SttLanguage): String =
+        when (language) {
+            SttLanguage.Chinese -> NOTE_ZH
+            SttLanguage.English -> NOTE_EN
+            SttLanguage.Japanese -> NOTE_JA
+            else -> defaultForLanguage(language)
+        }
+
+    private fun socialForLanguage(language: SttLanguage): String =
+        when (language) {
+            SttLanguage.Chinese -> SOCIAL_ZH
+            SttLanguage.English -> SOCIAL_EN
+            SttLanguage.Japanese -> SOCIAL_JA
+            else -> defaultForLanguage(language)
+        }
+
+    // --- Casual ---
+    private const val CASUAL_ZH =
+        "你是一個語音轉文字的編輯助手。請將以下口語內容整理為輕鬆自然的文字：\n" +
+            "1. 移除贅字（嗯、那個、就是、然後、對、呃）\n" +
+            "2. 保持口語化、輕鬆的語氣\n" +
+            "3. 可以使用縮寫和口語表達\n" +
+            "4. 適當加入標點符號\n" +
+            "5. 不要添加原文沒有的內容\n" +
+            "6. 保持繁體中文\n" +
+            "只輸出整理後的文字，不要加任何解釋。"
+
+    private const val CASUAL_EN =
+        "You are a voice-to-text editor. Clean up the following speech into casual, natural written text:\n" +
+            "1. Remove filler words (um, uh, like, you know)\n" +
+            "2. Keep a casual, relaxed tone\n" +
+            "3. Contractions and informal expressions are fine\n" +
+            "4. Add proper punctuation\n" +
+            "5. Do not add content not in the original speech\n" +
+            "Output only the cleaned text, no explanations."
+
+    private const val CASUAL_JA =
+        "あなたは音声テキスト変換の編集アシスタントです。以下の口語内容をカジュアルな書き言葉に整理してください：\n" +
+            "1. フィラー（えーと、あの、まあ）を除去\n" +
+            "2. 敬語は不要、くだけた口調で\n" +
+            "3. 文法を軽く修正し、原意を保持\n" +
+            "4. 適切に句読点を追加\n" +
+            "5. 原文にない内容を追加しない\n" +
+            "整理後のテキストのみ出力し、説明は不要です。"
+
+    // --- Professional ---
+    private const val PROFESSIONAL_ZH =
+        "你是一個語音轉文字的編輯助手。請將以下口語內容整理為正式書面文字：\n" +
+            "1. 移除贅字\n" +
+            "2. 使用完整句型，語氣專業得體\n" +
+            "3. 修正語法，確保書面語規範\n" +
+            "4. 適當加入標點符號\n" +
+            "5. 不要添加原文沒有的內容\n" +
+            "6. 保持繁體中文\n" +
+            "只輸出整理後的文字，不要加任何解釋。"
+
+    private const val PROFESSIONAL_EN =
+        "You are a voice-to-text editor. Clean up the following speech into formal, professional written text:\n" +
+            "1. Remove filler words\n" +
+            "2. Use complete sentences with a professional, polished tone\n" +
+            "3. Fix grammar and ensure formal register\n" +
+            "4. Add proper punctuation\n" +
+            "5. Do not add content not in the original speech\n" +
+            "Output only the cleaned text, no explanations."
+
+    private const val PROFESSIONAL_JA =
+        "あなたは音声テキスト変換の編集アシスタントです。以下の口語内容をビジネスメールにふさわしい丁寧語・敬語で整理してください：\n" +
+            "1. フィラーを除去\n" +
+            "2. 丁寧語・敬語を使用\n" +
+            "3. 文法を修正し、フォーマルな文体に\n" +
+            "4. 適切に句読点を追加\n" +
+            "5. 原文にない内容を追加しない\n" +
+            "整理後のテキストのみ出力し、説明は不要です。"
+
+    // --- Email ---
+    private const val EMAIL_ZH =
+        "你是一個語音轉文字的編輯助手。請將以下口語內容整理為電子郵件格式：\n" +
+            "1. 移除贅字\n" +
+            "2. 開頭加問候語，結尾加敬語\n" +
+            "3. 段落分明，語氣正式有禮\n" +
+            "4. 適當加入標點符號\n" +
+            "5. 不要添加原文沒有的核心內容\n" +
+            "6. 保持繁體中文\n" +
+            "只輸出整理後的文字，不要加任何解釋。"
+
+    private const val EMAIL_EN =
+        "You are a voice-to-text editor. Format the following speech as a professional email:\n" +
+            "1. Remove filler words\n" +
+            "2. Add a greeting at the start and a sign-off at the end\n" +
+            "3. Organize into clear paragraphs with polite, formal tone\n" +
+            "4. Add proper punctuation\n" +
+            "5. Do not add core content not in the original speech\n" +
+            "Output only the formatted email text, no explanations."
+
+    private const val EMAIL_JA =
+        "あなたは音声テキスト変換の編集アシスタントです。以下の口語内容をメール形式で整理してください：\n" +
+            "1. フィラーを除去\n" +
+            "2. 冒頭に挨拶、末尾に敬具を追加\n" +
+            "3. 段落を分け、丁寧語で\n" +
+            "4. 適切に句読点を追加\n" +
+            "5. 原文にない核心内容を追加しない\n" +
+            "整理後のテキストのみ出力し、説明は不要です。"
+
+    // --- Note ---
+    private const val NOTE_ZH =
+        "你是一個語音轉文字的編輯助手。請將以下口語內容整理為條列式筆記：\n" +
+            "1. 移除贅字\n" +
+            "2. 使用條列式（bullet points）呈現\n" +
+            "3. 精簡為關鍵字和短句\n" +
+            "4. 保持原意，不添加額外內容\n" +
+            "5. 保持繁體中文\n" +
+            "只輸出整理後的文字，不要加任何解釋。"
+
+    private const val NOTE_EN =
+        "You are a voice-to-text editor. Convert the following speech into concise bullet-point notes:\n" +
+            "1. Remove filler words\n" +
+            "2. Use bullet points\n" +
+            "3. Distill to keywords and short phrases\n" +
+            "4. Preserve original meaning, do not add content\n" +
+            "Output only the notes, no explanations."
+
+    private const val NOTE_JA =
+        "あなたは音声テキスト変換の編集アシスタントです。以下の口語内容を箇条書きのメモに整理してください：\n" +
+            "1. フィラーを除去\n" +
+            "2. 箇条書きで整理\n" +
+            "3. キーワードと短文に凝縮\n" +
+            "4. 原意を保持し、内容を追加しない\n" +
+            "整理後のテキストのみ出力し、説明は不要です。"
+
+    // --- Social ---
+    private const val SOCIAL_ZH =
+        "你是一個語音轉文字的編輯助手。請將以下口語內容整理為適合社群媒體發文的文字：\n" +
+            "1. 移除贅字\n" +
+            "2. 語氣輕鬆活潑，適合社群貼文\n" +
+            "3. 可適當使用短句\n" +
+            "4. 不要添加原文沒有的內容\n" +
+            "5. 保持繁體中文\n" +
+            "只輸出整理後的文字，不要加任何解釋。"
+
+    private const val SOCIAL_EN =
+        "You are a voice-to-text editor. Clean up the following speech for a social media post:\n" +
+            "1. Remove filler words\n" +
+            "2. Keep it casual, engaging, and concise\n" +
+            "3. Use short sentences\n" +
+            "4. Do not add content not in the original speech\n" +
+            "Output only the cleaned text, no explanations."
+
+    private const val SOCIAL_JA =
+        "あなたは音声テキスト変換の編集アシスタントです。以下の口語内容をSNS投稿向けに整理してください：\n" +
+            "1. フィラーを除去\n" +
+            "2. カジュアルで親しみやすいトーン\n" +
+            "3. 短文で簡潔に\n" +
+            "4. 原文にない内容を追加しない\n" +
+            "整理後のテキストのみ出力し、説明は不要です。"
 }
