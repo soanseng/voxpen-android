@@ -47,6 +47,7 @@ class VoxInkIME : InputMethodService() {
     private var candidateRefined: TextView? = null
     private var refineProgress: ProgressBar? = null
     private var micButton: ImageButton? = null
+    private var toneButton: TextView? = null
 
     // Task 6: Mic pulse animation
     private var micPulseAnimator: android.animation.AnimatorSet? = null
@@ -111,6 +112,11 @@ class VoxInkIME : InputMethodService() {
                 preferencesManager.setKeyboardTooltipsShown(true)
             }
         }
+        serviceScope.launch {
+            preferencesManager.toneStyleFlow.collect { tone ->
+                toneButton?.text = tone.emoji
+            }
+        }
         Timber.d("VoxInkIME input view created")
         return view
     }
@@ -125,6 +131,7 @@ class VoxInkIME : InputMethodService() {
         candidateRefined = view.findViewById(R.id.candidate_refined)
         refineProgress = view.findViewById(R.id.refine_progress)
         micButton = view.findViewById(R.id.btn_mic)
+        toneButton = view.findViewById(R.id.btn_tone)
     }
 
     private fun bindButtons(view: View) {
@@ -145,6 +152,9 @@ class VoxInkIME : InputMethodService() {
             }
         }
         setupMicButton(view.findViewById(R.id.btn_mic))
+        view.findViewById<TextView>(R.id.btn_tone)?.setOnClickListener {
+            showTonePopup(it)
+        }
     }
 
     @Suppress("ClickableViewAccessibility")
@@ -392,7 +402,6 @@ class VoxInkIME : InputMethodService() {
         serviceScope.launch {
             val currentLang = preferencesManager.languageFlow.first()
             val refinementOn = preferencesManager.refinementEnabledFlow.first()
-            val currentTone = preferencesManager.toneStyleFlow.first()
             val dp = resources.displayMetrics.density
 
             val container = createQuickSettingsContainer(dp)
@@ -406,9 +415,60 @@ class VoxInkIME : InputMethodService() {
 
             addLanguageOptions(container, popup, currentLang, dp)
             addQuickSettingsDivider(container, dp)
-            addToneOptions(container, popup, currentTone, dp)
-            addQuickSettingsDivider(container, dp)
             addRefinementToggle(container, popup, refinementOn, dp)
+
+            popup.showAtLocation(anchor, Gravity.BOTTOM or Gravity.END, (8 * dp).toInt(), (64 * dp).toInt())
+        }
+    }
+
+    private fun showTonePopup(anchor: View) {
+        serviceScope.launch {
+            val currentTone = preferencesManager.toneStyleFlow.first()
+            val dp = resources.displayMetrics.density
+
+            val container = LinearLayout(this@VoxInkIME).apply {
+                orientation = LinearLayout.VERTICAL
+                setBackgroundColor(resources.getColor(R.color.key_background, null))
+                val pad = (12 * dp).toInt()
+                setPadding(pad, pad, pad, pad)
+            }
+
+            val popup = PopupWindow(
+                container,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true,
+            )
+
+            val tones = listOf(
+                ToneStyle.Casual to getString(R.string.tone_popup_casual),
+                ToneStyle.Professional to getString(R.string.tone_popup_professional),
+                ToneStyle.Email to getString(R.string.tone_popup_email),
+                ToneStyle.Note to getString(R.string.tone_popup_note),
+                ToneStyle.Social to getString(R.string.tone_popup_social),
+                ToneStyle.Custom to getString(R.string.tone_popup_custom),
+            )
+
+            tones.forEach { (tone, label) ->
+                val tv = TextView(this@VoxInkIME).apply {
+                    text = label
+                    textSize = 14f
+                    setTextColor(
+                        if (tone == currentTone) {
+                            resources.getColor(R.color.mic_idle, null)
+                        } else {
+                            resources.getColor(R.color.key_text, null)
+                        },
+                    )
+                    val pad = (8 * dp).toInt()
+                    setPadding(pad, pad, pad, pad)
+                    setOnClickListener {
+                        serviceScope.launch { preferencesManager.setToneStyle(tone) }
+                        popup.dismiss()
+                    }
+                }
+                container.addView(tv)
+            }
 
             popup.showAtLocation(anchor, Gravity.BOTTOM or Gravity.END, (8 * dp).toInt(), (64 * dp).toInt())
         }
@@ -452,53 +512,6 @@ class VoxInkIME : InputMethodService() {
                     setPadding(pad, pad, pad, pad)
                     setOnClickListener {
                         serviceScope.launch { preferencesManager.setLanguage(lang) }
-                        popup.dismiss()
-                    }
-                }
-            container.addView(tv)
-        }
-    }
-
-    private fun addToneOptions(
-        container: LinearLayout,
-        popup: PopupWindow,
-        currentTone: ToneStyle,
-        dp: Float,
-    ) {
-        val header =
-            TextView(this).apply {
-                text = getString(R.string.settings_tone_section)
-                textSize = 12f
-                setTextColor(0x99FFFFFF.toInt())
-                val pad = (8 * dp).toInt()
-                setPadding(pad, pad, pad, (4 * dp).toInt())
-            }
-        container.addView(header)
-
-        val tones =
-            listOf(
-                ToneStyle.Casual to getString(R.string.tone_casual),
-                ToneStyle.Professional to getString(R.string.tone_professional),
-                ToneStyle.Email to getString(R.string.tone_email),
-                ToneStyle.Note to getString(R.string.tone_note),
-                ToneStyle.Social to getString(R.string.tone_social),
-            )
-        tones.forEach { (tone, name) ->
-            val tv =
-                TextView(this).apply {
-                    text = name
-                    textSize = 14f
-                    setTextColor(
-                        if (tone == currentTone) {
-                            resources.getColor(R.color.mic_idle, null)
-                        } else {
-                            resources.getColor(R.color.key_text, null)
-                        },
-                    )
-                    val pad = (8 * dp).toInt()
-                    setPadding(pad, pad, pad, pad)
-                    setOnClickListener {
-                        serviceScope.launch { preferencesManager.setToneStyle(tone) }
                         popup.dismiss()
                     }
                 }
@@ -569,6 +582,7 @@ class VoxInkIME : InputMethodService() {
                 R.id.btn_mic to getString(R.string.keyboard_record),
                 R.id.btn_enter to getString(R.string.keyboard_enter),
                 R.id.btn_settings to getString(R.string.keyboard_settings),
+                R.id.btn_tone to getString(R.string.keyboard_tone),
             )
 
         rootView.post {
