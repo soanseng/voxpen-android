@@ -38,8 +38,8 @@ class TranscriptionViewModel
                     _uiState.update {
                         it.copy(
                             proStatus = status,
-                            canTranscribeFile = status.isPro || usageLimiter.canTranscribeFile(0),
-                            remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
+                            canTranscribeFile = status.isPro || usageLimiter.canTranscribeFile(),
+                            remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
                         )
                     }
                 }
@@ -73,7 +73,7 @@ class TranscriptionViewModel
 
         fun onFileSelected(uri: Uri) {
             val proStatus = proStatusResolver.proStatus.value
-            if (!proStatus.isPro && !usageLimiter.canTranscribeFile(0)) {
+            if (!proStatus.isPro && !usageLimiter.canTranscribeFile()) {
                 _uiState.update { it.copy(showUpgradePrompt = true) }
                 return
             }
@@ -83,15 +83,15 @@ class TranscriptionViewModel
         fun onTranscriptionComplete(entity: TranscriptionEntity) {
             val proStatus = proStatusResolver.proStatus.value
             if (!proStatus.isPro) {
-                usageLimiter.addFileTranscriptionDuration(0)
+                usageLimiter.incrementFileTranscription()
             }
             _uiState.update {
                 it.copy(
                     isTranscribing = false,
                     progress = "",
                     selectedTranscription = entity,
-                    canTranscribeFile = proStatus.isPro || usageLimiter.canTranscribeFile(0),
-                    remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
+                    canTranscribeFile = proStatus.isPro || usageLimiter.canTranscribeFile(),
+                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
                 )
             }
         }

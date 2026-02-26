@@ -26,9 +26,9 @@ class UsageLimiter
             return usage.refinementCount < FREE_REFINEMENT_LIMIT
         }
 
-        fun canTranscribeFile(durationSeconds: Int): Boolean {
+        fun canTranscribeFile(): Boolean {
             resetIfNewDay(LocalDate.now())
-            return usage.fileTranscriptionSeconds + durationSeconds <= FREE_FILE_TRANSCRIPTION_DURATION
+            return usage.fileTranscriptionCount < FREE_FILE_TRANSCRIPTION_LIMIT
         }
 
         fun incrementVoiceInput() {
@@ -41,9 +41,9 @@ class UsageLimiter
             usage = usage.copy(refinementCount = usage.refinementCount + 1)
         }
 
-        fun addFileTranscriptionDuration(seconds: Int) {
+        fun incrementFileTranscription() {
             resetIfNewDay(LocalDate.now())
-            usage = usage.copy(fileTranscriptionSeconds = usage.fileTranscriptionSeconds + seconds)
+            usage = usage.copy(fileTranscriptionCount = usage.fileTranscriptionCount + 1)
         }
 
         fun remainingVoiceInputs(): Int {
@@ -56,9 +56,9 @@ class UsageLimiter
             return (FREE_REFINEMENT_LIMIT - usage.refinementCount).coerceAtLeast(0)
         }
 
-        fun remainingFileTranscriptionSeconds(): Int {
+        fun remainingFileTranscriptions(): Int {
             resetIfNewDay(LocalDate.now())
-            return (FREE_FILE_TRANSCRIPTION_DURATION - usage.fileTranscriptionSeconds).coerceAtLeast(0)
+            return (FREE_FILE_TRANSCRIPTION_LIMIT - usage.fileTranscriptionCount).coerceAtLeast(0)
         }
 
         fun resetIfNewDay(today: LocalDate) {
@@ -68,8 +68,8 @@ class UsageLimiter
         }
 
         companion object {
-            const val FREE_VOICE_INPUT_LIMIT = 15
-            const val FREE_REFINEMENT_LIMIT = 3
-            const val FREE_FILE_TRANSCRIPTION_DURATION = 300 // 5 minutes in seconds
+            const val FREE_VOICE_INPUT_LIMIT = 30
+            const val FREE_REFINEMENT_LIMIT = 10
+            const val FREE_FILE_TRANSCRIPTION_LIMIT = 2
         }
     }

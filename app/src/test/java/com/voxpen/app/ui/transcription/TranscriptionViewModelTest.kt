@@ -165,7 +165,7 @@ class TranscriptionViewModelTest {
     @Test
     fun `should show upgrade prompt when limit reached for Free users`() =
         runTest {
-            usageLimiter.addFileTranscriptionDuration(UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION + 1)
+            repeat(UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT) { usageLimiter.incrementFileTranscription() }
             viewModel = createViewModel()
 
             viewModel.onFileSelected(mockk())
@@ -181,7 +181,7 @@ class TranscriptionViewModelTest {
     fun `should allow file transcription for Pro users even at limit`() =
         runTest {
             proStatusFlow.value = ProStatus.Pro(ProSource.GOOGLE_PLAY)
-            usageLimiter.addFileTranscriptionDuration(UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION + 1)
+            repeat(UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT) { usageLimiter.incrementFileTranscription() }
             viewModel = createViewModel()
 
             viewModel.onFileSelected(mockk())
@@ -210,8 +210,8 @@ class TranscriptionViewModelTest {
 
             viewModel.uiState.test {
                 val state = awaitItem()
-                assertThat(state.remainingFileTranscriptionSeconds)
-                    .isEqualTo(UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION)
+                assertThat(state.remainingFileTranscriptions)
+                    .isEqualTo(UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT - 1)
             }
         }
 }

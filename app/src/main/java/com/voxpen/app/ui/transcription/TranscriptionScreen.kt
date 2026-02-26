@@ -221,7 +221,7 @@ fun TranscriptionScreenContent(
             ) {
                 if (!state.proStatus.isPro) {
                     Text(
-                        stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptionSeconds),
+                        stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptions),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),

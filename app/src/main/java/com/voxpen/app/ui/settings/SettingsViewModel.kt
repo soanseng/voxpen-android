@@ -45,7 +45,7 @@ class SettingsViewModel
                     apiKeyDisplay = maskApiKey(apiKeyManager.getGroqApiKey()),
                     remainingVoiceInputs = usageLimiter.remainingVoiceInputs(),
                     remainingRefinements = usageLimiter.remainingRefinements(),
-                    remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
+                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
                     providerApiKeys = LlmProvider.all.associate { p ->
                         p.key to apiKeyManager.isKeyConfigured(p)
                     },
@@ -189,7 +189,7 @@ class SettingsViewModel
                 it.copy(
                     remainingVoiceInputs = usageLimiter.remainingVoiceInputs(),
                     remainingRefinements = usageLimiter.remainingRefinements(),
-                    remainingFileTranscriptionSeconds = usageLimiter.remainingFileTranscriptionSeconds(),
+                    remainingFileTranscriptions = usageLimiter.remainingFileTranscriptions(),
                 )
             }
         }

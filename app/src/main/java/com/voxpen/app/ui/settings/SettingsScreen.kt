@@ -191,8 +191,14 @@ private fun ProStatusSection(
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(
-                    stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptionSeconds),
+                    stringResource(R.string.usage_transcription_remaining, state.remainingFileTranscriptions),
                     style = MaterialTheme.typography.bodySmall,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    stringResource(R.string.free_plan_description),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Spacer(Modifier.height(12.dp))
                 Button(

@@ -12,7 +12,7 @@ data class TranscriptionUiState(
     val error: String? = null,
     val proStatus: ProStatus = ProStatus.Free,
     val canTranscribeFile: Boolean = true,
-    val remainingFileTranscriptionSeconds: Int = 0,
+    val remainingFileTranscriptions: Int = 0,
     val showUpgradePrompt: Boolean = false,
     val selectedLanguage: SttLanguage = SttLanguage.Auto,
 )

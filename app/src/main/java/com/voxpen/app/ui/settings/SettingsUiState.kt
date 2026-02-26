@@ -24,7 +24,7 @@ data class SettingsUiState(
     val proStatus: ProStatus = ProStatus.Free,
     val remainingVoiceInputs: Int = 0,
     val remainingRefinements: Int = 0,
-    val remainingFileTranscriptionSeconds: Int = 0,
+    val remainingFileTranscriptions: Int = 0,
     val isActivatingLicense: Boolean = false,
     val licenseError: String? = null,
     val customPrompt: String? = null,

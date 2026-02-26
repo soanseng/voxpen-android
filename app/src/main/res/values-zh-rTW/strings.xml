@@ -139,6 +139,7 @@
     <string name="usage_voice_remaining">語音輸入：今日剩餘 %1$d 次</string>
     <string name="usage_refinement_remaining">潤稿：今日剩餘 %1$d 次</string>
     <string name="usage_transcription_remaining">音檔轉錄：今日剩餘 %1$d 次</string>
+    <string name="free_plan_description">Free plan — 每日 30 次語音、10 次潤稿、2 次轉稿。升級 Pro 解鎖無限使用。</string>
     <string name="usage_limit_reached">已達每日上限</string>
     <string name="usage_limit_voice">今日語音輸入次數已用完。升級 Pro 即可無限使用。</string>
     <string name="usage_limit_refinement">今日潤稿次數已用完。</string>

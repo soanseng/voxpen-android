@@ -141,11 +141,11 @@ private fun HomeBody(
 private fun UsageSummaryCard(state: SettingsUiState) {
     val voiceLimit = UsageLimiter.FREE_VOICE_INPUT_LIMIT
     val refineLimit = UsageLimiter.FREE_REFINEMENT_LIMIT
-    val transcribeLimit = UsageLimiter.FREE_FILE_TRANSCRIPTION_DURATION
+    val transcribeLimit = UsageLimiter.FREE_FILE_TRANSCRIPTION_LIMIT
 
     val voiceUsed = voiceLimit - state.remainingVoiceInputs
     val refineUsed = refineLimit - state.remainingRefinements
-    val transcribeUsed = transcribeLimit - state.remainingFileTranscriptionSeconds
+    val transcribeUsed = transcribeLimit - state.remainingFileTranscriptions
 
     ElevatedCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {

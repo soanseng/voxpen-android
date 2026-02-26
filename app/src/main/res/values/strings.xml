@@ -139,6 +139,7 @@
     <string name="usage_voice_remaining">Voice input: %1$d remaining today</string>
     <string name="usage_refinement_remaining">Refinements: %1$d remaining today</string>
     <string name="usage_transcription_remaining">File transcriptions: %1$d remaining today</string>
+    <string name="free_plan_description">Free plan — 30 voice inputs, 10 refinements, 2 transcriptions daily. Upgrade to Pro for unlimited use.</string>
     <string name="usage_limit_reached">Daily limit reached</string>
     <string name="usage_limit_voice">Voice input limit reached for today. Upgrade to Pro for unlimited use.</string>
     <string name="usage_limit_refinement">Refinement limit reached for today.</string>
