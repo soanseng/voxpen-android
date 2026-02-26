@@ -25,6 +25,9 @@ gradle-app.setting
 # Local configuration file
 local.properties
 
+# Kotlin
+.kotlin/
+
 # Android Studio
 .idea/
 *.iml
