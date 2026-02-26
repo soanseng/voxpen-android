@@ -1,7 +1,7 @@
-# VoxInk ProGuard Rules
+# VoxPen ProGuard Rules
 
 # ── IME Service ──
--keep class com.voxink.app.ime.VoxInkIME { *; }
+-keep class com.voxpen.app.ime.VoxPenIME { *; }
 
 # ── Hilt ──
 -keep class dagger.hilt.** { *; }
@@ -27,11 +27,11 @@
 -keepclasseswithmembers class kotlinx.serialization.json.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
--keep,includedescriptorclasses class com.voxink.app.**$$serializer { *; }
--keepclassmembers class com.voxink.app.** {
+-keep,includedescriptorclasses class com.voxpen.app.**$$serializer { *; }
+-keepclassmembers class com.voxpen.app.** {
     *** Companion;
 }
--keepclasseswithmembers class com.voxink.app.** {
+-keepclasseswithmembers class com.voxpen.app.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 
