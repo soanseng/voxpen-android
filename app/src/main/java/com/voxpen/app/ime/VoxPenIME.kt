@@ -141,8 +141,14 @@ class VoxPenIME : InputMethodService() {
         view.findViewById<ImageButton>(R.id.btn_enter)?.setOnClickListener {
             actionHandler.handle(KeyboardAction.Enter)
         }
-        view.findViewById<ImageButton>(R.id.btn_switch)?.setOnClickListener {
-            actionHandler.handle(KeyboardAction.SwitchKeyboard)
+        view.findViewById<ImageButton>(R.id.btn_switch)?.let { switchBtn ->
+            switchBtn.setOnClickListener {
+                actionHandler.handle(KeyboardAction.SwitchKeyboard)
+            }
+            switchBtn.setOnLongClickListener {
+                showLanguagePopup(it)
+                true
+            }
         }
         view.findViewById<ImageButton>(R.id.btn_settings)?.let { settingsBtn ->
             settingsBtn.setOnClickListener { actionHandler.handle(KeyboardAction.OpenSettings) }
@@ -400,21 +406,17 @@ class VoxPenIME : InputMethodService() {
 
     private fun showQuickSettings(anchor: View) {
         serviceScope.launch {
-            val currentLang = preferencesManager.languageFlow.first()
             val refinementOn = preferencesManager.refinementEnabledFlow.first()
             val dp = resources.displayMetrics.density
 
             val container = createQuickSettingsContainer(dp)
-            val popup =
-                PopupWindow(
-                    container,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    true,
-                )
+            val popup = PopupWindow(
+                container,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true,
+            )
 
-            addLanguageOptions(container, popup, currentLang, dp)
-            addQuickSettingsDivider(container, dp)
             addRefinementToggle(container, popup, refinementOn, dp)
 
             popup.showAtLocation(anchor, Gravity.BOTTOM or Gravity.END, (8 * dp).toInt(), (64 * dp).toInt())
@@ -469,32 +471,30 @@ class VoxPenIME : InputMethodService() {
         }
     }
 
-    private fun createQuickSettingsContainer(dp: Float): LinearLayout =
-        LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            setBackgroundColor(resources.getColor(R.color.key_background, null))
-            val pad = (12 * dp).toInt()
-            setPadding(pad, pad, pad, pad)
-        }
+    private fun showLanguagePopup(anchor: View) {
+        serviceScope.launch {
+            val currentLang = preferencesManager.languageFlow.first()
+            val dp = resources.displayMetrics.density
 
-    private fun addLanguageOptions(
-        container: LinearLayout,
-        popup: PopupWindow,
-        currentLang: SttLanguage,
-        dp: Float,
-    ) {
-        val languages = listOf(SttLanguage.Auto, SttLanguage.Chinese, SttLanguage.English, SttLanguage.Japanese)
-        val langNames =
-            listOf(
-                getString(R.string.lang_auto),
-                getString(R.string.lang_zh),
-                getString(R.string.lang_en),
-                getString(R.string.lang_ja),
+            val container = createQuickSettingsContainer(dp)
+
+            val popup = PopupWindow(
+                container,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true,
             )
-        languages.forEachIndexed { i, lang ->
-            val tv =
-                TextView(this).apply {
-                    text = getString(R.string.quick_language, langNames[i])
+
+            val languages = listOf(
+                SttLanguage.Auto to "${SttLanguage.Auto.emoji} ${getString(R.string.lang_auto)}",
+                SttLanguage.Chinese to "${SttLanguage.Chinese.emoji} ${getString(R.string.lang_zh)}",
+                SttLanguage.English to "${SttLanguage.English.emoji} ${getString(R.string.lang_en)}",
+                SttLanguage.Japanese to "${SttLanguage.Japanese.emoji} ${getString(R.string.lang_ja)}",
+            )
+
+            languages.forEach { (lang, label) ->
+                val tv = TextView(this@VoxPenIME).apply {
+                    text = label
                     textSize = 14f
                     setTextColor(
                         if (lang == currentLang) {
@@ -510,28 +510,20 @@ class VoxPenIME : InputMethodService() {
                         popup.dismiss()
                     }
                 }
-            container.addView(tv)
+                container.addView(tv)
+            }
+
+            popup.showAtLocation(anchor, Gravity.BOTTOM or Gravity.START, (8 * dp).toInt(), (64 * dp).toInt())
         }
     }
 
-    private fun addQuickSettingsDivider(
-        container: LinearLayout,
-        dp: Float,
-    ) {
-        val divider =
-            View(this).apply {
-                layoutParams =
-                    LinearLayout.LayoutParams(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        (1 * dp).toInt(),
-                    ).apply {
-                        topMargin = (4 * dp).toInt()
-                        bottomMargin = (4 * dp).toInt()
-                    }
-                setBackgroundColor(0x33FFFFFF)
-            }
-        container.addView(divider)
-    }
+    private fun createQuickSettingsContainer(dp: Float): LinearLayout =
+        LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(resources.getColor(R.color.key_background, null))
+            val pad = (12 * dp).toInt()
+            setPadding(pad, pad, pad, pad)
+        }
 
     private fun addRefinementToggle(
         container: LinearLayout,
