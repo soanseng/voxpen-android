@@ -16,6 +16,7 @@ import com.voxpen.app.data.remote.ChatCompletionApiFactory
 import com.voxpen.app.data.remote.ChatCompletionResponse
 import com.voxpen.app.data.remote.ChatMessage
 import com.voxpen.app.data.remote.GroqApi
+import com.voxpen.app.data.remote.SttApiFactory
 import com.voxpen.app.data.remote.WhisperResponse
 import com.voxpen.app.data.repository.DictionaryRepository
 import com.voxpen.app.data.repository.LlmRepository
@@ -37,6 +38,7 @@ import java.io.IOException
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecordingControllerTest {
     private val groqApi: GroqApi = mockk()
+    private val sttApiFactory: SttApiFactory = mockk()
     private val chatCompletionApi: ChatCompletionApi = mockk()
     private val apiFactory: ChatCompletionApiFactory = mockk()
     private val apiKeyManager: ApiKeyManager = mockk()
@@ -75,7 +77,7 @@ class RecordingControllerTest {
         coEvery { dictionaryRepository.getWords(any()) } returns listOf("語墨", "Claude")
         every { apiFactory.create(any()) } returns chatCompletionApi
 
-        val sttRepository = SttRepository(groqApi)
+        val sttRepository = SttRepository(groqApi, sttApiFactory)
         val llmRepository = LlmRepository(apiFactory)
         val transcribeUseCase = TranscribeAudioUseCase(sttRepository)
         val refineTextUseCase = RefineTextUseCase(llmRepository)

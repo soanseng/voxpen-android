@@ -2,6 +2,7 @@ package com.voxpen.app.data.repository
 
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.remote.GroqApi
+import com.voxpen.app.data.remote.SttApiFactory
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -14,6 +15,7 @@ class SttRepository
     @Inject
     constructor(
         private val groqApi: GroqApi,
+        private val sttApiFactory: SttApiFactory,
     ) {
         suspend fun transcribe(
             wavBytes: ByteArray,
@@ -21,10 +23,18 @@ class SttRepository
             apiKey: String,
             model: String = WHISPER_MODEL,
             vocabularyHint: String? = null,
+            customSttBaseUrl: String? = null,
         ): Result<String> {
             if (apiKey.isBlank()) {
                 return Result.failure(IllegalStateException("API key not configured"))
             }
+
+            val api =
+                if (!customSttBaseUrl.isNullOrBlank()) {
+                    sttApiFactory.createForCustom(customSttBaseUrl)
+                } else {
+                    groqApi
+                }
 
             return try {
                 val filePart =
@@ -39,7 +49,7 @@ class SttRepository
                 val promptBody = (vocabularyHint ?: language.prompt).toRequestBody(TEXT_PLAIN)
 
                 val response =
-                    groqApi.transcribe(
+                    api.transcribe(
                         authorization = "Bearer $apiKey",
                         file = filePart,
                         model = modelBody,

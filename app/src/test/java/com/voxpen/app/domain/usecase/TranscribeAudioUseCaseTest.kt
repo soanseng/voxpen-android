@@ -3,6 +3,7 @@ package com.voxpen.app.domain.usecase
 import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.remote.GroqApi
+import com.voxpen.app.data.remote.SttApiFactory
 import com.voxpen.app.data.remote.WhisperResponse
 import com.voxpen.app.data.repository.SttRepository
 import com.voxpen.app.util.AudioEncoder
@@ -20,13 +21,14 @@ import java.io.IOException
 
 class TranscribeAudioUseCaseTest {
     private val groqApi: GroqApi = mockk()
+    private val sttApiFactory: SttApiFactory = mockk()
     private lateinit var sttRepository: SttRepository
     private lateinit var useCase: TranscribeAudioUseCase
 
     @BeforeEach
     fun setUp() {
         mockkObject(AudioEncoder)
-        sttRepository = SttRepository(groqApi)
+        sttRepository = SttRepository(groqApi, sttApiFactory)
         useCase = TranscribeAudioUseCase(sttRepository)
     }
 

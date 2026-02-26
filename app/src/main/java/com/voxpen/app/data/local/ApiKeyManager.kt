@@ -58,9 +58,21 @@ class ApiKeyManager
             }
         }
 
+        // --- Custom STT base URL ---
+        fun getCustomSttBaseUrl(): String? =
+            encryptedPrefs.getString(KEY_CUSTOM_STT_BASE_URL, null)
+
+        fun setCustomSttBaseUrl(url: String?) {
+            encryptedPrefs.edit().apply {
+                if (url != null) putString(KEY_CUSTOM_STT_BASE_URL, url) else remove(KEY_CUSTOM_STT_BASE_URL)
+                apply()
+            }
+        }
+
         companion object {
             private const val KEY_GROQ = "groq_api_key"
             private const val KEY_PREFIX = "api_key_"
             private const val KEY_CUSTOM_BASE_URL = "custom_llm_base_url"
+            private const val KEY_CUSTOM_STT_BASE_URL = "custom_stt_base_url"
         }
     }

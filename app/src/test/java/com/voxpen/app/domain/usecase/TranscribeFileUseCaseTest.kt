@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.local.TranscriptionEntity
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.remote.GroqApi
+import com.voxpen.app.data.remote.SttApiFactory
 import com.voxpen.app.data.remote.WhisperResponse
 import com.voxpen.app.data.repository.SttRepository
 import com.voxpen.app.data.repository.TranscriptionRepository
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.Test
 
 class TranscribeFileUseCaseTest {
     private lateinit var groqApi: GroqApi
+    private lateinit var sttApiFactory: SttApiFactory
     private lateinit var sttRepository: SttRepository
     private lateinit var transcriptionRepository: TranscriptionRepository
     private lateinit var useCase: TranscribeFileUseCase
@@ -25,7 +27,8 @@ class TranscribeFileUseCaseTest {
     @BeforeEach
     fun setUp() {
         groqApi = mockk()
-        sttRepository = SttRepository(groqApi)
+        sttApiFactory = mockk()
+        sttRepository = SttRepository(groqApi, sttApiFactory)
         transcriptionRepository = mockk(relaxed = true)
         useCase = TranscribeFileUseCase(sttRepository, transcriptionRepository)
     }

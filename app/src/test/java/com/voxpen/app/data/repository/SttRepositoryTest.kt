@@ -3,9 +3,11 @@ package com.voxpen.app.data.repository
 import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.remote.GroqApi
+import com.voxpen.app.data.remote.SttApiFactory
 import com.voxpen.app.data.remote.WhisperResponse
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
@@ -16,11 +18,13 @@ import java.io.IOException
 
 class SttRepositoryTest {
     private val groqApi: GroqApi = mockk()
+    private lateinit var sttApiFactory: SttApiFactory
     private lateinit var repository: SttRepository
 
     @BeforeEach
     fun setUp() {
-        repository = SttRepository(groqApi)
+        sttApiFactory = mockk()
+        repository = SttRepository(groqApi, sttApiFactory)
     }
 
     @Test
@@ -121,5 +125,42 @@ class SttRepositoryTest {
             val buffer = okio.Buffer()
             modelSlot.captured.writeTo(buffer)
             assertThat(buffer.readUtf8()).isEqualTo("whisper-large-v3")
+        }
+
+    @Test
+    fun `should use custom API when customSttBaseUrl is provided`() =
+        runTest {
+            val customApi: GroqApi = mockk()
+            every { sttApiFactory.createForCustom("https://my-whisper.example.com/") } returns customApi
+            coEvery { customApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(text = "custom result")
+
+            val result =
+                repository.transcribe(
+                    wavBytes = ByteArray(10),
+                    language = SttLanguage.Auto,
+                    apiKey = "key",
+                    customSttBaseUrl = "https://my-whisper.example.com/",
+                )
+
+            assertThat(result.getOrNull()).isEqualTo("custom result")
+            coVerify(exactly = 0) { groqApi.transcribe(any(), any(), any(), any(), any(), any()) }
+        }
+
+    @Test
+    fun `should use Groq API when customSttBaseUrl is null`() =
+        runTest {
+            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(text = "groq result")
+
+            val result =
+                repository.transcribe(
+                    wavBytes = ByteArray(10),
+                    language = SttLanguage.Auto,
+                    apiKey = "key",
+                    customSttBaseUrl = null,
+                )
+
+            assertThat(result.getOrNull()).isEqualTo("groq result")
         }
 }
