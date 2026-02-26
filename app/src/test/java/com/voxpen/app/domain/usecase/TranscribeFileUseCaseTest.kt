@@ -2,15 +2,23 @@ package com.voxpen.app.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.local.TranscriptionEntity
+import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.SttLanguage
+import com.voxpen.app.data.remote.ChatChoice
+import com.voxpen.app.data.remote.ChatCompletionApi
+import com.voxpen.app.data.remote.ChatCompletionApiFactory
+import com.voxpen.app.data.remote.ChatCompletionResponse
+import com.voxpen.app.data.remote.ChatMessage
 import com.voxpen.app.data.remote.GroqApi
 import com.voxpen.app.data.remote.SttApiFactory
 import com.voxpen.app.data.remote.WhisperResponse
+import com.voxpen.app.data.repository.LlmRepository
 import com.voxpen.app.data.repository.SttRepository
 import com.voxpen.app.data.repository.TranscriptionRepository
 import com.voxpen.app.util.AudioEncoder
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
@@ -22,7 +30,15 @@ class TranscribeFileUseCaseTest {
     private lateinit var sttApiFactory: SttApiFactory
     private lateinit var sttRepository: SttRepository
     private lateinit var transcriptionRepository: TranscriptionRepository
+    private lateinit var chatCompletionApi: ChatCompletionApi
+    private lateinit var apiFactory: ChatCompletionApiFactory
+    private lateinit var refineTextUseCase: RefineTextUseCase
     private lateinit var useCase: TranscribeFileUseCase
+
+    private fun chatResponse(content: String) =
+        ChatCompletionResponse(
+            choices = listOf(ChatChoice(message = ChatMessage(role = "assistant", content = content))),
+        )
 
     @BeforeEach
     fun setUp() {
@@ -30,7 +46,12 @@ class TranscribeFileUseCaseTest {
         sttApiFactory = mockk()
         sttRepository = SttRepository(groqApi, sttApiFactory)
         transcriptionRepository = mockk(relaxed = true)
-        useCase = TranscribeFileUseCase(sttRepository, transcriptionRepository)
+        chatCompletionApi = mockk()
+        apiFactory = mockk()
+        every { apiFactory.create(any()) } returns chatCompletionApi
+        val llmRepository = LlmRepository(apiFactory)
+        refineTextUseCase = RefineTextUseCase(llmRepository)
+        useCase = TranscribeFileUseCase(sttRepository, transcriptionRepository, refineTextUseCase)
     }
 
     @Test
@@ -167,5 +188,57 @@ class TranscribeFileUseCaseTest {
             )
 
             assertThat(entitySlot.captured.fileSizeBytes).isEqualTo(wavBytes.size.toLong())
+        }
+
+    @Test
+    fun `should refine transcription when refinement params provided`() =
+        runTest {
+            val pcmData = ByteArray(100) { (it % 256).toByte() }
+            val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
+
+            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(text = "raw text")
+            coEvery { chatCompletionApi.chatCompletion(any(), any()) } returns
+                chatResponse("polished text")
+            val entitySlot = slot<TranscriptionEntity>()
+            coEvery { transcriptionRepository.insert(capture(entitySlot)) } returns 1L
+
+            val result =
+                useCase(
+                    fileBytes = wavBytes,
+                    fileName = "test.wav",
+                    language = SttLanguage.English,
+                    apiKey = "key",
+                    refinementApiKey = "llm-key",
+                    llmModel = "gpt-4o-mini",
+                    llmProvider = LlmProvider.OpenAI,
+                )
+
+            assertThat(result.isSuccess).isTrue()
+            assertThat(entitySlot.captured.refinedText).isEqualTo("polished text")
+        }
+
+    @Test
+    fun `should skip refinement when refinementApiKey is null`() =
+        runTest {
+            val pcmData = ByteArray(100) { (it % 256).toByte() }
+            val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
+
+            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(text = "raw text")
+            val entitySlot = slot<TranscriptionEntity>()
+            coEvery { transcriptionRepository.insert(capture(entitySlot)) } returns 1L
+
+            val result =
+                useCase(
+                    fileBytes = wavBytes,
+                    fileName = "test.wav",
+                    language = SttLanguage.English,
+                    apiKey = "key",
+                )
+
+            assertThat(result.isSuccess).isTrue()
+            assertThat(entitySlot.captured.refinedText).isNull()
+            coVerify(exactly = 0) { chatCompletionApi.chatCompletion(any(), any()) }
         }
 }

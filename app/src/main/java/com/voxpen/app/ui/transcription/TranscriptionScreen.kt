@@ -53,11 +53,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.voxpen.app.R
+import com.voxpen.app.data.local.PreferencesManager
 import com.voxpen.app.data.local.TranscriptionEntity
+import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.util.ExportHelper
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
@@ -100,7 +103,30 @@ fun TranscriptionScreenContent(
                             TranscriptionEntryPoint::class.java,
                         )
                     val useCase = entryPoint.transcribeFileUseCase()
-                    val apiKey = entryPoint.apiKeyManager().getGroqApiKey() ?: ""
+                    val apiKeyManager = entryPoint.apiKeyManager()
+                    val prefsManager = entryPoint.preferencesManager()
+                    val dictRepo = entryPoint.dictionaryRepository()
+
+                    val groqKey = apiKeyManager.getGroqApiKey() ?: ""
+                    val llmProvider = prefsManager.llmProviderFlow.first()
+                    val llmApiKey = apiKeyManager.getApiKey(llmProvider) ?: groqKey
+                    val llmModel = if (llmProvider == LlmProvider.Custom) {
+                        prefsManager.customLlmModelFlow.first().ifBlank { prefsManager.llmModelFlow.first() }
+                    } else {
+                        prefsManager.llmModelFlow.first()
+                    }
+                    val refinementEnabled = prefsManager.refinementEnabledFlow.first()
+                    val tone = prefsManager.toneStyleFlow.first()
+                    val vocabulary = dictRepo.getWords(500)
+                    val language = SttLanguage.Auto
+                    val langKey = PreferencesManager.languageToKey(language)
+                    val customPrompt = prefsManager.customPromptFlow(langKey).first()
+                    val customLlmBaseUrl = if (llmProvider == LlmProvider.Custom) {
+                        apiKeyManager.getCustomBaseUrl()
+                    } else {
+                        null
+                    }
+
                     var entity: TranscriptionEntity? = null
                     var errorMsg: String? = null
                     withContext(Dispatchers.IO) {
@@ -108,8 +134,15 @@ fun TranscriptionScreenContent(
                             useCase(
                                 fileBytes = fileBytes,
                                 fileName = fileName,
-                                language = SttLanguage.Auto,
-                                apiKey = apiKey,
+                                language = language,
+                                apiKey = groqKey,
+                                refinementApiKey = if (refinementEnabled) llmApiKey else null,
+                                llmModel = llmModel,
+                                llmProvider = llmProvider,
+                                customLlmBaseUrl = customLlmBaseUrl,
+                                tone = tone,
+                                vocabulary = vocabulary,
+                                customPrompt = customPrompt,
                             )
                         entity = result.getOrNull()
                         errorMsg = result.exceptionOrNull()?.message

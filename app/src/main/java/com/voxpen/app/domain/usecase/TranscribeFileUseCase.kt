@@ -2,7 +2,9 @@ package com.voxpen.app.domain.usecase
 
 import com.voxpen.app.data.local.PreferencesManager
 import com.voxpen.app.data.local.TranscriptionEntity
+import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.SttLanguage
+import com.voxpen.app.data.model.ToneStyle
 import com.voxpen.app.data.repository.SttRepository
 import com.voxpen.app.data.repository.TranscriptionRepository
 import com.voxpen.app.util.AudioChunker
@@ -13,6 +15,7 @@ class TranscribeFileUseCase
     constructor(
         private val sttRepository: SttRepository,
         private val transcriptionRepository: TranscriptionRepository,
+        private val refineTextUseCase: RefineTextUseCase,
     ) {
         suspend operator fun invoke(
             fileBytes: ByteArray,
@@ -20,6 +23,13 @@ class TranscribeFileUseCase
             language: SttLanguage,
             apiKey: String,
             maxChunkBytes: Int = DEFAULT_MAX_CHUNK_BYTES,
+            refinementApiKey: String? = null,
+            llmModel: String? = null,
+            llmProvider: LlmProvider? = null,
+            customLlmBaseUrl: String? = null,
+            tone: ToneStyle = ToneStyle.Casual,
+            vocabulary: List<String> = emptyList(),
+            customPrompt: String? = null,
         ): Result<TranscriptionEntity> {
             val chunks =
                 if (AudioChunker.isWav(fileBytes)) {
@@ -38,11 +48,29 @@ class TranscribeFileUseCase
             }
 
             val mergedText = transcriptions.joinToString(" ")
+
+            val refinedText = if (!refinementApiKey.isNullOrBlank() && llmProvider != null && llmModel != null) {
+                refineTextUseCase(
+                    text = mergedText,
+                    language = language,
+                    apiKey = refinementApiKey,
+                    model = llmModel,
+                    vocabulary = vocabulary,
+                    customPrompt = customPrompt,
+                    tone = tone,
+                    provider = llmProvider,
+                    customBaseUrl = customLlmBaseUrl,
+                ).getOrNull()
+            } else {
+                null
+            }
+
             val languageKey = PreferencesManager.languageToKey(language)
             val entity =
                 TranscriptionEntity(
                     fileName = fileName,
                     originalText = mergedText,
+                    refinedText = refinedText,
                     language = languageKey,
                     fileSizeBytes = fileBytes.size.toLong(),
                     createdAt = System.currentTimeMillis(),
