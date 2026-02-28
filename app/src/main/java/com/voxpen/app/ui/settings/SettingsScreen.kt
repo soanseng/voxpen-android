@@ -408,6 +408,12 @@ private fun RecordingModeSection(
         stringResource(R.string.settings_hold_to_record),
         state.recordingMode == RecordingMode.HOLD_TO_RECORD,
     ) { viewModel.setRecordingMode(RecordingMode.HOLD_TO_RECORD) }
+    Text(
+        stringResource(R.string.onboarding_tip_recording_limit),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp),
+    )
 }
 
 @Composable

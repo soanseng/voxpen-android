@@ -113,6 +113,7 @@
     <string name="onboarding_tip_language">長按 \uD83C\uDF10 快速切換聽寫語言</string>
     <string name="onboarding_tip_refinement">長按 \u2699 開關文字潤飾</string>
     <string name="onboarding_tip_tone">點擊語氣按鈕（\uD83D\uDCAC）切換寫作風格</string>
+    <string name="onboarding_tip_recording_limit">每次錄音最長 6 分鐘，最後 30 秒會顯示倒數提示。</string>
 
     <!-- Home Screen -->
     <string name="home_tagline">用說的，比打字更快</string>

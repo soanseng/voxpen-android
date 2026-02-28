@@ -426,6 +426,7 @@ private fun TipsStep() {
         R.string.onboarding_tip_language,
         R.string.onboarding_tip_refinement,
         R.string.onboarding_tip_tone,
+        R.string.onboarding_tip_recording_limit,
     )
     tips.forEach { tipRes ->
         Text(

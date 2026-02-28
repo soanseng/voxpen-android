@@ -62,9 +62,18 @@ class VoxPenIME : InputMethodService() {
         object : Runnable {
             override fun run() {
                 val elapsed = (System.currentTimeMillis() - recordingStartTime) / 1000
+                if (elapsed >= MAX_RECORDING_SECONDS) {
+                    stopRecording()
+                    return
+                }
+                val remaining = MAX_RECORDING_SECONDS - elapsed
                 val minutes = elapsed / 60
                 val seconds = elapsed % 60
-                candidateText?.text = getString(R.string.recording) + " $minutes:%02d".format(seconds)
+                candidateText?.text = if (remaining <= 30) {
+                    "⚠️ ${getString(R.string.recording)} – 0:%02d".format(remaining)
+                } else {
+                    getString(R.string.recording) + " $minutes:%02d".format(seconds)
+                }
                 timerHandler.postDelayed(this, 1000)
             }
         }
@@ -605,6 +614,10 @@ class VoxPenIME : InputMethodService() {
             }
             (rootView as? ViewGroup)?.addView(overlay)
         }
+    }
+
+    companion object {
+        private const val MAX_RECORDING_SECONDS = 360L // 6 minutes
     }
 
     private fun launchSettings() {
