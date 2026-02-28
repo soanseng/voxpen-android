@@ -4,6 +4,7 @@ import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.model.RecordingMode
 import com.voxpen.app.data.model.SttLanguage
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertFalse
 
 class PreferencesManagerTest {
     @Test
@@ -46,5 +47,16 @@ class PreferencesManagerTest {
     @Test
     fun `default LLM model should be llama-3_3-70b-versatile`() {
         assertThat(PreferencesManager.DEFAULT_LLM_MODEL).isEqualTo("llama-3.3-70b-versatile")
+    }
+
+    @Test
+    fun `default translation enabled should be false`() {
+        assertFalse(PreferencesManager.DEFAULT_TRANSLATION_ENABLED)
+    }
+
+    @Test
+    fun `default translation target language should be English`() {
+        assertThat(PreferencesManager.DEFAULT_TRANSLATION_TARGET_LANGUAGE)
+            .isEqualTo(SttLanguage.English)
     }
 }

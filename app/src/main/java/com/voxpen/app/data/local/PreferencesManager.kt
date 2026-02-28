@@ -81,6 +81,16 @@ class PreferencesManager
                 prefs[KEYBOARD_TOOLTIPS_SHOWN_KEY] ?: false
             }
 
+        val translationEnabledFlow: Flow<Boolean> =
+            context.dataStore.data.map { prefs ->
+                prefs[TRANSLATION_ENABLED_KEY] ?: DEFAULT_TRANSLATION_ENABLED
+            }
+
+        val translationTargetLanguageFlow: Flow<SttLanguage> =
+            context.dataStore.data.map { prefs ->
+                languageFromKey(prefs[TRANSLATION_TARGET_LANGUAGE_KEY] ?: "en")
+            }
+
         suspend fun setLanguage(language: SttLanguage) {
             context.dataStore.edit { prefs ->
                 prefs[LANGUAGE_KEY] = languageToKey(language)
@@ -147,6 +157,18 @@ class PreferencesManager
             }
         }
 
+        suspend fun setTranslationEnabled(enabled: Boolean) {
+            context.dataStore.edit { prefs ->
+                prefs[TRANSLATION_ENABLED_KEY] = enabled
+            }
+        }
+
+        suspend fun setTranslationTargetLanguage(language: SttLanguage) {
+            context.dataStore.edit { prefs ->
+                prefs[TRANSLATION_TARGET_LANGUAGE_KEY] = languageToKey(language)
+            }
+        }
+
         fun customPromptFlow(languageKey: String): Flow<String?> =
             context.dataStore.data.map { prefs ->
                 prefs[stringPreferencesKey("custom_prompt_$languageKey")]
@@ -172,6 +194,8 @@ class PreferencesManager
             const val DEFAULT_REFINEMENT_ENABLED: Boolean = true
             const val DEFAULT_STT_MODEL: String = "whisper-large-v3-turbo"
             const val DEFAULT_LLM_MODEL: String = "llama-3.3-70b-versatile"
+            const val DEFAULT_TRANSLATION_ENABLED: Boolean = false
+            val DEFAULT_TRANSLATION_TARGET_LANGUAGE: SttLanguage = SttLanguage.English
 
             private val LANGUAGE_KEY = stringPreferencesKey("stt_language")
             private val RECORDING_MODE_KEY = stringPreferencesKey("recording_mode")
@@ -184,6 +208,8 @@ class PreferencesManager
             private val LLM_PROVIDER_KEY = stringPreferencesKey("llm_provider")
             private val CUSTOM_LLM_MODEL_KEY = stringPreferencesKey("custom_llm_model")
             private val CUSTOM_STT_BASE_URL_KEY = stringPreferencesKey("custom_stt_base_url_pref")
+            private val TRANSLATION_ENABLED_KEY = booleanPreferencesKey("translation_enabled")
+            private val TRANSLATION_TARGET_LANGUAGE_KEY = stringPreferencesKey("translation_target_language")
 
             fun languageFromKey(key: String): SttLanguage =
                 when (key) {
