@@ -99,6 +99,16 @@ class SettingsViewModel
                 }
             }
             viewModelScope.launch {
+                preferencesManager.translationEnabledFlow.collect { enabled ->
+                    _uiState.update { it.copy(translationEnabled = enabled) }
+                }
+            }
+            viewModelScope.launch {
+                preferencesManager.translationTargetLanguageFlow.collect { lang ->
+                    _uiState.update { it.copy(translationTargetLanguage = lang) }
+                }
+            }
+            viewModelScope.launch {
                 proStatusResolver.proStatus.collect { status ->
                     _uiState.update { it.copy(proStatus = status) }
                 }
@@ -163,6 +173,14 @@ class SettingsViewModel
 
         fun setCustomSttBaseUrl(url: String) {
             viewModelScope.launch { preferencesManager.setCustomSttBaseUrl(url) }
+        }
+
+        fun setTranslationEnabled(enabled: Boolean) {
+            viewModelScope.launch { preferencesManager.setTranslationEnabled(enabled) }
+        }
+
+        fun setTranslationTargetLanguage(language: SttLanguage) {
+            viewModelScope.launch { preferencesManager.setTranslationTargetLanguage(language) }
         }
 
         fun setCustomBaseUrl(url: String) {

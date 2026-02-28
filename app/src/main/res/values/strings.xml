@@ -51,6 +51,12 @@
     <string name="settings_refinement_section">Text Refinement</string>
     <string name="settings_refinement_toggle">Enable refinement</string>
 
+    <!-- Translation Mode -->
+    <string name="settings_translation_section">Translation Mode</string>
+    <string name="settings_translation_toggle">Translate output</string>
+    <string name="settings_translation_desc">Speak in one language, output in another</string>
+    <string name="settings_translation_target">Translate to</string>
+
     <!-- Model Selection -->
     <string name="settings_stt_model_section">STT Model</string>
     <string name="settings_stt_model_turbo">Turbo — Faster, cheaper (US$0.04/hr)</string>

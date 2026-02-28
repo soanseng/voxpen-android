@@ -126,6 +126,8 @@ fun SettingsScreenContent(
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             RefinementSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            TranslationSection(state, viewModel)
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             ToneStyleSection(
                 selectedTone = state.toneStyle,
                 onToneSelected = { viewModel.setToneStyle(it) },
@@ -436,6 +438,52 @@ private fun RefinementSection(
             checked = state.refinementEnabled,
             onCheckedChange = { viewModel.setRefinementEnabled(it) },
         )
+    }
+}
+
+@Composable
+private fun TranslationSection(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    SectionHeader(stringResource(R.string.settings_translation_section))
+    Text(
+        stringResource(R.string.settings_translation_desc),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(bottom = 4.dp),
+    )
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.settings_translation_toggle),
+            modifier = Modifier.weight(1f),
+        )
+        Switch(
+            checked = state.translationEnabled,
+            onCheckedChange = { viewModel.setTranslationEnabled(it) },
+        )
+    }
+    if (state.translationEnabled) {
+        Text(
+            stringResource(R.string.settings_translation_target),
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+        )
+        val targetLanguages = listOf(
+            SttLanguage.English to "🇺🇸 English",
+            SttLanguage.Chinese to "🇹🇼 繁體中文",
+            SttLanguage.Japanese to "🇯🇵 日本語",
+        )
+        targetLanguages.forEach { (lang, label) ->
+            RadioRow(label, state.translationTargetLanguage == lang) {
+                viewModel.setTranslationTargetLanguage(lang)
+            }
+        }
     }
 }
 

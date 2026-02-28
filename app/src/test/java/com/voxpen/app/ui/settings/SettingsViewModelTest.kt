@@ -127,4 +127,29 @@ class SettingsViewModelTest {
                 assertThat(state.remainingVoiceInputs).isEqualTo(UsageLimiter.FREE_VOICE_INPUT_LIMIT - 1)
             }
         }
+
+    @Test
+    fun `setTranslationEnabled should persist preference`() =
+        runTest {
+            val vm = createViewModel()
+            vm.setTranslationEnabled(true)
+            coVerify { preferencesManager.setTranslationEnabled(true) }
+        }
+
+    @Test
+    fun `setTranslationTargetLanguage should persist preference`() =
+        runTest {
+            val vm = createViewModel()
+            vm.setTranslationTargetLanguage(SttLanguage.Japanese)
+            coVerify { preferencesManager.setTranslationTargetLanguage(SttLanguage.Japanese) }
+        }
+
+    @Test
+    fun `default translationEnabled should be false`() =
+        runTest {
+            val vm = createViewModel()
+            vm.uiState.test {
+                assertThat(awaitItem().translationEnabled).isFalse()
+            }
+        }
 }

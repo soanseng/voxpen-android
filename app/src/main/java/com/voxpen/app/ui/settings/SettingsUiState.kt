@@ -30,4 +30,6 @@ data class SettingsUiState(
     val customPrompt: String? = null,
     val customPromptDraft: String = "",
     val promptSnackbar: String? = null,
+    val translationEnabled: Boolean = false,
+    val translationTargetLanguage: SttLanguage = SttLanguage.English,
 )

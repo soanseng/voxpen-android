@@ -51,6 +51,12 @@
     <string name="settings_refinement_section">文字潤稿</string>
     <string name="settings_refinement_toggle">啟用智慧潤稿</string>
 
+    <!-- Translation Mode -->
+    <string name="settings_translation_section">翻譯模式</string>
+    <string name="settings_translation_toggle">翻譯輸出</string>
+    <string name="settings_translation_desc">用一種語言說話，輸出另一種語言</string>
+    <string name="settings_translation_target">翻譯為</string>
+
     <!-- Model Selection -->
     <string name="settings_stt_model_section">語音辨識模型</string>
     <string name="settings_stt_model_turbo">Turbo — 更快、更便宜（US$0.04/hr）</string>
