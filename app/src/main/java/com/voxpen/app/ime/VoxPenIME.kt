@@ -416,6 +416,7 @@ class VoxPenIME : InputMethodService() {
     private fun showQuickSettings(anchor: View) {
         serviceScope.launch {
             val refinementOn = preferencesManager.refinementEnabledFlow.first()
+            val translationOn = preferencesManager.translationEnabledFlow.first()
             val dp = resources.displayMetrics.density
 
             val container = createQuickSettingsContainer(dp)
@@ -427,6 +428,7 @@ class VoxPenIME : InputMethodService() {
             )
 
             addRefinementToggle(container, popup, refinementOn, dp)
+            addTranslationToggle(container, popup, translationOn, dp)
 
             popup.showAtLocation(anchor, Gravity.BOTTOM or Gravity.END, (8 * dp).toInt(), (64 * dp).toInt())
         }
@@ -554,6 +556,32 @@ class VoxPenIME : InputMethodService() {
                 setPadding(pad, pad, pad, pad)
                 setOnClickListener {
                     serviceScope.launch { preferencesManager.setRefinementEnabled(!refinementOn) }
+                    popup.dismiss()
+                }
+            }
+        container.addView(tv)
+    }
+
+    private fun addTranslationToggle(
+        container: LinearLayout,
+        popup: PopupWindow,
+        translationOn: Boolean,
+        dp: Float,
+    ) {
+        val tv =
+            TextView(this).apply {
+                text =
+                    if (translationOn) {
+                        getString(R.string.quick_translation_on)
+                    } else {
+                        getString(R.string.quick_translation_off)
+                    }
+                textSize = 14f
+                setTextColor(resources.getColor(R.color.key_text, null))
+                val pad = (8 * dp).toInt()
+                setPadding(pad, pad, pad, pad)
+                setOnClickListener {
+                    serviceScope.launch { preferencesManager.setTranslationEnabled(!translationOn) }
                     popup.dismiss()
                 }
             }

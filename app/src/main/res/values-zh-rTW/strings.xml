@@ -141,6 +141,8 @@
     <string name="quick_language">語言：%1$s</string>
     <string name="quick_refinement_on">潤稿：開</string>
     <string name="quick_refinement_off">潤稿：關</string>
+    <string name="quick_translation_on">翻譯：開</string>
+    <string name="quick_translation_off">翻譯：關</string>
 
     <!-- Monetization — Usage Limits -->
     <string name="usage_voice_remaining">語音輸入：今日剩餘 %1$d 次</string>

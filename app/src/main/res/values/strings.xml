@@ -141,6 +141,8 @@
     <string name="quick_language">Language: %1$s</string>
     <string name="quick_refinement_on">Refinement: ON</string>
     <string name="quick_refinement_off">Refinement: OFF</string>
+    <string name="quick_translation_on">Translation: ON</string>
+    <string name="quick_translation_off">Translation: OFF</string>
 
     <!-- Monetization — Usage Limits -->
     <string name="usage_voice_remaining">Voice input: %1$d remaining today</string>
