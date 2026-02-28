@@ -120,6 +120,8 @@
     <string name="onboarding_tip_refinement">Long-press \u2699 to toggle refinement on/off</string>
     <string name="onboarding_tip_tone">Tap the tone button (\uD83D\uDCAC) to change writing style</string>
     <string name="onboarding_tip_recording_limit">Each recording is limited to 6 minutes. A countdown appears in the last 30 seconds.</string>
+    <string name="onboarding_tip_voice_commands">Say a command word to trigger keyboard actions — "send"/"送出" sends, "delete"/"刪除" backspaces, "new line"/"換行" inserts a newline.</string>
+    <string name="onboarding_tip_speak_to_edit">Select text in any app, then long-press \u2699 → ✏️ Edit Mode → tap mic and describe your edit. The LLM rewrites the selection in place.</string>
 
     <!-- Home Screen -->
     <string name="home_tagline">Speak instead of type</string>

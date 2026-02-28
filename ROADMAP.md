@@ -41,9 +41,9 @@ Date: 2026-02-28
 
 | Gap | Typeless Feature | Priority |
 |-----|-----------------|----------|
-| **Translation Mode** | Speak zh → output en (and vice versa) | P1 — in backlog |
+| ~~**Translation Mode**~~ | ~~Speak zh → output en (and vice versa)~~ | ✅ **Shipped** |
 | **Auto Context-Aware Tone** | Detect foreground app (Gmail = formal, WhatsApp = casual) | P1 |
-| **Speak to Edit** | Select text in any app → voice-edit by describing changes | P1 |
+| ~~**Speak to Edit**~~ | ~~Select text in any app → voice-edit by describing changes~~ | ✅ **Shipped** |
 | **100+ Languages** | 100+ vs VoxPen's 11 exposed (Whisper supports 99) | P2 |
 | **Personalization / Style Learning** | Adapts to user's writing patterns over time | P3 |
 | **AI Query on Selected Text** | Summarize / explain / translate highlighted content | P3 |
@@ -54,17 +54,11 @@ Date: 2026-02-28
 
 ### Phase A — Core Parity (v1.x, high impact / feasible)
 
-#### A1. Translation Mode
+#### A1. Translation Mode ✅ Shipped (2026-03-01)
 **What**: User speaks in Language A, VoxPen outputs in Language B.
-**Why**: Major use case for zh-TW users communicating in English (and vice versa).
-**How**:
-- Add "Translation" toggle in Settings and IME quick settings
-- Add target language selector (e.g., "Translate to: English")
-- Modify LLM system prompt: `"你是翻譯助手，將以下繁體中文口語翻譯成自然的英文書面語，不要添加說明。"`
-- Works on top of existing Groq/OpenAI LLM refinement pipeline
-- Store `translationEnabled` + `translationTargetLanguage` in DataStore
-
-**Files to touch**: `PreferencesManager`, `SettingsRepository`, `SettingsScreen`, `KeyboardView`, `VoxPenIME`
+**How**: Toggle + target language selector in Settings and IME quick settings (long-press ⚙️).
+Routes to a separate `TranslationPrompt` instead of the refinement prompt.
+Supports zh→en, en→zh, zh→ja, and reverse.
 
 ---
 
@@ -90,22 +84,10 @@ Date: 2026-02-28
 
 ---
 
-#### A3. Speak to Edit
-**What**: User selects text in any app, taps a "voice edit" button in the keyboard, speaks an edit command (e.g., "make it more formal"), and the selected text is replaced.
-**Why**: This is Typeless's most distinctive feature. Transforms VoxPen from a dictation tool to a full voice-editing assistant.
-**How**:
-- Read selected text via `currentInputConnection.getSelectedText(0)` in IME
-- Add "Edit" mode button to keyboard layout (pencil icon, only visible when text is selected)
-- On tap: enter Edit mode — record user's edit command
-- After recording: send to LLM with context:
-  ```
-  System: "You are a text editor. Given selected text and an edit instruction, output ONLY the revised text."
-  User: "Selected text: [selection]\nEdit instruction: [transcription]"
-  ```
-- Replace selected text via `currentInputConnection.commitText()` after deleting selection
-
-**Difficulty**: Medium-High (new IME flow, selection detection, new LLM prompt type)
-**Files to touch**: `VoxPenIME`, `KeyboardView`, new `EditModeViewModel` or extend existing IME state machine
+#### A3. Speak to Edit ✅ Shipped (2026-03-01)
+**What**: User selects text in any app, enables Edit Mode via long-press ⚙️ → ✏️, speaks an edit instruction (e.g., "讓它更正式" / "make it more formal"), and the selection is replaced with the LLM-revised text.
+**How**: `isEditMode` flag in `VoxPenIME`; `RecordingController.onStopRecording(editMode=true)` emits `EditInstruction` instead of refining; `performEditWithLlm()` reads `getSelectedText(0)`, builds an `EditPrompt`, calls `EditTextUseCase`, then `commitText()`.
+**Also shipped**: Voice Commands — say "送出"/"send" to submit, "刪除"/"delete" to backspace, "換行"/"new line" for newline, "空格"/"space" for space. Recognized before refinement; no API call required.
 
 ---
 
@@ -163,9 +145,10 @@ Date: 2026-02-28
 
 | Feature | Impact | Effort | Priority |
 |---------|--------|--------|----------|
-| Translation Mode | High | Low | **P1 → Ship in v1.x** |
-| Auto Context-Aware Tone | High | Low | **P1 → Ship in v1.x** |
-| Speak to Edit | High | Medium | **P1 → Target v1.5** |
+| ~~Translation Mode~~ | High | Low | ✅ Shipped |
+| Auto Context-Aware Tone | High | Low | **P1 → Next** |
+| ~~Speak to Edit~~ | High | Medium | ✅ Shipped |
+| ~~Voice Commands~~ | Medium | Low | ✅ Shipped |
 | More Languages (UI) | Medium | Low | P2 |
 | Per-App Custom Tone | Medium | Medium | P2 |
 | AI Query on Selected Text | Medium | Medium | P3 |
@@ -179,8 +162,9 @@ VoxPen's core differentiators vs Typeless are:
 1. **BYOK** — Typeless is a $12/month black box; VoxPen puts the user in control of API costs and providers
 2. **File transcription + SRT** — Typeless is keyboard-only
 3. **zh-TW depth** — Typeless is generic; VoxPen has 繁體-specific prompts, vocabulary, and UX
+4. **Translation Mode** — shipped; speak in one language, output in another ✅
+5. **Speak to Edit** — shipped; select text → voice-instruct LLM to rewrite it ✅
+6. **Voice Commands** — shipped; say "送出"/"send" to execute keyboard actions without inserting text ✅
 
-The three highest-priority gaps to close:
-1. **Translation Mode** — low effort, high demand for zh-TW↔en users
-2. **Auto Context-Aware Tone** — IME already has `packageName` access, minimal code needed
-3. **Speak to Edit** — Typeless's crown jewel; required for feature parity at the high end
+The remaining highest-priority gap:
+1. **Auto Context-Aware Tone** — IME already has `packageName` access; auto-select tone by foreground app
