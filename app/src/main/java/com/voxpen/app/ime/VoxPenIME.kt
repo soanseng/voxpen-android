@@ -19,6 +19,8 @@ import com.voxpen.app.data.local.PreferencesManager
 import com.voxpen.app.data.model.RecordingMode
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.model.ToneStyle
+import com.voxpen.app.data.model.VoiceCommand
+import com.voxpen.app.domain.usecase.EditTextUseCase
 import com.voxpen.app.ui.MainActivity
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +39,10 @@ class VoxPenIME : InputMethodService() {
     private lateinit var audioRecorder: AudioRecorder
     private lateinit var preferencesManager: PreferencesManager
     private lateinit var proStatusResolver: com.voxpen.app.billing.ProStatusResolver
+    private lateinit var editTextUseCase: EditTextUseCase
+    private lateinit var apiKeyManager: com.voxpen.app.data.local.ApiKeyManager
+
+    private var isEditMode: Boolean = false
 
     private var candidateBar: LinearLayout? = null
     private var candidateStatusRow: LinearLayout? = null
@@ -88,6 +94,8 @@ class VoxPenIME : InputMethodService() {
         audioRecorder = AudioRecorder(this)
         preferencesManager = entryPoint.preferencesManager()
         proStatusResolver = entryPoint.proStatusResolver()
+        editTextUseCase = entryPoint.editTextUseCase()
+        apiKeyManager = entryPoint.apiKeyManager()
         recordingController =
             RecordingController(
                 transcribeUseCase = entryPoint.transcribeAudioUseCase(),
@@ -203,10 +211,12 @@ class VoxPenIME : InputMethodService() {
     private fun handleMicTap() {
         when (recordingController.uiState.value) {
             ImeUiState.Idle, is ImeUiState.Error, is ImeUiState.Result,
-            is ImeUiState.Refined,
+            is ImeUiState.Refined, is ImeUiState.CommandDetected,
+            is ImeUiState.EditResult,
             -> startRecording()
             ImeUiState.Recording -> stopRecording()
-            ImeUiState.Processing, is ImeUiState.Refining -> { /* ignore */ }
+            ImeUiState.Processing, is ImeUiState.Refining,
+            ImeUiState.Editing, is ImeUiState.EditInstruction -> { /* ignore mid-processing */ }
         }
     }
 
@@ -226,6 +236,7 @@ class VoxPenIME : InputMethodService() {
             recordingController.onStopRecording(
                 stopRecording = { audioRecorder.stopRecording() },
                 language = language,
+                editMode = isEditMode,
             )
         }
     }
@@ -370,6 +381,25 @@ class VoxPenIME : InputMethodService() {
                 showStatusRow(state.message, showProgress = false)
                 candidateBar?.setOnClickListener { recordingController.dismiss() }
             }
+            is ImeUiState.CommandDetected -> {
+                timerHandler.removeCallbacks(timerRunnable)
+                executeVoiceCommand(state.command)
+                recordingController.dismiss()
+            }
+            is ImeUiState.EditInstruction -> {
+                timerHandler.removeCallbacks(timerRunnable)
+                showStatusRow(getString(R.string.editing_text), showProgress = true)
+                performEditWithLlm(state.instruction)
+            }
+            ImeUiState.Editing -> {
+                // Spinner already visible from EditInstruction handler
+            }
+            is ImeUiState.EditResult -> {
+                timerHandler.removeCallbacks(timerRunnable)
+                currentInputConnection?.commitText(state.revised, 1)
+                isEditMode = false
+                recordingController.dismiss()
+            }
         }
     }
 
@@ -429,6 +459,7 @@ class VoxPenIME : InputMethodService() {
 
             addRefinementToggle(container, popup, refinementOn, dp)
             addTranslationToggle(container, popup, translationOn, dp)
+            addEditModeToggle(container, popup, dp)
 
             popup.showAtLocation(anchor, Gravity.BOTTOM or Gravity.END, (8 * dp).toInt(), (64 * dp).toInt())
         }
@@ -525,6 +556,98 @@ class VoxPenIME : InputMethodService() {
             }
 
             popup.showAtLocation(anchor, Gravity.BOTTOM or Gravity.START, (8 * dp).toInt(), (64 * dp).toInt())
+        }
+    }
+
+    private fun executeVoiceCommand(command: VoiceCommand) {
+        when (command) {
+            VoiceCommand.Enter -> sendDownUpKeyEvents(android.view.KeyEvent.KEYCODE_ENTER)
+            VoiceCommand.Backspace -> sendDownUpKeyEvents(android.view.KeyEvent.KEYCODE_DEL)
+            VoiceCommand.Newline -> currentInputConnection?.commitText("\n", 1)
+            VoiceCommand.Space -> currentInputConnection?.commitText(" ", 1)
+        }
+    }
+
+    private fun performEditWithLlm(instruction: String) {
+        val selectedText = currentInputConnection?.getSelectedText(0)?.toString()
+        if (selectedText.isNullOrBlank()) {
+            showStatusRow("⚠️ No text selected", showProgress = false)
+            candidateBar?.postDelayed({ recordingController.dismiss() }, 2000)
+            return
+        }
+
+        serviceScope.launch {
+            val llmProvider = preferencesManager.llmProviderFlow.first()
+            val apiKey = apiKeyManager.getApiKey(llmProvider)
+                ?: apiKeyManager.getGroqApiKey()
+            if (apiKey.isNullOrBlank()) {
+                showStatusRow("API key not configured", showProgress = false)
+                candidateBar?.postDelayed({ recordingController.dismiss() }, 2000)
+                return@launch
+            }
+
+            val language = preferencesManager.languageFlow.first()
+            val llmModel = preferencesManager.llmModelFlow.first()
+            val customBaseUrl = if (llmProvider == com.voxpen.app.data.model.LlmProvider.Custom) {
+                apiKeyManager.getCustomBaseUrl()
+            } else {
+                null
+            }
+
+            val result = editTextUseCase(
+                selectedText = selectedText,
+                instruction = instruction,
+                language = language,
+                apiKey = apiKey,
+                model = llmModel,
+                provider = llmProvider,
+                customBaseUrl = customBaseUrl,
+            )
+
+            result.fold(
+                onSuccess = { revised ->
+                    currentInputConnection?.commitText(revised, 1)
+                    isEditMode = false
+                    recordingController.dismiss()
+                },
+                onFailure = { err ->
+                    showStatusRow("Edit failed: ${err.message}", showProgress = false)
+                    candidateBar?.postDelayed({ recordingController.dismiss() }, 2000)
+                },
+            )
+        }
+    }
+
+    private fun addEditModeToggle(container: LinearLayout, popup: PopupWindow, dp: Float) {
+        val tv =
+            TextView(this).apply {
+                text =
+                    if (isEditMode) {
+                        getString(R.string.quick_edit_mode_on)
+                    } else {
+                        getString(R.string.quick_edit_mode_off)
+                    }
+                textSize = 14f
+                setTextColor(resources.getColor(R.color.key_text, null))
+                val pad = (8 * dp).toInt()
+                setPadding(pad, pad, pad, pad)
+                setOnClickListener {
+                    isEditMode = !isEditMode
+                    updateEditModeIndicator()
+                    popup.dismiss()
+                }
+            }
+        container.addView(tv)
+    }
+
+    private fun updateEditModeIndicator() {
+        if (isEditMode) {
+            candidateBar?.visibility = View.VISIBLE
+            showStatusRow(getString(R.string.edit_mode_active), showProgress = false)
+        } else {
+            if (recordingController.uiState.value == ImeUiState.Idle) {
+                candidateBar?.visibility = View.GONE
+            }
         }
     }
 

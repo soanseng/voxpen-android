@@ -143,6 +143,10 @@
     <string name="quick_refinement_off">潤稿：關</string>
     <string name="quick_translation_on">翻譯：開</string>
     <string name="quick_translation_off">翻譯：關</string>
+    <string name="quick_edit_mode_on">✏️ 編輯模式：開</string>
+    <string name="quick_edit_mode_off">✏️ 編輯模式</string>
+    <string name="edit_mode_active">✏️ 編輯中：選取文字後點麥克風</string>
+    <string name="editing_text">編輯中…</string>
 
     <!-- Monetization — Usage Limits -->
     <string name="usage_voice_remaining">語音輸入：今日剩餘 %1$d 次</string>

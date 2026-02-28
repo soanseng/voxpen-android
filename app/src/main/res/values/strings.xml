@@ -143,6 +143,10 @@
     <string name="quick_refinement_off">Refinement: OFF</string>
     <string name="quick_translation_on">Translation: ON</string>
     <string name="quick_translation_off">Translation: OFF</string>
+    <string name="quick_edit_mode_on">✏️ Edit Mode: ON</string>
+    <string name="quick_edit_mode_off">✏️ Edit Mode</string>
+    <string name="edit_mode_active">✏️ Edit: select text, then tap mic</string>
+    <string name="editing_text">Editing…</string>
 
     <!-- Monetization — Usage Limits -->
     <string name="usage_voice_remaining">Voice input: %1$d remaining today</string>
