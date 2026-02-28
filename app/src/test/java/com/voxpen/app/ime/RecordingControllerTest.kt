@@ -10,6 +10,7 @@ import com.voxpen.app.data.local.PreferencesManager
 import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.model.ToneStyle
+import com.voxpen.app.data.model.VoiceCommand
 import com.voxpen.app.data.remote.ChatChoice
 import com.voxpen.app.data.remote.ChatCompletionApi
 import com.voxpen.app.data.remote.ChatCompletionApiFactory
@@ -309,6 +310,47 @@ class RecordingControllerTest {
             }
 
             coVerify { dictionaryRepository.getWords(any()) }
+        }
+
+    @Test
+    fun `should emit CommandDetected when transcribed text is a voice command`() =
+        runTest {
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "送出")
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1)
+
+                controller.onStopRecording(stopRecording, SttLanguage.Chinese)
+                skipItems(1) // Processing
+                val state = awaitItem()
+                assertThat(state).isInstanceOf(ImeUiState.CommandDetected::class.java)
+                assertThat((state as ImeUiState.CommandDetected).command)
+                    .isEqualTo(VoiceCommand.Enter)
+            }
+        }
+
+    @Test
+    fun `should emit EditInstruction when editMode is true`() =
+        runTest {
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "讓它更正式")
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1)
+
+                controller.onStopRecording(stopRecording, SttLanguage.Chinese, editMode = true)
+                skipItems(1) // Processing
+                val state = awaitItem()
+                assertThat(state).isInstanceOf(ImeUiState.EditInstruction::class.java)
+                assertThat((state as ImeUiState.EditInstruction).instruction).isEqualTo("讓它更正式")
+            }
         }
 
     @Test

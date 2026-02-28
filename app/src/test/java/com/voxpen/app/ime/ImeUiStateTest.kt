@@ -1,6 +1,7 @@
 package com.voxpen.app.ime
 
 import com.google.common.truth.Truth.assertThat
+import com.voxpen.app.data.model.VoiceCommand
 import org.junit.jupiter.api.Test
 
 class ImeUiStateTest {
@@ -15,8 +16,12 @@ class ImeUiStateTest {
                 ImeUiState.Refining("raw"),
                 ImeUiState.Refined("raw", "clean"),
                 ImeUiState.Error("network error"),
+                ImeUiState.CommandDetected(VoiceCommand.Enter),
+                ImeUiState.EditInstruction("make it formal"),
+                ImeUiState.Editing,
+                ImeUiState.EditResult("revised text"),
             )
-        assertThat(states).hasSize(7)
+        assertThat(states).hasSize(11)
     }
 
     @Test
@@ -56,6 +61,10 @@ class ImeUiStateTest {
                 is ImeUiState.Refining -> "refining"
                 is ImeUiState.Refined -> "refined"
                 is ImeUiState.Error -> "error"
+                is ImeUiState.CommandDetected -> "command"
+                is ImeUiState.EditInstruction -> "edit_instruction"
+                ImeUiState.Editing -> "editing"
+                is ImeUiState.EditResult -> "edit_result"
             }
         assertThat(label).isEqualTo("idle")
     }

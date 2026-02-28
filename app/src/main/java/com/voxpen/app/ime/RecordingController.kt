@@ -11,6 +11,7 @@ import com.voxpen.app.data.repository.DictionaryRepository
 import com.voxpen.app.domain.usecase.RefineTextUseCase
 import com.voxpen.app.domain.usecase.TranscribeAudioUseCase
 import com.voxpen.app.util.VocabularyPromptBuilder
+import com.voxpen.app.data.model.VoiceCommand
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -74,6 +75,7 @@ class RecordingController(
     fun onStopRecording(
         stopRecording: () -> ByteArray,
         language: SttLanguage,
+        editMode: Boolean = false,
     ) {
         val pcmData = stopRecording()
         val apiKey = apiKeyManager.getApiKey(llmProvider)
@@ -100,6 +102,19 @@ class RecordingController(
                 onSuccess = { originalText ->
                     if (!proStatus.isPro) {
                         usageLimiter.incrementVoiceInput()
+                    }
+
+                    // Speak-to-Edit: emit instruction for VoxPenIME to handle
+                    if (editMode) {
+                        _uiState.value = ImeUiState.EditInstruction(originalText)
+                        return@launch
+                    }
+
+                    // Voice command check — executes keyboard action instead of inserting text
+                    val command = VoiceCommandRecognizer.recognize(originalText)
+                    if (command != null) {
+                        _uiState.value = ImeUiState.CommandDetected(command)
+                        return@launch
                     }
 
                     val shouldRefine = refinementEnabled && canUseRefinement(proStatus)

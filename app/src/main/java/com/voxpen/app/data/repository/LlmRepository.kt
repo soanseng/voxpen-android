@@ -72,6 +72,40 @@ class LlmRepository
             }
         }
 
+        /** Sends a fully composed user message to the LLM and returns the response. Used for speak-to-edit. */
+        suspend fun editText(
+            userMessage: String,
+            apiKey: String,
+            model: String = LLM_MODEL,
+            provider: LlmProvider = LlmProvider.Groq,
+            customBaseUrl: String? = null,
+        ): Result<String> {
+            if (apiKey.isBlank()) return Result.failure(IllegalStateException("API key not configured"))
+            if (userMessage.isBlank()) return Result.failure(IllegalArgumentException("Message is empty"))
+
+            return try {
+                val api = if (provider == LlmProvider.Custom && !customBaseUrl.isNullOrBlank()) {
+                    apiFactory.createForCustom(customBaseUrl)
+                } else {
+                    apiFactory.create(provider)
+                }
+                val request = ChatCompletionRequest(
+                    model = model,
+                    messages = listOf(ChatMessage(role = "user", content = userMessage)),
+                    temperature = TEMPERATURE,
+                    maxTokens = MAX_TOKENS,
+                )
+                val response = api.chatCompletion("Bearer $apiKey", request)
+                val content = response.choices.firstOrNull()?.message?.content
+                    ?: return Result.failure(IllegalStateException("No response content"))
+                Result.success(content)
+            } catch (e: IOException) {
+                Result.failure(e)
+            } catch (e: retrofit2.HttpException) {
+                Result.failure(e)
+            }
+        }
+
         companion object {
             private const val LLM_MODEL = "llama-3.3-70b-versatile"
             private const val TEMPERATURE = 0.3
