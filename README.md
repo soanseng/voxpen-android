@@ -25,10 +25,10 @@ Say a command word instead of dictating text — VoxPen executes the keyboard ac
 
 | Say | Action |
 |-----|--------|
-| 送出 / 傳送 / send / enter / submit | ↵ Enter (send message / submit form) |
-| 刪除 / 退格 / delete / backspace | ⌫ Delete last character |
-| 換行 / new line / newline | ↩ Insert newline |
-| 空格 / space | ␣ Insert space |
+| 送出 / 傳送 / send / enter / submit / 送信 / 確定 | ↵ Enter (send message / submit form) |
+| 刪除 / 退格 / delete / backspace / 削除 / バックスペース | ⌫ Delete last character |
+| 換行 / new line / newline / 改行 | ↩ Insert newline |
+| 空格 / space / スペース | ␣ Insert space |
 
 **How it works**: Just tap the mic and speak the command word. Recognition is exact-match (case-insensitive, whitespace-trimmed) — a single word or phrase with no extra text.
 

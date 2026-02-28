@@ -46,6 +46,36 @@ class VoiceCommandRecognizerTest {
     }
 
     @Test
+    fun `should recognize 送信 as Enter`() {
+        assertThat(VoiceCommandRecognizer.recognize("送信")).isEqualTo(VoiceCommand.Enter)
+    }
+
+    @Test
+    fun `should recognize 確定 as Enter`() {
+        assertThat(VoiceCommandRecognizer.recognize("確定")).isEqualTo(VoiceCommand.Enter)
+    }
+
+    @Test
+    fun `should recognize 削除 as Backspace`() {
+        assertThat(VoiceCommandRecognizer.recognize("削除")).isEqualTo(VoiceCommand.Backspace)
+    }
+
+    @Test
+    fun `should recognize バックスペース as Backspace`() {
+        assertThat(VoiceCommandRecognizer.recognize("バックスペース")).isEqualTo(VoiceCommand.Backspace)
+    }
+
+    @Test
+    fun `should recognize 改行 as Newline`() {
+        assertThat(VoiceCommandRecognizer.recognize("改行")).isEqualTo(VoiceCommand.Newline)
+    }
+
+    @Test
+    fun `should recognize スペース as Space`() {
+        assertThat(VoiceCommandRecognizer.recognize("スペース")).isEqualTo(VoiceCommand.Space)
+    }
+
+    @Test
     fun `should return null for normal text`() {
         assertThat(VoiceCommandRecognizer.recognize("你好世界")).isNull()
         assertThat(VoiceCommandRecognizer.recognize("hello world")).isNull()
