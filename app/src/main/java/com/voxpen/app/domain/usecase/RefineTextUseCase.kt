@@ -21,7 +21,10 @@ class RefineTextUseCase
             tone: ToneStyle = ToneStyle.Casual,
             provider: LlmProvider = LlmProvider.Groq,
             customBaseUrl: String? = null,
+            translationEnabled: Boolean = false,
+            targetLanguage: SttLanguage = SttLanguage.English,
         ): Result<String> = llmRepository.refine(
             text, language, apiKey, model, vocabulary, customPrompt, tone, provider, customBaseUrl,
+            translationEnabled, targetLanguage,
         )
     }

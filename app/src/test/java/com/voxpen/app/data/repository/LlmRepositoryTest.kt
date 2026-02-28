@@ -139,4 +139,41 @@ class LlmRepositoryTest {
             val body = request.body.readUtf8()
             assertThat(body).contains("語墨")
         }
+
+    @Test
+    fun `should use translation prompt when translationEnabled is true`() =
+        runTest {
+            enqueueSuccess("Hello world")
+            val result = repository.refine(
+                text = "你好世界",
+                language = SttLanguage.Chinese,
+                apiKey = "test-key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+                translationEnabled = true,
+                targetLanguage = SttLanguage.English,
+            )
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).contains("translat")
+            assertThat(result.isSuccess).isTrue()
+        }
+
+    @Test
+    fun `should use refinement prompt when translationEnabled is false`() =
+        runTest {
+            enqueueSuccess("cleaned text")
+            repository.refine(
+                text = "嗯，你好",
+                language = SttLanguage.Chinese,
+                apiKey = "test-key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+                translationEnabled = false,
+                targetLanguage = SttLanguage.English,
+            )
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).contains("移除贅字")
+        }
 }

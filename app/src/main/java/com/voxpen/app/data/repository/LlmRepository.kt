@@ -4,6 +4,7 @@ import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.RefinementPrompt
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.model.ToneStyle
+import com.voxpen.app.data.model.TranslationPrompt
 import com.voxpen.app.data.remote.ChatCompletionApiFactory
 import com.voxpen.app.data.remote.ChatCompletionRequest
 import com.voxpen.app.data.remote.ChatMessage
@@ -27,6 +28,8 @@ class LlmRepository
             tone: ToneStyle = ToneStyle.Casual,
             provider: LlmProvider = LlmProvider.Groq,
             customBaseUrl: String? = null,
+            translationEnabled: Boolean = false,
+            targetLanguage: SttLanguage = SttLanguage.English,
         ): Result<String> {
             if (apiKey.isBlank()) {
                 return Result.failure(IllegalStateException("API key not configured"))
@@ -41,7 +44,11 @@ class LlmRepository
                 } else {
                     apiFactory.create(provider)
                 }
-                val systemPrompt = RefinementPrompt.forLanguage(language, vocabulary, customPrompt, tone)
+                val systemPrompt = if (translationEnabled) {
+                    TranslationPrompt.build(language, targetLanguage)
+                } else {
+                    RefinementPrompt.forLanguage(language, vocabulary, customPrompt, tone)
+                }
                 val request =
                     ChatCompletionRequest(
                         model = model,
