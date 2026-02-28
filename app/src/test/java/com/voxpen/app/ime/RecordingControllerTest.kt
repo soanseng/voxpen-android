@@ -56,6 +56,8 @@ class RecordingControllerTest {
     private val llmProviderFlow = MutableStateFlow<LlmProvider>(LlmProvider.Groq)
     private val customLlmModelFlow = MutableStateFlow("")
     private val customSttBaseUrlFlow = MutableStateFlow("")
+    private val translationEnabledFlow = MutableStateFlow(false)
+    private val translationTargetLanguageFlow = MutableStateFlow<SttLanguage>(SttLanguage.English)
     private var fakeRecordedAudio: ByteArray = ByteArray(100) { it.toByte() }
     private var isRecording = false
     private val startRecording: () -> Unit = { isRecording = true }
@@ -75,6 +77,8 @@ class RecordingControllerTest {
         every { preferencesManager.llmProviderFlow } returns llmProviderFlow
         every { preferencesManager.customLlmModelFlow } returns customLlmModelFlow
         every { preferencesManager.customSttBaseUrlFlow } returns customSttBaseUrlFlow
+        every { preferencesManager.translationEnabledFlow } returns translationEnabledFlow
+        every { preferencesManager.translationTargetLanguageFlow } returns translationTargetLanguageFlow
         every { preferencesManager.customPromptFlow(any()) } returns MutableStateFlow(null)
         coEvery { dictionaryRepository.getWords(any()) } returns listOf("語墨", "Claude")
         every { apiFactory.create(any()) } returns chatCompletionApi
@@ -305,6 +309,34 @@ class RecordingControllerTest {
             }
 
             coVerify { dictionaryRepository.getWords(any()) }
+        }
+
+    @Test
+    fun `should pass translationEnabled to refineTextUseCase when translation is on`() =
+        runTest {
+            translationEnabledFlow.value = true
+            translationTargetLanguageFlow.value = SttLanguage.English
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "你好世界")
+            coEvery {
+                chatCompletionApi.chatCompletion(any(), any())
+            } returns chatResponse("Hello world")
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1)
+
+                controller.onStopRecording(stopRecording, SttLanguage.Chinese)
+                val states = mutableListOf(awaitItem())
+                states.add(awaitItem())
+                val finalState = states.last()
+                // With translation on, refined text should be the LLM output
+                assertThat(finalState).isEqualTo(
+                    ImeUiState.Refined("你好世界", "Hello world"),
+                )
+            }
         }
 
     private fun chatResponse(content: String) =

@@ -39,6 +39,8 @@ class RecordingController(
     private var llmProvider: LlmProvider = LlmProvider.DEFAULT
     private var customLlmModel: String = ""
     private var customSttBaseUrl: String = ""
+    private var translationEnabled: Boolean = PreferencesManager.DEFAULT_TRANSLATION_ENABLED
+    private var translationTargetLanguage: SttLanguage = PreferencesManager.DEFAULT_TRANSLATION_TARGET_LANGUAGE
 
     init {
         scope.launch {
@@ -50,6 +52,8 @@ class RecordingController(
         scope.launch { preferencesManager.llmProviderFlow.collect { llmProvider = it } }
         scope.launch { preferencesManager.customLlmModelFlow.collect { customLlmModel = it } }
         scope.launch { preferencesManager.customSttBaseUrlFlow.collect { customSttBaseUrl = it } }
+        scope.launch { preferencesManager.translationEnabledFlow.collect { translationEnabled = it } }
+        scope.launch { preferencesManager.translationTargetLanguageFlow.collect { translationTargetLanguage = it } }
     }
 
     private val _uiState = MutableStateFlow<ImeUiState>(ImeUiState.Idle)
@@ -123,6 +127,7 @@ class RecordingController(
                     val refinedResult = refineTextUseCase(
                         originalText, language, apiKey, resolvedModel, allVocabulary,
                         customPrompt, toneStyle, llmProvider, customBaseUrl,
+                        translationEnabled, translationTargetLanguage,
                     )
                     _uiState.value =
                         refinedResult.fold(
