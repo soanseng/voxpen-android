@@ -19,6 +19,38 @@
         android:paddingBottom="4dp"
         android:visibility="gone">
 
+        <!-- Translation indicator (tappable to cycle target language, × to close) -->
+        <LinearLayout
+            android:id="@+id/translation_indicator_row"
+            android:layout_width="match_parent"
+            android:layout_height="28dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:background="?android:attr/selectableItemBackground"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/translation_label"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textColor="@color/key_text"
+                android:textSize="13sp"
+                android:ellipsize="end"
+                android:maxLines="1" />
+
+            <ImageButton
+                android:id="@+id/btn_translation_close"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/translation_close"
+                android:src="@drawable/ic_close"
+                android:scaleType="centerInside" />
+        </LinearLayout>
+
         <!-- Single-line status (recording/processing/error) -->
         <LinearLayout
             android:id="@+id/candidate_status_row"
