@@ -44,6 +44,7 @@ Date: 2026-02-28
 | ~~**Translation Mode**~~ | ~~Speak zh → output en (and vice versa)~~ | ✅ **Shipped** |
 | ~~**Auto Context-Aware Tone**~~ | ~~Detect foreground app (Gmail = formal, WhatsApp = casual)~~ | ✅ **Shipped** |
 | ~~**Speak to Edit**~~ | ~~Select text in any app → voice-edit by describing changes~~ | ✅ **Shipped** |
+| ~~**Translation Quick-Switch**~~ | ~~Cycle translation targets from keyboard without Settings~~ | ✅ **Shipped** |
 | **100+ Languages** | 100+ vs VoxPen's 11 exposed (Whisper supports 99) | P2 |
 | **Personalization / Style Learning** | Adapts to user's writing patterns over time | P3 |
 | **AI Query on Selected Text** | Summarize / explain / translate highlighted content | P3 |
@@ -60,6 +61,7 @@ Date: 2026-02-28
 Routes to a separate `TranslationPrompt` instead of the refinement prompt.
 Supports zh→en, en→zh, zh→ja, and reverse.
 **Quick Switch**: Tappable indicator row in candidate bar (`🔄 說中文 → English`) lets users cycle target languages and close translation without leaving the keyboard. Smart filtering excludes the current STT language from targets.
+**UX Refinement**: 🌐 long-press now opens Android system IME picker (was STT language popup); STT language selector moved into quick settings popup (long-press ⚙️) alongside refinement/translation/edit mode toggles.
 
 ---
 
@@ -134,6 +136,7 @@ Shipped as part of A2 — see above.
 | ~~Speak to Edit~~ | High | Medium | ✅ Shipped |
 | ~~Voice Commands (10 commands)~~ | Medium | Low | ✅ Shipped |
 | ~~Copy-to-Clipboard Button~~ | Medium | Low | ✅ Shipped |
+| ~~Translation Quick-Switch~~ | Medium | Low | ✅ Shipped |
 | More Languages (UI) | Medium | Low | P2 |
 | ~~Per-App Custom Tone~~ | Medium | Medium | ✅ Shipped |
 | AI Query on Selected Text | Medium | Medium | P3 |
@@ -152,6 +155,7 @@ VoxPen's core differentiators vs Typeless are:
 6. **Voice Commands** — shipped; 10 trilingual commands (send, delete, newline, space, undo, select all, copy, paste, cut, clear all) ✅
 8. **Copy-to-Clipboard** — shipped; tap copy icon on refined row to copy without inserting ✅
 7. **Auto Context-Aware Tone** — shipped; IME auto-selects tone by foreground app with custom per-app rules ✅
+8. **Translation Quick-Switch** — shipped; tappable indicator row in candidate bar cycles target languages; 🌐 long-press opens system IME picker, STT language moved to quick settings ✅
 
 The remaining highest-priority gap:
 1. **More Language Exposure** — expose all 99 Whisper-supported languages in the language picker
