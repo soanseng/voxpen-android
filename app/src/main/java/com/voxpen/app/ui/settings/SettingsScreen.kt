@@ -8,6 +8,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -132,6 +134,8 @@ fun SettingsScreenContent(
                 selectedTone = state.toneStyle,
                 onToneSelected = { viewModel.setToneStyle(it) },
             )
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+            AutoToneSection(state, viewModel)
             HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
             if (state.toneStyle == ToneStyle.Custom) {
                 CustomPromptSection(state, viewModel)
@@ -768,6 +772,146 @@ private fun ToneStyleSection(
             )
         }
     }
+}
+
+@Composable
+private fun AutoToneSection(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    var showAddDialog by remember { mutableStateOf(false) }
+
+    SectionHeader(stringResource(R.string.settings_auto_tone_section))
+    Text(
+        stringResource(R.string.settings_auto_tone_desc),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(bottom = 4.dp),
+    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            stringResource(R.string.settings_auto_tone_toggle),
+            modifier = Modifier.weight(1f),
+        )
+        Switch(
+            checked = state.autoToneEnabled,
+            onCheckedChange = { viewModel.setAutoToneEnabled(it) },
+        )
+    }
+
+    if (state.autoToneEnabled) {
+        Spacer(Modifier.height(12.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                stringResource(R.string.settings_auto_tone_custom_rules),
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = { showAddDialog = true }) {
+                Text(stringResource(R.string.settings_auto_tone_add_rule))
+            }
+        }
+        state.customAppToneRules.forEach { (pkg, tone) ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = pkg,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = tone.emoji,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+                IconButton(onClick = { viewModel.removeCustomAppToneRule(pkg) }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+
+    if (showAddDialog) {
+        AddAutoToneRuleDialog(
+            onConfirm = { pkg, tone ->
+                viewModel.setCustomAppToneRule(pkg, tone)
+                showAddDialog = false
+            },
+            onDismiss = { showAddDialog = false },
+        )
+    }
+}
+
+@Composable
+private fun AddAutoToneRuleDialog(
+    onConfirm: (String, ToneStyle) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var packageName by remember { mutableStateOf("") }
+    var selectedTone by remember { mutableStateOf<ToneStyle>(ToneStyle.Casual) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.settings_auto_tone_add_rule)) },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = packageName,
+                    onValueChange = { packageName = it },
+                    label = { Text(stringResource(R.string.settings_auto_tone_package_hint)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(12.dp))
+                Text(
+                    stringResource(R.string.settings_auto_tone_select_tone),
+                    style = MaterialTheme.typography.labelMedium,
+                )
+                val toneLabels = mapOf(
+                    ToneStyle.Casual to stringResource(R.string.tone_casual),
+                    ToneStyle.Professional to stringResource(R.string.tone_professional),
+                    ToneStyle.Email to stringResource(R.string.tone_email),
+                    ToneStyle.Note to stringResource(R.string.tone_note),
+                    ToneStyle.Social to stringResource(R.string.tone_social),
+                    ToneStyle.Custom to stringResource(R.string.tone_custom),
+                )
+                ToneStyle.all.forEach { tone ->
+                    RadioRow(
+                        label = "${tone.emoji} ${toneLabels[tone] ?: tone.key}",
+                        selected = tone == selectedTone,
+                        onClick = { selectedTone = tone },
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { if (packageName.isNotBlank()) onConfirm(packageName.trim(), selectedTone) },
+                enabled = packageName.isNotBlank(),
+            ) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.transcription_cancel))
+            }
+        },
+    )
 }
 
 @Composable
