@@ -60,6 +60,14 @@ class VoxPenIME : InputMethodService() {
     private var copyRefinedButton: ImageButton? = null
     private var micButton: ImageButton? = null
     private var toneButton: TextView? = null
+    private var translationIndicatorRow: LinearLayout? = null
+    private var translationLabel: TextView? = null
+    private var translationCloseButton: ImageButton? = null
+
+    // Translation state (synced from preferences)
+    @Volatile private var translationEnabled: Boolean = PreferencesManager.DEFAULT_TRANSLATION_ENABLED
+    @Volatile private var translationTargetLanguage: SttLanguage = PreferencesManager.DEFAULT_TRANSLATION_TARGET_LANGUAGE
+    @Volatile private var currentSttLanguage: SttLanguage = SttLanguage.Auto
 
     // Mic pulse animation
     private var micPulseAnimator: android.animation.AnimatorSet? = null
@@ -147,6 +155,24 @@ class VoxPenIME : InputMethodService() {
         serviceScope.launch {
             preferencesManager.customAppToneRulesFlow.collect { customAppToneRules = it }
         }
+        serviceScope.launch {
+            preferencesManager.translationEnabledFlow.collect { enabled ->
+                translationEnabled = enabled
+                updateTranslationIndicator()
+            }
+        }
+        serviceScope.launch {
+            preferencesManager.translationTargetLanguageFlow.collect { lang ->
+                translationTargetLanguage = lang
+                updateTranslationIndicator()
+            }
+        }
+        serviceScope.launch {
+            preferencesManager.languageFlow.collect { lang ->
+                currentSttLanguage = lang
+                updateTranslationIndicator()
+            }
+        }
         Timber.d("VoxPenIME input view created")
         return view
     }
@@ -164,6 +190,9 @@ class VoxPenIME : InputMethodService() {
         toneButton = view.findViewById(R.id.btn_tone)
         copyStatusButton = view.findViewById(R.id.btn_copy_status)
         copyRefinedButton = view.findViewById(R.id.btn_copy_refined)
+        translationIndicatorRow = view.findViewById(R.id.translation_indicator_row)
+        translationLabel = view.findViewById(R.id.translation_label)
+        translationCloseButton = view.findViewById(R.id.btn_translation_close)
     }
 
     private fun bindButtons(view: View) {
@@ -192,6 +221,12 @@ class VoxPenIME : InputMethodService() {
         setupMicButton(view.findViewById(R.id.btn_mic))
         view.findViewById<TextView>(R.id.btn_tone)?.setOnClickListener {
             showTonePopup(it)
+        }
+        view.findViewById<TextView>(R.id.translation_label)?.setOnClickListener {
+            cycleTranslationTarget()
+        }
+        view.findViewById<ImageButton>(R.id.btn_translation_close)?.setOnClickListener {
+            serviceScope.launch { preferencesManager.setTranslationEnabled(false) }
         }
     }
 
@@ -361,7 +396,14 @@ class VoxPenIME : InputMethodService() {
         when (state) {
             ImeUiState.Idle -> {
                 timerHandler.removeCallbacks(timerRunnable)
-                candidateBar?.visibility = View.GONE
+                if (translationEnabled) {
+                    candidateBar?.visibility = View.VISIBLE
+                    candidateStatusRow?.visibility = View.GONE
+                    candidateOriginal?.visibility = View.GONE
+                    candidateRefinedRow?.visibility = View.GONE
+                } else if (!isEditMode) {
+                    candidateBar?.visibility = View.GONE
+                }
             }
             ImeUiState.Recording -> {
                 showStatusRow(getString(R.string.recording), showProgress = false)
@@ -806,6 +848,59 @@ class VoxPenIME : InputMethodService() {
             }
             (rootView as? ViewGroup)?.addView(overlay)
         }
+    }
+
+    private fun getTranslationTargets(): List<SttLanguage> {
+        val all = listOf(SttLanguage.English, SttLanguage.Chinese, SttLanguage.Japanese)
+        return when (currentSttLanguage) {
+            SttLanguage.Auto -> all
+            else -> all.filter { it != currentSttLanguage }
+        }
+    }
+
+    private fun cycleTranslationTarget() {
+        val targets = getTranslationTargets()
+        if (!translationEnabled) {
+            // Off → first target
+            serviceScope.launch {
+                preferencesManager.setTranslationTargetLanguage(targets.first())
+                preferencesManager.setTranslationEnabled(true)
+            }
+            return
+        }
+        val currentIndex = targets.indexOf(translationTargetLanguage)
+            .let { if (it == -1) targets.size - 1 else it }
+        val nextIndex = currentIndex + 1
+        if (nextIndex >= targets.size) {
+            // Last target → Off
+            serviceScope.launch { preferencesManager.setTranslationEnabled(false) }
+        } else {
+            serviceScope.launch { preferencesManager.setTranslationTargetLanguage(targets[nextIndex]) }
+        }
+    }
+
+    private fun updateTranslationIndicator() {
+        if (!translationEnabled) {
+            translationIndicatorRow?.visibility = View.GONE
+            return
+        }
+        translationIndicatorRow?.visibility = View.VISIBLE
+        candidateBar?.visibility = View.VISIBLE
+
+        val targetName = when (translationTargetLanguage) {
+            SttLanguage.English -> getString(R.string.lang_en)
+            SttLanguage.Chinese -> getString(R.string.lang_zh)
+            SttLanguage.Japanese -> getString(R.string.lang_ja)
+            else -> translationTargetLanguage.code ?: "?"
+        }
+
+        val formatRes = when (currentSttLanguage) {
+            SttLanguage.Chinese -> R.string.translation_indicator_speak_zh
+            SttLanguage.English -> R.string.translation_indicator_speak_en
+            SttLanguage.Japanese -> R.string.translation_indicator_speak_ja
+            else -> R.string.translation_indicator_speak_auto
+        }
+        translationLabel?.text = getString(formatRes, targetName)
     }
 
     companion object {
