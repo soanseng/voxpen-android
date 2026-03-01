@@ -13,6 +13,7 @@ import com.voxpen.app.data.local.PreferencesManager
 import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.RecordingMode
 import com.voxpen.app.data.model.SttLanguage
+import com.voxpen.app.data.model.ToneStyle
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
@@ -52,6 +53,8 @@ class SettingsViewModelTest {
         every { preferencesManager.customLlmModelFlow } returns flowOf("")
         every { proStatusResolver.proStatus } returns proStatusFlow
         every { billingManager.proStatus } returns proStatusFlow
+        every { preferencesManager.autoToneEnabledFlow } returns flowOf(true)
+        every { preferencesManager.customAppToneRulesFlow } returns flowOf(emptyMap())
     }
 
     @AfterEach
@@ -152,4 +155,31 @@ class SettingsViewModelTest {
                 assertThat(awaitItem().translationEnabled).isFalse()
             }
         }
+
+    @Test
+    fun `autoToneEnabled defaults to true in uiState`() = runTest {
+        val viewModel = createViewModel()
+        assertThat(viewModel.uiState.value.autoToneEnabled).isTrue()
+    }
+
+    @Test
+    fun `setAutoToneEnabled delegates to preferencesManager`() = runTest {
+        val viewModel = createViewModel()
+        viewModel.setAutoToneEnabled(false)
+        coVerify { preferencesManager.setAutoToneEnabled(false) }
+    }
+
+    @Test
+    fun `setCustomAppToneRule delegates to preferencesManager`() = runTest {
+        val viewModel = createViewModel()
+        viewModel.setCustomAppToneRule("com.myapp", ToneStyle.Professional)
+        coVerify { preferencesManager.setCustomAppToneRule("com.myapp", ToneStyle.Professional) }
+    }
+
+    @Test
+    fun `removeCustomAppToneRule delegates to preferencesManager`() = runTest {
+        val viewModel = createViewModel()
+        viewModel.removeCustomAppToneRule("com.myapp")
+        coVerify { preferencesManager.removeCustomAppToneRule("com.myapp") }
+    }
 }

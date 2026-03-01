@@ -32,4 +32,6 @@ data class SettingsUiState(
     val promptSnackbar: String? = null,
     val translationEnabled: Boolean = false,
     val translationTargetLanguage: SttLanguage = SttLanguage.English,
+    val autoToneEnabled: Boolean = true,
+    val customAppToneRules: Map<String, ToneStyle> = emptyMap(),
 )

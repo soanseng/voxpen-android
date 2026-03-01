@@ -113,6 +113,16 @@ class SettingsViewModel
                     _uiState.update { it.copy(proStatus = status) }
                 }
             }
+            viewModelScope.launch {
+                preferencesManager.autoToneEnabledFlow.collect { v ->
+                    _uiState.update { it.copy(autoToneEnabled = v) }
+                }
+            }
+            viewModelScope.launch {
+                preferencesManager.customAppToneRulesFlow.collect { v ->
+                    _uiState.update { it.copy(customAppToneRules = v) }
+                }
+            }
         }
 
         fun saveApiKey(key: String) {
@@ -181,6 +191,18 @@ class SettingsViewModel
 
         fun setTranslationTargetLanguage(language: SttLanguage) {
             viewModelScope.launch { preferencesManager.setTranslationTargetLanguage(language) }
+        }
+
+        fun setAutoToneEnabled(enabled: Boolean) {
+            viewModelScope.launch { preferencesManager.setAutoToneEnabled(enabled) }
+        }
+
+        fun setCustomAppToneRule(packageName: String, tone: ToneStyle) {
+            viewModelScope.launch { preferencesManager.setCustomAppToneRule(packageName, tone) }
+        }
+
+        fun removeCustomAppToneRule(packageName: String) {
+            viewModelScope.launch { preferencesManager.removeCustomAppToneRule(packageName) }
         }
 
         fun setCustomBaseUrl(url: String) {
