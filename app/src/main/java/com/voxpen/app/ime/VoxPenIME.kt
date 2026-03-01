@@ -579,6 +579,12 @@ class VoxPenIME : InputMethodService() {
             VoiceCommand.Backspace -> sendDownUpKeyEvents(android.view.KeyEvent.KEYCODE_DEL)
             VoiceCommand.Newline -> currentInputConnection?.commitText("\n", 1)
             VoiceCommand.Space -> currentInputConnection?.commitText(" ", 1)
+            VoiceCommand.Undo -> { /* TODO: wire in Task 3 */ }
+            VoiceCommand.SelectAll -> { /* TODO: wire in Task 3 */ }
+            VoiceCommand.Copy -> { /* TODO: wire in Task 3 */ }
+            VoiceCommand.Paste -> { /* TODO: wire in Task 3 */ }
+            VoiceCommand.Cut -> { /* TODO: wire in Task 3 */ }
+            VoiceCommand.ClearAll -> { /* TODO: wire in Task 3 */ }
         }
     }
 
