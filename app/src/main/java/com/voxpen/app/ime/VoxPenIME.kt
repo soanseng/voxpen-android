@@ -56,6 +56,8 @@ class VoxPenIME : InputMethodService() {
     private var candidateRefinedRow: LinearLayout? = null
     private var candidateRefined: TextView? = null
     private var refineProgress: ProgressBar? = null
+    private var copyStatusButton: ImageButton? = null
+    private var copyRefinedButton: ImageButton? = null
     private var micButton: ImageButton? = null
     private var toneButton: TextView? = null
 
@@ -160,6 +162,8 @@ class VoxPenIME : InputMethodService() {
         refineProgress = view.findViewById(R.id.refine_progress)
         micButton = view.findViewById(R.id.btn_mic)
         toneButton = view.findViewById(R.id.btn_tone)
+        copyStatusButton = view.findViewById(R.id.btn_copy_status)
+        copyRefinedButton = view.findViewById(R.id.btn_copy_refined)
     }
 
     private fun bindButtons(view: View) {
@@ -347,6 +351,10 @@ class VoxPenIME : InputMethodService() {
         candidateBar?.setOnClickListener(null)
         candidateOriginal?.setOnClickListener(null)
         candidateRefinedRow?.setOnClickListener(null)
+        copyStatusButton?.setOnClickListener(null)
+        copyStatusButton?.visibility = View.GONE
+        copyRefinedButton?.setOnClickListener(null)
+        copyRefinedButton?.visibility = View.GONE
     }
 
     private fun updateCandidateBar(state: ImeUiState) {
@@ -371,6 +379,8 @@ class VoxPenIME : InputMethodService() {
                     currentInputConnection?.commitText(state.text, 1)
                     recordingController.dismiss()
                 }
+                copyStatusButton?.visibility = View.VISIBLE
+                copyStatusButton?.setOnClickListener { copyToClipboard(state.text) }
             }
             is ImeUiState.Refining -> {
                 timerHandler.removeCallbacks(timerRunnable)
@@ -387,6 +397,8 @@ class VoxPenIME : InputMethodService() {
                     currentInputConnection?.commitText(state.refined, 1)
                     recordingController.dismiss()
                 }
+                copyRefinedButton?.visibility = View.VISIBLE
+                copyRefinedButton?.setOnClickListener { copyToClipboard(state.refined) }
             }
             is ImeUiState.Error -> {
                 timerHandler.removeCallbacks(timerRunnable)
@@ -589,6 +601,12 @@ class VoxPenIME : InputMethodService() {
                 currentInputConnection?.commitText("", 1)
             }
         }
+    }
+
+    private fun copyToClipboard(text: String) {
+        val clipboard = getSystemService(android.content.ClipboardManager::class.java)
+        clipboard?.setPrimaryClip(android.content.ClipData.newPlainText("VoxPen", text))
+        android.widget.Toast.makeText(this, R.string.transcription_copied, android.widget.Toast.LENGTH_SHORT).show()
     }
 
     private fun performEditWithLlm(instruction: String) {
