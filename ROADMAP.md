@@ -19,7 +19,7 @@ Date: 2026-02-28
 | Mixed-language code-switching | ✅ auto-detect mode | ✅ |
 | On-device history | ✅ Room database | ✅ |
 | File transcription | ✅ with SRT export | ❌ (keyboard-only) |
-| Dual-result display (raw + refined) | ✅ candidate bar | ❌ (outputs once) |
+| Dual-result display (raw + refined) | ✅ candidate bar + copy button | ❌ (outputs once) |
 
 ---
 
@@ -75,7 +75,7 @@ Built-in table covers 22 apps across 5 tones (💬 Casual / 📧 Email / 💼 Pr
 #### A3. Speak to Edit ✅ Shipped (2026-03-01)
 **What**: User selects text in any app, enables Edit Mode via long-press ⚙️ → ✏️, speaks an edit instruction (e.g., "讓它更正式" / "make it more formal"), and the selection is replaced with the LLM-revised text.
 **How**: `isEditMode` flag in `VoxPenIME`; `RecordingController.onStopRecording(editMode=true)` emits `EditInstruction` instead of refining; `performEditWithLlm()` reads `getSelectedText(0)`, builds an `EditPrompt`, calls `EditTextUseCase`, then `commitText()`.
-**Also shipped**: Voice Commands — say "送出"/"send" to submit, "刪除"/"delete" to backspace, "換行"/"new line" for newline, "空格"/"space" for space. Recognized before refinement; no API call required.
+**Also shipped**: Voice Commands — 10 commands recognized before refinement (no API call required): send/delete/newline/space + undo/select all/copy/paste/cut/clear all. Trilingual trigger words (zh-TW, en, ja).
 
 ---
 
@@ -131,7 +131,8 @@ Shipped as part of A2 — see above.
 | ~~Translation Mode~~ | High | Low | ✅ Shipped |
 | ~~Auto Context-Aware Tone~~ | High | Low | ✅ Shipped |
 | ~~Speak to Edit~~ | High | Medium | ✅ Shipped |
-| ~~Voice Commands~~ | Medium | Low | ✅ Shipped |
+| ~~Voice Commands (10 commands)~~ | Medium | Low | ✅ Shipped |
+| ~~Copy-to-Clipboard Button~~ | Medium | Low | ✅ Shipped |
 | More Languages (UI) | Medium | Low | P2 |
 | ~~Per-App Custom Tone~~ | Medium | Medium | ✅ Shipped |
 | AI Query on Selected Text | Medium | Medium | P3 |
@@ -147,7 +148,8 @@ VoxPen's core differentiators vs Typeless are:
 3. **zh-TW depth** — Typeless is generic; VoxPen has 繁體-specific prompts, vocabulary, and UX
 4. **Translation Mode** — shipped; speak in one language, output in another ✅
 5. **Speak to Edit** — shipped; select text → voice-instruct LLM to rewrite it ✅
-6. **Voice Commands** — shipped; say "送出"/"send" to execute keyboard actions without inserting text ✅
+6. **Voice Commands** — shipped; 10 trilingual commands (send, delete, newline, space, undo, select all, copy, paste, cut, clear all) ✅
+8. **Copy-to-Clipboard** — shipped; tap copy icon on refined row to copy without inserting ✅
 7. **Auto Context-Aware Tone** — shipped; IME auto-selects tone by foreground app with custom per-app rules ✅
 
 The remaining highest-priority gap:
