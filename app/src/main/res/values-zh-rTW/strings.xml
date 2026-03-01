@@ -239,6 +239,7 @@
     <string name="settings_auto_tone_select_tone">選擇語氣</string>
     <string name="settings_auto_tone_rule_added">規則已新增</string>
     <string name="settings_auto_tone_rule_removed">規則已移除</string>
+    <string name="settings_auto_tone_remove_rule">移除規則</string>
 
     <!-- LLM Provider -->
     <string name="settings_llm_provider_section">潤稿模型</string>

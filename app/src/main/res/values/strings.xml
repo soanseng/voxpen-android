@@ -239,6 +239,7 @@
     <string name="settings_auto_tone_select_tone">Select tone</string>
     <string name="settings_auto_tone_rule_added">Rule added</string>
     <string name="settings_auto_tone_rule_removed">Rule removed</string>
+    <string name="settings_auto_tone_remove_rule">Remove rule</string>
 
     <!-- LLM Provider -->
     <string name="settings_llm_provider_section">LLM Provider &amp; Model</string>

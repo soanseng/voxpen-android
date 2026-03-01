@@ -837,7 +837,7 @@ private fun AutoToneSection(
                 IconButton(onClick = { viewModel.removeCustomAppToneRule(pkg) }) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.settings_auto_tone_remove_rule),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
