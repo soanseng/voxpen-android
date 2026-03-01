@@ -8,6 +8,7 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -43,6 +44,9 @@ class VoxPenIME : InputMethodService() {
     private lateinit var apiKeyManager: com.voxpen.app.data.local.ApiKeyManager
 
     private var isEditMode: Boolean = false
+    private var effectiveTone: ToneStyle = ToneStyle.DEFAULT
+    private var autoToneEnabled: Boolean = PreferencesManager.DEFAULT_AUTO_TONE_ENABLED
+    private var customAppToneRules: Map<String, ToneStyle> = emptyMap()
 
     private var candidateBar: LinearLayout? = null
     private var candidateStatusRow: LinearLayout? = null
@@ -131,8 +135,15 @@ class VoxPenIME : InputMethodService() {
         }
         serviceScope.launch {
             preferencesManager.toneStyleFlow.collect { tone ->
-                toneButton?.text = tone.emoji
+                effectiveTone = tone
+                updateToneButton()
             }
+        }
+        serviceScope.launch {
+            preferencesManager.autoToneEnabledFlow.collect { autoToneEnabled = it }
+        }
+        serviceScope.launch {
+            preferencesManager.customAppToneRulesFlow.collect { customAppToneRules = it }
         }
         Timber.d("VoxPenIME input view created")
         return view
@@ -237,6 +248,7 @@ class VoxPenIME : InputMethodService() {
                 stopRecording = { audioRecorder.stopRecording() },
                 language = language,
                 editMode = isEditMode,
+                toneOverride = effectiveTone,
             )
         }
     }
@@ -502,6 +514,8 @@ class VoxPenIME : InputMethodService() {
                     val pad = (8 * dp).toInt()
                     setPadding(pad, pad, pad, pad)
                     setOnClickListener {
+                        effectiveTone = tone
+                        updateToneButton()
                         serviceScope.launch { preferencesManager.setToneStyle(tone) }
                         popup.dismiss()
                     }
@@ -775,6 +789,29 @@ class VoxPenIME : InputMethodService() {
         startActivity(
             Intent(this, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
         )
+    }
+
+    private fun updateToneButton() {
+        toneButton?.text = effectiveTone.emoji
+    }
+
+    override fun onStartInput(info: EditorInfo, restarting: Boolean) {
+        super.onStartInput(info, restarting)
+        if (autoToneEnabled) {
+            val detected = AppToneDetector.detect(
+                packageName = info.packageName ?: "",
+                inputType = info.inputType,
+                customRules = customAppToneRules,
+            )
+            if (detected != null) {
+                effectiveTone = detected
+            }
+            // If nothing detected, effectiveTone retains the last value synced from toneStyleFlow
+        } else {
+            // When auto-tone is off, effectiveTone stays in sync with toneStyleFlow via the
+            // collector in onCreateInputView; nothing extra needed here.
+        }
+        updateToneButton()
     }
 
     override fun onDestroy() {
