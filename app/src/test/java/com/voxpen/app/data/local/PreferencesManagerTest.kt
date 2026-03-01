@@ -1,11 +1,21 @@
 package com.voxpen.app.data.local
 
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.model.RecordingMode
 import com.voxpen.app.data.model.SttLanguage
-import org.junit.jupiter.api.Test
+import com.voxpen.app.data.model.ToneStyle
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.io.File
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class PreferencesManagerTest {
     @Test
     fun `should have correct default language`() {
@@ -58,5 +68,67 @@ class PreferencesManagerTest {
     fun `default translation target language should be English`() {
         assertThat(PreferencesManager.DEFAULT_TRANSLATION_TARGET_LANGUAGE)
             .isEqualTo(SttLanguage.English)
+    }
+
+    // ---- DataStore-backed tests ----
+
+    private fun createPreferencesManager(tempDir: File): PreferencesManager {
+        val testDispatcher = UnconfinedTestDispatcher()
+        val testScope = TestScope(testDispatcher)
+        val dataStore = PreferenceDataStoreFactory.create(
+            scope = testScope,
+            produceFile = { File(tempDir, "test_prefs.preferences_pb") },
+        )
+        return PreferencesManager(dataStore)
+    }
+
+    @Test
+    fun `autoToneEnabled defaults to true`(@TempDir tempDir: File) = runTest {
+        val prefs = createPreferencesManager(tempDir)
+        prefs.autoToneEnabledFlow.test {
+            assertThat(awaitItem()).isTrue()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `setAutoToneEnabled persists false`(@TempDir tempDir: File) = runTest {
+        val prefs = createPreferencesManager(tempDir)
+        prefs.setAutoToneEnabled(false)
+        prefs.autoToneEnabledFlow.test {
+            assertThat(awaitItem()).isFalse()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `customAppToneRulesFlow defaults to empty map`(@TempDir tempDir: File) = runTest {
+        val prefs = createPreferencesManager(tempDir)
+        prefs.customAppToneRulesFlow.test {
+            assertThat(awaitItem()).isEmpty()
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `setCustomAppToneRule persists and reads back`(@TempDir tempDir: File) = runTest {
+        val prefs = createPreferencesManager(tempDir)
+        prefs.setCustomAppToneRule("com.myapp", ToneStyle.Professional)
+        prefs.customAppToneRulesFlow.test {
+            val rules = awaitItem()
+            assertThat(rules["com.myapp"]).isEqualTo(ToneStyle.Professional)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `removeCustomAppToneRule removes the entry`(@TempDir tempDir: File) = runTest {
+        val prefs = createPreferencesManager(tempDir)
+        prefs.setCustomAppToneRule("com.myapp", ToneStyle.Casual)
+        prefs.removeCustomAppToneRule("com.myapp")
+        prefs.customAppToneRulesFlow.test {
+            assertThat(awaitItem()).doesNotContainKey("com.myapp")
+            cancelAndIgnoreRemainingEvents()
+        }
     }
 }
