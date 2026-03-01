@@ -32,6 +32,23 @@ Say a command word instead of dictating text — VoxPen executes the keyboard ac
 
 **How it works**: Just tap the mic and speak the command word. Recognition is exact-match (case-insensitive, whitespace-trimmed) — a single word or phrase with no extra text.
 
+### Auto Tone
+When you tap into a text field, VoxPen automatically selects the most appropriate tone style based on the active app — without changing your saved preference.
+
+| Tone | Apps |
+|------|------|
+| 💬 Casual | WhatsApp, Telegram, Messenger, LINE, Discord, KakaoTalk, Viber |
+| 📧 Email | Gmail, Outlook, Proton Mail |
+| 💼 Professional | Slack, Microsoft Teams |
+| 📝 Note | Google Keep, Notion, Obsidian, Evernote |
+| 📱 Social | Twitter/X, Instagram, Threads, TikTok, Facebook, Dcard |
+
+**Custom rules:** Go to **Settings → Auto Tone → Custom App Rules** to pin a specific tone to any app by package name (overrides the built-in table).
+
+**Manual override:** Tap the tone button (💬/📧/💼…) on the keyboard to switch tone for the current recording only. Auto Tone re-applies the next time you tap into a field.
+
+**To disable:** Settings → Auto Tone → toggle off. VoxPen falls back to your saved Tone Style preference.
+
 ### Speak to Edit
 Select text in any app, speak an edit instruction, and let the LLM rewrite the selection in place.
 
@@ -92,6 +109,7 @@ Select text in any app, speak an edit instruction, and let the LLM rewrite the s
 | LLM Model | Model used for refinement and speak-to-edit |
 | Refinement | Enable/disable LLM text cleanup |
 | Tone Style | Casual / Professional / Email / Note / Social / Custom |
+| Auto Tone | Auto-detect tone by app; custom per-app rules |
 | Translation Mode | Translate output to a different language |
 | Recording Mode | Tap-to-toggle (default) or Hold-to-record |
 | Custom Vocabulary | Words to bias Whisper transcription and LLM output |
