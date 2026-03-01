@@ -908,7 +908,7 @@ private fun AddAutoToneRuleDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.transcription_cancel))
+                Text(stringResource(android.R.string.cancel))
             }
         },
     )

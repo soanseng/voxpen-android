@@ -12,6 +12,11 @@ class BuiltinAppToneTableTest {
     }
 
     @Test
+    fun `table contains 22 entries`() {
+        assertThat(BuiltinAppToneTable.rules).hasSize(22)
+    }
+
+    @Test
     fun `whatsapp maps to Casual`() {
         assertThat(BuiltinAppToneTable.rules["com.whatsapp"]).isEqualTo(ToneStyle.Casual)
     }
