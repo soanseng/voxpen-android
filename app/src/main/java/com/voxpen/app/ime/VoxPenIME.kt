@@ -207,7 +207,8 @@ class VoxPenIME : InputMethodService() {
                 actionHandler.handle(KeyboardAction.SwitchKeyboard)
             }
             switchBtn.setOnLongClickListener {
-                showLanguagePopup(it)
+                val imm = getSystemService(android.view.inputmethod.InputMethodManager::class.java)
+                imm?.showInputMethodPicker()
                 true
             }
         }
@@ -513,6 +514,7 @@ class VoxPenIME : InputMethodService() {
         serviceScope.launch {
             val refinementOn = preferencesManager.refinementEnabledFlow.first()
             val translationOn = preferencesManager.translationEnabledFlow.first()
+            val currentLang = preferencesManager.languageFlow.first()
             val dp = resources.displayMetrics.density
 
             val container = createQuickSettingsContainer(dp)
@@ -523,6 +525,7 @@ class VoxPenIME : InputMethodService() {
                 true,
             )
 
+            addLanguageSelector(container, popup, currentLang, dp)
             addRefinementToggle(container, popup, refinementOn, dp)
             addTranslationToggle(container, popup, translationOn, dp)
             addEditModeToggle(container, popup, dp)
@@ -581,50 +584,52 @@ class VoxPenIME : InputMethodService() {
         }
     }
 
-    private fun showLanguagePopup(anchor: View) {
-        serviceScope.launch {
-            val currentLang = preferencesManager.languageFlow.first()
-            val dp = resources.displayMetrics.density
+    private fun addLanguageSelector(
+        container: LinearLayout,
+        popup: PopupWindow,
+        currentLang: SttLanguage,
+        dp: Float,
+    ) {
+        val languages = listOf(
+            SttLanguage.Auto to "${SttLanguage.Auto.emoji} ${getString(R.string.lang_auto)}",
+            SttLanguage.Chinese to "${SttLanguage.Chinese.emoji} ${getString(R.string.lang_zh)}",
+            SttLanguage.English to "${SttLanguage.English.emoji} ${getString(R.string.lang_en)}",
+            SttLanguage.Japanese to "${SttLanguage.Japanese.emoji} ${getString(R.string.lang_ja)}",
+        )
 
-            val container = createQuickSettingsContainer(dp)
-
-            val popup = PopupWindow(
-                container,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                true,
-            )
-
-            val languages = listOf(
-                SttLanguage.Auto to "${SttLanguage.Auto.emoji} ${getString(R.string.lang_auto)}",
-                SttLanguage.Chinese to "${SttLanguage.Chinese.emoji} ${getString(R.string.lang_zh)}",
-                SttLanguage.English to "${SttLanguage.English.emoji} ${getString(R.string.lang_en)}",
-                SttLanguage.Japanese to "${SttLanguage.Japanese.emoji} ${getString(R.string.lang_ja)}",
-            )
-
-            languages.forEach { (lang, label) ->
-                val tv = TextView(this@VoxPenIME).apply {
-                    text = label
-                    textSize = 14f
-                    setTextColor(
-                        if (lang == currentLang) {
-                            resources.getColor(R.color.mic_idle, null)
-                        } else {
-                            resources.getColor(R.color.key_text, null)
-                        },
-                    )
-                    val pad = (8 * dp).toInt()
-                    setPadding(pad, pad, pad, pad)
-                    setOnClickListener {
-                        serviceScope.launch { preferencesManager.setLanguage(lang) }
-                        popup.dismiss()
-                    }
+        languages.forEach { (lang, label) ->
+            val tv = TextView(this).apply {
+                text = label
+                textSize = 14f
+                setTextColor(
+                    if (lang == currentLang) {
+                        resources.getColor(R.color.mic_idle, null)
+                    } else {
+                        resources.getColor(R.color.key_text, null)
+                    },
+                )
+                val pad = (8 * dp).toInt()
+                setPadding(pad, pad, pad, pad)
+                setOnClickListener {
+                    serviceScope.launch { preferencesManager.setLanguage(lang) }
+                    popup.dismiss()
                 }
-                container.addView(tv)
             }
-
-            popup.showAtLocation(anchor, Gravity.BOTTOM or Gravity.START, (8 * dp).toInt(), (64 * dp).toInt())
+            container.addView(tv)
         }
+
+        // Divider between language selector and toggles
+        val divider = View(this).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                (1 * dp).toInt(),
+            ).apply {
+                topMargin = (4 * dp).toInt()
+                bottomMargin = (4 * dp).toInt()
+            }
+            setBackgroundColor(0x33FFFFFF)
+        }
+        container.addView(divider)
     }
 
     private fun executeVoiceCommand(command: VoiceCommand) {

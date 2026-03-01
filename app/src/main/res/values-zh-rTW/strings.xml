@@ -116,8 +116,8 @@
 
     <!-- Onboarding — Tips -->
     <string name="onboarding_tips_title">鍵盤使用提示</string>
-    <string name="onboarding_tip_language">長按 \uD83C\uDF10 快速切換聽寫語言</string>
-    <string name="onboarding_tip_refinement">長按 \u2699 開關文字潤飾</string>
+    <string name="onboarding_tip_language">長按 \uD83C\uDF10 選擇其他鍵盤</string>
+    <string name="onboarding_tip_refinement">長按 \u2699 開啟快速設定——切換語言、開關潤稿、翻譯、編輯模式</string>
     <string name="onboarding_tip_tone">點擊語氣按鈕（\uD83D\uDCAC）切換寫作風格</string>
     <string name="onboarding_tip_recording_limit">每次錄音最長 6 分鐘，最後 30 秒會顯示倒數提示。</string>
     <string name="onboarding_tip_voice_commands">說出指令詞可直接觸發鍵盤動作——「送出」/「送信」送出訊息、「刪除」/「削除」退格、「換行」/「改行」換行，不需插入文字。</string>

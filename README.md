@@ -99,12 +99,12 @@ Select text in any app, speak an edit instruction, and let the LLM rewrite the s
 
 | Button | Tap | Long-press |
 |--------|-----|------------|
-| 🌐 | Switch to previous keyboard | Language picker |
+| 🌐 | Switch to previous keyboard | System input method picker |
 | ⌫ | Backspace | — |
 | 🎤 | Start / stop recording | — |
 | ⏎ | Enter | — |
 | 💬 (tone) | Tone picker | — |
-| ⚙️ | Open Settings app | Quick settings (refinement / translation / edit mode toggles) |
+| ⚙️ | Open Settings app | Quick settings (STT language / refinement / translation / edit mode) |
 
 ---
 
