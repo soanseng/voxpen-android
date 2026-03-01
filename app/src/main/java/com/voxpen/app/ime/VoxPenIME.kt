@@ -44,9 +44,9 @@ class VoxPenIME : InputMethodService() {
     private lateinit var apiKeyManager: com.voxpen.app.data.local.ApiKeyManager
 
     private var isEditMode: Boolean = false
-    private var effectiveTone: ToneStyle = ToneStyle.DEFAULT
-    private var autoToneEnabled: Boolean = PreferencesManager.DEFAULT_AUTO_TONE_ENABLED
-    private var customAppToneRules: Map<String, ToneStyle> = emptyMap()
+    @Volatile private var effectiveTone: ToneStyle = ToneStyle.DEFAULT
+    @Volatile private var autoToneEnabled: Boolean = PreferencesManager.DEFAULT_AUTO_TONE_ENABLED
+    @Volatile private var customAppToneRules: Map<String, ToneStyle> = emptyMap()
 
     private var candidateBar: LinearLayout? = null
     private var candidateStatusRow: LinearLayout? = null
