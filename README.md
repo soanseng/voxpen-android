@@ -18,7 +18,9 @@ Speak in one language, output in another.
 2. Select a target language (English / 中文 / 日本語)
 3. Dictate as usual — VoxPen will translate instead of refine
 
-Or toggle on the fly: long-press ⚙️ in the keyboard → **Translation: ON/OFF**.
+**Quick switch from keyboard:** When translation is active, a 🔄 indicator row appears at the top of the candidate bar (e.g., `🔄 說中文 → English`). Tap it to cycle through target languages; tap × to turn translation off. The available targets are smart-filtered — if your STT language is Chinese, you won't see "translate to Chinese" as an option.
+
+You can also toggle translation via long-press ⚙️ → **Translation: ON/OFF**.
 
 ### Voice Commands
 Say a command word instead of dictating text — VoxPen executes the keyboard action directly without inserting anything or calling the LLM.
@@ -87,6 +89,7 @@ Select text in any app, speak an edit instruction, and let the LLM rewrite the s
 
 ```
 ┌──────────────────────────────────────┐
+│  🔄 說中文 → English            [×] │  ← translation indicator (when active)
 │  🔵 Original: [raw transcription]    │  ← tap to insert
 │  ✨ Refined:  [polished text]         │  ← tap to insert
 ├──────────────────────────────────────┤

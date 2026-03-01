@@ -59,6 +59,7 @@ Date: 2026-02-28
 **How**: Toggle + target language selector in Settings and IME quick settings (long-press ⚙️).
 Routes to a separate `TranslationPrompt` instead of the refinement prompt.
 Supports zh→en, en→zh, zh→ja, and reverse.
+**Quick Switch**: Tappable indicator row in candidate bar (`🔄 說中文 → English`) lets users cycle target languages and close translation without leaving the keyboard. Smart filtering excludes the current STT language from targets.
 
 ---
 
