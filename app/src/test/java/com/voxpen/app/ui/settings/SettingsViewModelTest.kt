@@ -157,27 +157,27 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun `autoToneEnabled defaults to true in uiState`() = runTest {
+    fun `should default autoToneEnabled to true in uiState`() = runTest {
         val viewModel = createViewModel()
         assertThat(viewModel.uiState.value.autoToneEnabled).isTrue()
     }
 
     @Test
-    fun `setAutoToneEnabled delegates to preferencesManager`() = runTest {
+    fun `should delegate setAutoToneEnabled to preferencesManager`() = runTest {
         val viewModel = createViewModel()
         viewModel.setAutoToneEnabled(false)
         coVerify { preferencesManager.setAutoToneEnabled(false) }
     }
 
     @Test
-    fun `setCustomAppToneRule delegates to preferencesManager`() = runTest {
+    fun `should delegate setCustomAppToneRule to preferencesManager`() = runTest {
         val viewModel = createViewModel()
         viewModel.setCustomAppToneRule("com.myapp", ToneStyle.Professional)
         coVerify { preferencesManager.setCustomAppToneRule("com.myapp", ToneStyle.Professional) }
     }
 
     @Test
-    fun `removeCustomAppToneRule delegates to preferencesManager`() = runTest {
+    fun `should delegate removeCustomAppToneRule to preferencesManager`() = runTest {
         val viewModel = createViewModel()
         viewModel.removeCustomAppToneRule("com.myapp")
         coVerify { preferencesManager.removeCustomAppToneRule("com.myapp") }
