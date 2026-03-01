@@ -138,6 +138,7 @@
     <string name="keyboard_record">Record</string>
     <string name="keyboard_enter">Enter</string>
     <string name="keyboard_settings">Settings</string>
+    <string name="copy_to_clipboard">Copy to clipboard</string>
 
     <!-- Keyboard Quick Settings -->
     <string name="quick_language">Language: %1$s</string>

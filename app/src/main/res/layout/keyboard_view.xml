@@ -45,6 +45,17 @@
                 android:textSize="15sp"
                 android:ellipsize="end"
                 android:maxLines="2" />
+
+            <ImageButton
+                android:id="@+id/btn_copy_status"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="4dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/copy_to_clipboard"
+                android:src="@drawable/ic_content_copy"
+                android:scaleType="centerInside"
+                android:visibility="gone" />
         </LinearLayout>
 
         <!-- Original text row (tappable) -->
@@ -98,6 +109,17 @@
                 android:textStyle="bold"
                 android:ellipsize="end"
                 android:maxLines="2" />
+
+            <ImageButton
+                android:id="@+id/btn_copy_refined"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginStart="4dp"
+                android:background="?android:attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/copy_to_clipboard"
+                android:src="@drawable/ic_content_copy"
+                android:scaleType="centerInside"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 

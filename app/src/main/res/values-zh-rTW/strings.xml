@@ -138,6 +138,7 @@
     <string name="keyboard_record">錄音</string>
     <string name="keyboard_enter">換行</string>
     <string name="keyboard_settings">設定</string>
+    <string name="copy_to_clipboard">複製到剪貼簿</string>
 
     <!-- Keyboard Quick Settings -->
     <string name="quick_language">語言：%1$s</string>
