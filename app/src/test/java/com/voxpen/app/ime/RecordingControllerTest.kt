@@ -381,6 +381,42 @@ class RecordingControllerTest {
             }
         }
 
+    @Test
+    fun `toneOverride is used in refinement instead of flow value`() =
+        runTest {
+            toneStyleFlow.value = ToneStyle.Casual
+            coEvery {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "let's schedule a meeting")
+            coEvery {
+                chatCompletionApi.chatCompletion(any(), any())
+            } returns chatResponse("Let's schedule a meeting.")
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1)
+
+                controller.onStopRecording(stopRecording, SttLanguage.English, toneOverride = ToneStyle.Professional)
+                // StateFlow conflates intermediate states; collect until Refined
+                val states = mutableListOf(awaitItem())
+                states.add(awaitItem())
+                val finalState = states.last()
+                assertThat(finalState).isInstanceOf(ImeUiState.Refined::class.java)
+            }
+
+            coVerify {
+                chatCompletionApi.chatCompletion(
+                    any(),
+                    match { request ->
+                        request.messages.any { msg ->
+                            msg.role == "system" && msg.content.contains("professional", ignoreCase = true)
+                        }
+                    },
+                )
+            }
+        }
+
     private fun chatResponse(content: String) =
         ChatCompletionResponse(
             id = "test",

@@ -76,6 +76,7 @@ class RecordingController(
         stopRecording: () -> ByteArray,
         language: SttLanguage,
         editMode: Boolean = false,
+        toneOverride: ToneStyle? = null,
     ) {
         val pcmData = stopRecording()
         val apiKey = apiKeyManager.getApiKey(llmProvider)
@@ -85,6 +86,8 @@ class RecordingController(
             _uiState.value = ImeUiState.Error("API key not configured")
             return
         }
+
+        val effectiveTone = toneOverride ?: toneStyle
 
         _uiState.value = ImeUiState.Processing
         scope.launch {
@@ -141,7 +144,7 @@ class RecordingController(
                     }
                     val refinedResult = refineTextUseCase(
                         originalText, language, apiKey, resolvedModel, allVocabulary,
-                        customPrompt, toneStyle, llmProvider, customBaseUrl,
+                        customPrompt, effectiveTone, llmProvider, customBaseUrl,
                         translationEnabled, translationTargetLanguage,
                     )
                     _uiState.value =
