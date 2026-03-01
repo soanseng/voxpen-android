@@ -46,8 +46,10 @@ Date: 2026-02-28
 | ~~**Speak to Edit**~~ | ~~Select text in any app → voice-edit by describing changes~~ | ✅ **Shipped** |
 | ~~**Translation Quick-Switch**~~ | ~~Cycle translation targets from keyboard without Settings~~ | ✅ **Shipped** |
 | **100+ Languages** | 100+ vs VoxPen's 11 exposed (Whisper supports 99) | P2 |
+| **iOS App** | Native iOS voice keyboard | P2 |
 | **Personalization / Style Learning** | Adapts to user's writing patterns over time | P3 |
 | **AI Query on Selected Text** | Summarize / explain / translate highlighted content | P3 |
+| **Web Platform** | Browser-based voice input | P4 |
 
 ---
 
@@ -102,6 +104,20 @@ Shipped as part of A2 — see above.
 
 ---
 
+#### B3. iOS App
+**What**: Native iOS voice keyboard using the VoxPen architecture.
+**Why**: Typeless is on iOS; significant user demand. Closes major platform gap.
+**How**:
+- Swift + UIKit `UIInputViewController` for keyboard extension
+- Share API interaction patterns (Whisper STT, LLM refinement) via REST — no shared code needed
+- Candidate bar with dual-result display, copy button
+- Settings app for API key management, provider selection
+- Reuse refinement prompts and tone presets
+
+**Effort**: High (new platform, Apple review process)
+
+---
+
 ### Phase C — Differentiation (v2.x+)
 
 #### C1. AI Query on Selected Text
@@ -127,6 +143,19 @@ Shipped as part of A2 — see above.
 
 ---
 
+#### C3. Web Platform
+**What**: Browser-based voice input for web apps (Google Docs, Notion, etc.).
+**Why**: Typeless offers a web version. Removes need for desktop install for occasional users.
+**How**:
+- WebRTC `getUserMedia()` for mic access
+- Direct REST calls to Whisper + LLM (same BYOK model)
+- Browser extension or PWA for text injection
+- Lightweight — no install needed
+
+**Effort**: Medium
+
+---
+
 ## Priority Matrix
 
 | Feature | Impact | Effort | Priority |
@@ -138,9 +167,11 @@ Shipped as part of A2 — see above.
 | ~~Copy-to-Clipboard Button~~ | Medium | Low | ✅ Shipped |
 | ~~Translation Quick-Switch~~ | Medium | Low | ✅ Shipped |
 | More Languages (UI) | Medium | Low | P2 |
+| iOS App | High | High | P2 |
 | ~~Per-App Custom Tone~~ | Medium | Medium | ✅ Shipped |
 | AI Query on Selected Text | Medium | Medium | P3 |
 | Personalization / Style Learning | Low | High | P3 |
+| Web Platform | Medium | Medium | P4 |
 
 ---
 
@@ -157,5 +188,8 @@ VoxPen's core differentiators vs Typeless are:
 7. **Auto Context-Aware Tone** — shipped; IME auto-selects tone by foreground app with custom per-app rules ✅
 8. **Translation Quick-Switch** — shipped; tappable indicator row in candidate bar cycles target languages; 🌐 long-press opens system IME picker, STT language moved to quick settings ✅
 
-The remaining highest-priority gap:
+The remaining highest-priority gaps:
 1. **More Language Exposure** — expose all 99 Whisper-supported languages in the language picker
+2. **iOS App** — Typeless covers iOS; we need parity
+3. **Personalization** — Typeless learns writing style over time; we should match this
+4. **Web Platform** — browser-based input removes install friction
