@@ -146,6 +146,14 @@
     <string name="quick_refinement_off">潤稿：關</string>
     <string name="quick_translation_on">翻譯：開</string>
     <string name="quick_translation_off">翻譯：關</string>
+
+    <!-- Translation Indicator (keyboard) -->
+    <string name="translation_indicator_speak_zh">🔄 說中文 → %1$s</string>
+    <string name="translation_indicator_speak_en">🔄 Speak EN → %1$s</string>
+    <string name="translation_indicator_speak_ja">🔄 日本語 → %1$s</string>
+    <string name="translation_indicator_speak_auto">🔄 翻譯 → %1$s</string>
+    <string name="translation_close">關閉翻譯</string>
+
     <string name="quick_edit_mode_on">✏️ 編輯模式：開</string>
     <string name="quick_edit_mode_off">✏️ 編輯模式</string>
     <string name="edit_mode_active">✏️ 編輯中：選取文字後點麥克風</string>

@@ -146,6 +146,14 @@
     <string name="quick_refinement_off">Refinement: OFF</string>
     <string name="quick_translation_on">Translation: ON</string>
     <string name="quick_translation_off">Translation: OFF</string>
+
+    <!-- Translation Indicator (keyboard) -->
+    <string name="translation_indicator_speak_zh">🔄 說中文 → %1$s</string>
+    <string name="translation_indicator_speak_en">🔄 Speak EN → %1$s</string>
+    <string name="translation_indicator_speak_ja">🔄 日本語 → %1$s</string>
+    <string name="translation_indicator_speak_auto">🔄 Translate → %1$s</string>
+    <string name="translation_close">Close translation</string>
+
     <string name="quick_edit_mode_on">✏️ Edit Mode: ON</string>
     <string name="quick_edit_mode_off">✏️ Edit Mode</string>
     <string name="edit_mode_active">✏️ Edit: select text, then tap mic</string>
