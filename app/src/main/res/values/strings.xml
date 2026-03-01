@@ -229,6 +229,17 @@
     <string name="tone_popup_social">\uD83D\uDCF1 Social</string>
     <string name="tone_popup_custom">⚙ Custom</string>
 
+    <!-- Auto Tone -->
+    <string name="settings_auto_tone_section">Auto Tone</string>
+    <string name="settings_auto_tone_toggle">Auto-detect tone by app</string>
+    <string name="settings_auto_tone_desc">Automatically adjusts tone based on the active app when you start typing.</string>
+    <string name="settings_auto_tone_custom_rules">Custom App Rules</string>
+    <string name="settings_auto_tone_add_rule">Add Rule</string>
+    <string name="settings_auto_tone_package_hint">Package name (e.g. com.myapp)</string>
+    <string name="settings_auto_tone_select_tone">Select tone</string>
+    <string name="settings_auto_tone_rule_added">Rule added</string>
+    <string name="settings_auto_tone_rule_removed">Rule removed</string>
+
     <!-- LLM Provider -->
     <string name="settings_llm_provider_section">LLM Provider &amp; Model</string>
     <string name="provider_custom">Custom</string>

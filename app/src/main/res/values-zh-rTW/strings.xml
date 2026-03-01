@@ -229,6 +229,17 @@
     <string name="tone_popup_social">\uD83D\uDCF1 社群貼文</string>
     <string name="tone_popup_custom">⚙ 自訂</string>
 
+    <!-- Auto Tone -->
+    <string name="settings_auto_tone_section">自動語氣</string>
+    <string name="settings_auto_tone_toggle">依 App 自動偵測語氣</string>
+    <string name="settings_auto_tone_desc">開始輸入時，自動根據目前的 App 調整語氣風格。</string>
+    <string name="settings_auto_tone_custom_rules">自訂 App 規則</string>
+    <string name="settings_auto_tone_add_rule">新增規則</string>
+    <string name="settings_auto_tone_package_hint">套件名稱（例如 com.myapp）</string>
+    <string name="settings_auto_tone_select_tone">選擇語氣</string>
+    <string name="settings_auto_tone_rule_added">規則已新增</string>
+    <string name="settings_auto_tone_rule_removed">規則已移除</string>
+
     <!-- LLM Provider -->
     <string name="settings_llm_provider_section">潤稿模型</string>
     <string name="provider_custom">自訂</string>
