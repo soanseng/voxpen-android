@@ -29,6 +29,12 @@ Say a command word instead of dictating text — VoxPen executes the keyboard ac
 | 刪除 / 退格 / delete / backspace / 削除 / バックスペース | ⌫ Delete last character |
 | 換行 / new line / newline / 改行 | ↩ Insert newline |
 | 空格 / space / スペース | ␣ Insert space |
+| 復原 / undo / 元に戻す | ↶ Undo last action |
+| 全選 / select all / 全て選択 | Select all text |
+| 複製 / copy / コピー | Copy selected text |
+| 貼上 / paste / 貼り付け | Paste from clipboard |
+| 剪下 / cut / 切り取り | Cut selected text |
+| 全部刪除 / clear all / clear / 全削除 | Clear all text in field |
 
 **How it works**: Just tap the mic and speak the command word. Recognition is exact-match (case-insensitive, whitespace-trimmed) — a single word or phrase with no extra text.
 
