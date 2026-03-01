@@ -42,7 +42,7 @@ Date: 2026-02-28
 | Gap | Typeless Feature | Priority |
 |-----|-----------------|----------|
 | ~~**Translation Mode**~~ | ~~Speak zh → output en (and vice versa)~~ | ✅ **Shipped** |
-| **Auto Context-Aware Tone** | Detect foreground app (Gmail = formal, WhatsApp = casual) | P1 |
+| ~~**Auto Context-Aware Tone**~~ | ~~Detect foreground app (Gmail = formal, WhatsApp = casual)~~ | ✅ **Shipped** |
 | ~~**Speak to Edit**~~ | ~~Select text in any app → voice-edit by describing changes~~ | ✅ **Shipped** |
 | **100+ Languages** | 100+ vs VoxPen's 11 exposed (Whisper supports 99) | P2 |
 | **Personalization / Style Learning** | Adapts to user's writing patterns over time | P3 |
@@ -62,25 +62,13 @@ Supports zh→en, en→zh, zh→ja, and reverse.
 
 ---
 
-#### A2. Auto Context-Aware Tone
-**What**: IME detects which app is active and auto-selects appropriate tone style.
-**Why**: Typeless's killer UX — zero manual tone selection needed.
-**How**:
-- Read `currentInputEditorInfo.packageName` in `VoxPenIME` (already available in IME context)
-- Build a simple app → tone mapping table:
-  ```
-  com.whatsapp, com.facebook.orca → Casual (💬)
-  com.google.android.gm, com.microsoft.office.outlook → Email (📧)
-  com.slack → Professional (💼)
-  com.twitter.android, com.instagram.android → Social (📱)
-  com.notion.id, com.bear.notes → Note (📝)
-  * (default) → user preference
-  ```
-- Add "Auto-detect tone" toggle in Settings (default: ON)
-- When auto-detect is ON, override tone selection with mapped value
-- Show detected tone name briefly in keyboard UI as a toast/snackbar
+#### A2. Auto Context-Aware Tone ✅ Shipped (2026-03-01)
+**What**: IME detects which app is active and auto-selects the appropriate tone style — without changing the user's saved preference.
+**How**: `onStartInput()` in `VoxPenIME` calls `AppToneDetector.detect(packageName, inputType, customRules)` with a three-level priority cascade: user custom rules → built-in 22-app table → `TYPE_TEXT_VARIATION_SHORT_MESSAGE` inputType heuristic → null (falls back to saved preference). Effective tone is captured at recording start and passed as `toneOverride` to `RecordingController`; manual keyboard tone-button tap overrides for the current recording only, then auto-detection re-applies on next field focus.
 
-**Files to touch**: `VoxPenIME`, `SettingsRepository`, `SettingsScreen`, `PreferencesManager`
+Built-in table covers 22 apps across 5 tones (💬 Casual / 📧 Email / 💼 Professional / 📝 Note / 📱 Social). Custom per-app rules stored as JSON in DataStore; managed via Settings → Auto Tone → Custom App Rules. Toggle defaults ON; when OFF, saved preference is used.
+
+**Also shipped**: Per-App Custom Tone (was Phase B2) — fully integrated as part of this feature.
 
 ---
 
@@ -106,13 +94,8 @@ Supports zh→en, en→zh, zh→ja, and reverse.
 
 ---
 
-#### B2. Per-App Custom Tone Mapping
-**What**: Users can assign specific tone styles to specific apps beyond the defaults.
-**Why**: Extension of A2 — power users can customize the auto-detection mapping.
-**How**:
-- Settings screen section: "App Tone Rules"
-- List of installed IME-enabled apps with tone assignment dropdown
-- Stored as `Map<packageName, ToneStyle>` in DataStore
+#### B2. Per-App Custom Tone Mapping ✅ Shipped (2026-03-01)
+Shipped as part of A2 — see above.
 
 ---
 
@@ -146,11 +129,11 @@ Supports zh→en, en→zh, zh→ja, and reverse.
 | Feature | Impact | Effort | Priority |
 |---------|--------|--------|----------|
 | ~~Translation Mode~~ | High | Low | ✅ Shipped |
-| Auto Context-Aware Tone | High | Low | **P1 → Next** |
+| ~~Auto Context-Aware Tone~~ | High | Low | ✅ Shipped |
 | ~~Speak to Edit~~ | High | Medium | ✅ Shipped |
 | ~~Voice Commands~~ | Medium | Low | ✅ Shipped |
 | More Languages (UI) | Medium | Low | P2 |
-| Per-App Custom Tone | Medium | Medium | P2 |
+| ~~Per-App Custom Tone~~ | Medium | Medium | ✅ Shipped |
 | AI Query on Selected Text | Medium | Medium | P3 |
 | Personalization / Style Learning | Low | High | P3 |
 
@@ -165,6 +148,7 @@ VoxPen's core differentiators vs Typeless are:
 4. **Translation Mode** — shipped; speak in one language, output in another ✅
 5. **Speak to Edit** — shipped; select text → voice-instruct LLM to rewrite it ✅
 6. **Voice Commands** — shipped; say "送出"/"send" to execute keyboard actions without inserting text ✅
+7. **Auto Context-Aware Tone** — shipped; IME auto-selects tone by foreground app with custom per-app rules ✅
 
 The remaining highest-priority gap:
-1. **Auto Context-Aware Tone** — IME already has `packageName` access; auto-select tone by foreground app
+1. **More Language Exposure** — expose all 99 Whisper-supported languages in the language picker
