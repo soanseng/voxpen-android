@@ -21,7 +21,11 @@ class LlmRepositoryTest {
     fun setUp() {
         server = MockWebServer()
         server.start()
-        val json = Json { ignoreUnknownKeys = true }
+        val json = Json {
+            ignoreUnknownKeys = true
+            encodeDefaults = true
+            explicitNulls = false
+        }
         val client = OkHttpClient()
         val factory = ChatCompletionApiFactory(client, json)
         repository = LlmRepository(factory)
@@ -176,4 +180,73 @@ class LlmRepositoryTest {
             val body = request.body.readUtf8()
             assertThat(body).contains("移除贅字")
         }
+
+    @Test
+    fun `should send reasoning_format hidden for qwen3 model`() =
+        runTest {
+            enqueueSuccess("ok")
+            repository.refine(
+                "text", SttLanguage.English, "key",
+                model = "qwen/qwen3-32b",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).contains("\"reasoning_format\":\"hidden\"")
+        }
+
+    @Test
+    fun `should not send reasoning_format for non-thinking model`() =
+        runTest {
+            enqueueSuccess("ok")
+            repository.refine(
+                "text", SttLanguage.English, "key",
+                model = "llama-3.3-70b-versatile",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).doesNotContain("reasoning_format")
+        }
+
+    @Test
+    fun `should strip thinking tags from response`() =
+        runTest {
+            enqueueSuccess("<think>internal reasoning</think>Actual output")
+            val result = repository.refine(
+                "text", SttLanguage.English, "key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            assertThat(result.getOrNull()).isEqualTo("Actual output")
+        }
+
+    @Test
+    fun `stripThinkingTags should handle multiline thinking blocks`() {
+        val input = "<think>\nStep 1: analyze\nStep 2: decide\n</think>\nClean result"
+        assertThat(LlmRepository.stripThinkingTags(input)).isEqualTo("Clean result")
+    }
+
+    @Test
+    fun `stripThinkingTags should return text unchanged when no think tags`() {
+        assertThat(LlmRepository.stripThinkingTags("Hello world")).isEqualTo("Hello world")
+    }
+
+    @Test
+    fun `reasoningFormatFor should return hidden for qwen3`() {
+        assertThat(LlmRepository.reasoningFormatFor("qwen/qwen3-32b")).isEqualTo("hidden")
+    }
+
+    @Test
+    fun `reasoningFormatFor should return hidden for deepseek-r1`() {
+        assertThat(LlmRepository.reasoningFormatFor("deepseek/deepseek-r1")).isEqualTo("hidden")
+    }
+
+    @Test
+    fun `reasoningFormatFor should return null for regular models`() {
+        assertThat(LlmRepository.reasoningFormatFor("llama-3.3-70b-versatile")).isNull()
+        assertThat(LlmRepository.reasoningFormatFor("gpt-4o-mini")).isNull()
+    }
 }

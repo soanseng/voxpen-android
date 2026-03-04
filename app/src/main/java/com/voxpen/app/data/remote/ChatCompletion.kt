@@ -15,6 +15,7 @@ data class ChatCompletionRequest(
     val messages: List<ChatMessage>,
     val temperature: Double = 0.3,
     @SerialName("max_tokens") val maxTokens: Int = 2048,
+    @SerialName("reasoning_format") val reasoningFormat: String? = null,
 )
 
 @Serializable

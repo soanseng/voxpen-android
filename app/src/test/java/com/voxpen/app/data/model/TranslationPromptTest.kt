@@ -34,4 +34,24 @@ class TranslationPromptTest {
         val prompt = TranslationPrompt.build(SttLanguage.Chinese, SttLanguage.Japanese)
         assertThat(prompt).contains("日本語")
     }
+
+    @Test
+    fun `should mention mixed language handling in toEnglish prompt`() {
+        val prompt = TranslationPrompt.build(SttLanguage.Chinese, SttLanguage.English)
+        assertThat(prompt).contains("multiple languages mixed")
+        assertThat(prompt).contains("ALL content into English")
+    }
+
+    @Test
+    fun `should mention mixed language handling in toChinese prompt`() {
+        val prompt = TranslationPrompt.build(SttLanguage.English, SttLanguage.Chinese)
+        assertThat(prompt).contains("多種語言混合")
+        assertThat(prompt).contains("統一翻譯成繁體中文")
+    }
+
+    @Test
+    fun `should mention mixed language handling in toJapanese prompt`() {
+        val prompt = TranslationPrompt.build(SttLanguage.Chinese, SttLanguage.Japanese)
+        assertThat(prompt).contains("複数の言語が混在")
+    }
 }

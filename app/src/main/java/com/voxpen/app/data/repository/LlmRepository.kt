@@ -59,12 +59,13 @@ class LlmRepository
                             ),
                         temperature = TEMPERATURE,
                         maxTokens = MAX_TOKENS,
+                        reasoningFormat = reasoningFormatFor(model),
                     )
                 val response = api.chatCompletion("Bearer $apiKey", request)
-                val content =
+                val raw =
                     response.choices.firstOrNull()?.message?.content
                         ?: return Result.failure(IllegalStateException("No response content"))
-                Result.success(content)
+                Result.success(stripThinkingTags(raw))
             } catch (e: IOException) {
                 Result.failure(e)
             } catch (e: retrofit2.HttpException) {
@@ -94,11 +95,12 @@ class LlmRepository
                     messages = listOf(ChatMessage(role = "user", content = userMessage)),
                     temperature = TEMPERATURE,
                     maxTokens = MAX_TOKENS,
+                    reasoningFormat = reasoningFormatFor(model),
                 )
                 val response = api.chatCompletion("Bearer $apiKey", request)
-                val content = response.choices.firstOrNull()?.message?.content
+                val raw = response.choices.firstOrNull()?.message?.content
                     ?: return Result.failure(IllegalStateException("No response content"))
-                Result.success(content)
+                Result.success(stripThinkingTags(raw))
             } catch (e: IOException) {
                 Result.failure(e)
             } catch (e: retrofit2.HttpException) {
@@ -110,5 +112,21 @@ class LlmRepository
             private const val LLM_MODEL = "llama-3.3-70b-versatile"
             private const val TEMPERATURE = 0.3
             private const val MAX_TOKENS = 2048
+
+            private val THINKING_TAG_REGEX = Regex("<think>[\\s\\S]*?</think>\\s*")
+
+            /** Returns "hidden" for known thinking models, null otherwise. */
+            fun reasoningFormatFor(model: String): String? =
+                if (model.contains("qwen3", ignoreCase = true) ||
+                    model.contains("deepseek-r1", ignoreCase = true)
+                ) {
+                    "hidden"
+                } else {
+                    null
+                }
+
+            /** Strips `<think>…</think>` blocks from LLM output (safety net for custom models). */
+            fun stripThinkingTags(text: String): String =
+                THINKING_TAG_REGEX.replace(text, "").trim()
         }
     }
