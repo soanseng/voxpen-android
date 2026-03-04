@@ -1,97 +1,81 @@
-# VoxPen (語墨)
+<p align="center">
+  <img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" width="100" alt="VoxPen logo" />
+</p>
 
-AI voice keyboard for Android. Speak — VoxPen transcribes, refines, and inserts polished text into any app.
+<h1 align="center">VoxPen (語墨)</h1>
 
-**BYOK (Bring Your Own Key)** — bring your own Groq or OpenAI API key. You pay only for what you use.
+<p align="center">
+  Open-source AI voice keyboard for Android.<br/>
+  Speak naturally — get polished text instantly.
+</p>
+
+<p align="center">
+  <a href="https://github.com/soanseng/voxpen-android/releases"><img src="https://img.shields.io/github/v/release/soanseng/voxpen-android?style=flat-square" alt="Release" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/soanseng/voxpen-android?style=flat-square" alt="License" /></a>
+  <a href="https://github.com/soanseng/voxpen-android/actions"><img src="https://img.shields.io/github/actions/workflow/status/soanseng/voxpen-android/ci.yml?style=flat-square&label=CI" alt="CI" /></a>
+  <img src="https://img.shields.io/badge/Android-8.0%2B-green?style=flat-square" alt="Min SDK 26" />
+</p>
+
+<p align="center">
+  <a href="https://voxpen.app">Website</a> &nbsp;|&nbsp;
+  <a href="README.zh-TW.md">繁體中文</a>
+</p>
 
 ---
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/home.png" width="180" alt="Home screen" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/keyboard.png" width="180" alt="Keyboard" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/keyboard-tone.png" width="180" alt="Tone selector" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/settings-llm.png" width="180" alt="Settings - LLM" />
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/settings-tone.png" width="180" alt="Settings - Tone" />
+</p>
+
+---
+
+## What is VoxPen?
+
+VoxPen is an Android voice keyboard that transcribes your speech with Whisper, refines it with an LLM, and inserts clean text into any app. It runs on a **BYOK (Bring Your Own Key)** model — you use your own API keys and pay only for what you use. No subscription, no data collection, fully open-source.
 
 ## Features
 
 ### Voice Dictation
-Tap the mic button (or hold, depending on your setting) and speak. VoxPen sends your audio to Whisper for transcription, optionally refines the result with an LLM, and shows both versions in the candidate bar. Tap to insert.
+Tap the mic and speak. VoxPen sends audio to Whisper for transcription, optionally refines with an LLM, and shows both versions in the candidate bar. Tap to insert.
 
 ### Translation Mode
-Speak in one language, output in another.
-
-1. Go to **Settings → Translation Mode** and enable the toggle
-2. Select a target language (English / 中文 / 日本語)
-3. Dictate as usual — VoxPen will translate instead of refine
-
-**Quick switch from keyboard:** When translation is active, a 🔄 indicator row appears at the top of the candidate bar (e.g., `🔄 說中文 → English`). Tap it to cycle through target languages; tap × to turn translation off. The available targets are smart-filtered — if your STT language is Chinese, you won't see "translate to Chinese" as an option.
-
-You can also toggle translation via long-press ⚙️ → **Translation: ON/OFF**.
-
-### Voice Commands
-Say a command word instead of dictating text — VoxPen executes the keyboard action directly without inserting anything or calling the LLM.
-
-| Say | Action |
-|-----|--------|
-| 送出 / 傳送 / send / enter / submit / 送信 / 確定 | ↵ Enter (send message / submit form) |
-| 刪除 / 退格 / delete / backspace / 削除 / バックスペース | ⌫ Delete last character |
-| 換行 / new line / newline / 改行 | ↩ Insert newline |
-| 空格 / space / スペース | ␣ Insert space |
-| 復原 / undo / 元に戻す | ↶ Undo last action |
-| 全選 / select all / 全て選択 | Select all text |
-| 複製 / copy / コピー | Copy selected text |
-| 貼上 / paste / 貼り付け | Paste from clipboard |
-| 剪下 / cut / 切り取り | Cut selected text |
-| 全部刪除 / clear all / clear / 全削除 | Clear all text in field |
-
-**How it works**: Just tap the mic and speak the command word. Recognition is exact-match (case-insensitive, whitespace-trimmed) — a single word or phrase with no extra text.
-
-### Auto Tone
-When you tap into a text field, VoxPen automatically selects the most appropriate tone style based on the active app — without changing your saved preference.
-
-| Tone | Apps |
-|------|------|
-| 💬 Casual | WhatsApp, Telegram, Messenger, LINE, Discord, KakaoTalk, Viber |
-| 📧 Email | Gmail, Outlook, Proton Mail |
-| 💼 Professional | Slack, Microsoft Teams |
-| 📝 Note | Google Keep, Notion, Obsidian, Evernote |
-| 📱 Social | Twitter/X, Instagram, Threads, TikTok, Facebook, Dcard |
-
-**Custom rules:** Go to **Settings → Auto Tone → Custom App Rules** to pin a specific tone to any app by package name (overrides the built-in table).
-
-**Manual override:** Tap the tone button (💬/📧/💼…) on the keyboard to switch tone for the current recording only. Auto Tone re-applies the next time you tap into a field.
-
-**To disable:** Settings → Auto Tone → toggle off. VoxPen falls back to your saved Tone Style preference.
+Speak in one language, output in another. Quick-switch target languages directly from the keyboard — no need to open Settings.
 
 ### Speak to Edit
-Select text in any app, speak an edit instruction, and let the LLM rewrite the selection in place.
+Select text in any app, switch to VoxPen, enable Edit Mode, and speak your instruction (e.g., "make it more formal"). The LLM rewrites the selection in place.
 
-**Step-by-step:**
-1. Select the text you want to edit in any app
-2. Switch to VoxPen keyboard
-3. Long-press ⚙️ → tap **✏️ Edit Mode**
-4. The candidate bar shows: *"✏️ Edit: select text, then tap mic"*
-5. Tap the mic and speak your instruction (e.g., "讓它更正式" / "make it more concise" / "translate to English")
-6. VoxPen reads the selected text, sends it with your instruction to the LLM, and replaces the selection with the result
+### Auto Tone
+VoxPen detects the active app and auto-selects the appropriate writing style — casual for messaging, formal for email, professional for Slack. Customizable per-app rules.
 
-**To exit Edit Mode:** long-press ⚙️ → tap **✏️ Edit Mode: ON** (toggles it off).
+### Voice Commands
+10 trilingual commands (zh-TW / en / ja) — send, delete, newline, space, undo, select all, copy, paste, cut, clear all. No API call needed.
 
-> **Note:** Speak to Edit requires a configured LLM API key (Groq or OpenAI). The selected text must not be empty.
+### Audio File Transcription
+Transcribe audio/video files with progress tracking. Export as TXT or SRT subtitles.
 
----
-
-## Setup
-
-1. Install the app
-2. Go through the onboarding wizard to:
-   - Add your Groq API key (free tier available at [console.groq.com](https://console.groq.com))
-   - Enable VoxPen keyboard in system settings
-   - Grant microphone permission
-3. Switch to VoxPen Voice keyboard in any text field
-
----
+### Privacy-First
+- **BYOK**: Audio goes directly from your device to your API provider
+- **No telemetry**, no analytics, no user accounts
+- API keys encrypted with Android Keystore
+- Only 2 permissions: `INTERNET` + `RECORD_AUDIO`
 
 ## Keyboard Layout
 
 ```
 ┌──────────────────────────────────────┐
-│  🔄 說中文 → English            [×] │  ← translation indicator (when active)
+│  🔄 說中文 → English            [×] │  ← translation indicator
 │  🔵 Original: [raw transcription]    │  ← tap to insert
-│  ✨ Refined:  [polished text]         │  ← tap to insert
+│  ✨ Refined:  [polished text]        │  ← tap to insert
 ├──────────────────────────────────────┤
 │  🌐  │  ⌫  │    🎤    │  ⏎  │  ⚙️  │
 └──────────────────────────────────────┘
@@ -99,49 +83,122 @@ Select text in any app, speak an edit instruction, and let the LLM rewrite the s
 
 | Button | Tap | Long-press |
 |--------|-----|------------|
-| 🌐 | Switch to previous keyboard | System input method picker |
+| 🌐 | Previous keyboard | System IME picker |
 | ⌫ | Backspace | — |
-| 🎤 | Start / stop recording | — |
+| 🎤 | Start/stop recording | — |
 | ⏎ | Enter | — |
-| 💬 (tone) | Tone picker | — |
-| ⚙️ | Open Settings app | Quick settings (STT language / refinement / translation / edit mode) |
+| ⚙️ | Open Settings | Quick settings (language / refinement / translation / edit mode) |
 
----
+## Supported Languages
 
-## Settings
+| Language | STT | LLM Refinement | Translation |
+|----------|-----|----------------|-------------|
+| 中文（繁體） | Whisper | Dedicated prompt | Target/source |
+| English | Whisper | Dedicated prompt | Target/source |
+| 日本語 | Whisper | Dedicated prompt | Target/source |
+| Auto-detect | Whisper | Mixed-language prompt | — |
 
-| Setting | Description |
-|---------|-------------|
-| Groq API Key | Required for voice transcription and LLM refinement |
-| STT Model | Whisper model for transcription (default: `whisper-large-v3-turbo`) |
-| LLM Provider | Groq / OpenAI / Anthropic / Custom |
-| LLM Model | Model used for refinement and speak-to-edit |
-| Refinement | Enable/disable LLM text cleanup |
-| Tone Style | Casual / Professional / Email / Note / Social / Custom |
-| Auto Tone | Auto-detect tone by app; custom per-app rules |
-| Translation Mode | Translate output to a different language |
-| Recording Mode | Tap-to-toggle (default) or Hold-to-record |
-| Custom Vocabulary | Words to bias Whisper transcription and LLM output |
+Whisper supports 99 languages for STT. VoxPen currently exposes 3 + auto-detect with dedicated refinement prompts.
 
----
+## Supported Providers
 
-## Languages
+| Provider | STT | LLM | Notes |
+|----------|-----|-----|-------|
+| **Groq** | Whisper large-v3-turbo | LLaMA, Qwen, etc. | Free tier available |
+| **OpenAI** | Whisper, GPT-4o transcribe | GPT-4o, etc. | |
+| **Anthropic** | — | Claude | LLM only |
+| **Custom** | Any Whisper-compatible endpoint | Any OpenAI-compatible endpoint | Self-hosted support |
 
-| Language | Code | Notes |
-|----------|------|-------|
-| Auto-detect | — | Let Whisper detect language; best for code-switching |
-| 中文（繁體）| zh | Traditional Chinese; prompt bias for 繁體 |
-| English | en | |
-| 日本語 | ja | |
+## Getting Started
 
----
+### Install from Release
 
-## Free Tier Limits (daily, resets at midnight)
+1. Download the latest APK from [Releases](https://github.com/soanseng/voxpen-android/releases)
+2. Install on your Android device (8.0+)
+3. Follow the onboarding wizard to set up your API key
 
-| Feature | Free | Pro |
-|---------|------|-----|
-| Voice inputs | 30 | Unlimited |
-| LLM refinements | 10 | Unlimited |
-| File transcriptions | 2 | Unlimited |
+### Build from Source
 
-Upgrade to Pro via **Settings → Upgrade to Pro**.
+**Prerequisites**: Android Studio Ladybug+ / JDK 17
+
+```bash
+git clone https://github.com/soanseng/voxpen-android.git
+cd voxpen-android
+./gradlew assembleDebug
+```
+
+The debug APK will be at `app/build/outputs/apk/debug/app-debug.apk`.
+
+### Setup
+
+1. Get a free Groq API key at [console.groq.com](https://console.groq.com)
+2. Open VoxPen → enter your API key
+3. Enable VoxPen Voice in **Settings → System → Keyboard**
+4. Switch to VoxPen in any text field and start speaking
+
+## Architecture
+
+```
+┌─────────────┐
+│   IME Layer  │  VoxPenIME (InputMethodService)
+│              │  AudioRecorder, KeyboardView, CandidateView
+├──────────────┤
+│  Domain      │  TranscribeAudioUseCase, RefineTextUseCase, EditTextUseCase
+├──────────────┤
+│  Data        │  SttRepository, LlmRepository, SettingsRepository
+│              │  Retrofit APIs, Room DB, DataStore
+├──────────────┤
+│  DI          │  Hilt modules (AppModule, NetworkModule)
+└──────────────┘
+```
+
+- **Language**: Kotlin
+- **UI**: Jetpack Compose + Material 3
+- **DI**: Hilt
+- **Async**: Coroutines + Flow
+- **Network**: Retrofit + OkHttp
+- **Storage**: DataStore (preferences) + Room (history)
+- **Testing**: JUnit 5 + MockK + Turbine
+
+## Contributing
+
+Contributions are welcome! Here's how:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Make your changes
+4. Run tests: `./gradlew test`
+5. Run lint: `./gradlew ktlintCheck detekt`
+6. Commit with conventional commits (`feat:`, `fix:`, `refactor:`, etc.)
+7. Open a Pull Request
+
+### Development Notes
+
+- The project follows TDD (Test-Driven Development) — write tests first
+- Run `./gradlew test` before submitting PRs
+- IME testing requires a physical device or emulator with keyboard enabled
+- See [CLAUDE.md](CLAUDE.md) for detailed architecture documentation
+
+## License
+
+```
+Copyright 2026 VoxPen Contributors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
+VoxPen is forked from [Dictate Keyboard](https://github.com/DevEmperor/Dictate) by DevEmperor (Apache 2.0). It has been fully rewritten in Kotlin with a new architecture.
+
+## Privacy
+
+VoxPen uses a BYOK model. Your audio is sent directly from your device to the API provider you choose. We never see your data. See the full [Privacy Policy](docs/privacy-policy.md).
