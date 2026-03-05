@@ -111,7 +111,6 @@ fun OnboardingScreenContent(
                 OnboardingStep.GRANT_PERMISSION -> PermissionStep(state, viewModel)
                 OnboardingStep.PRACTICE -> PracticeStep(state, viewModel)
                 OnboardingStep.TIPS -> TipsStep()
-                OnboardingStep.DONE -> DoneStep()
             }
             Spacer(Modifier.height(32.dp))
             NavigationButtons(
@@ -142,7 +141,6 @@ private fun StepProgress(currentStep: OnboardingStep) {
             OnboardingStep.GRANT_PERMISSION -> stringResource(R.string.onboarding_progress_few_more)
             OnboardingStep.PRACTICE -> stringResource(R.string.onboarding_progress_almost)
             OnboardingStep.TIPS -> stringResource(R.string.onboarding_progress_last)
-            OnboardingStep.DONE -> null
         }
     progressText?.let {
         Text(
@@ -403,19 +401,6 @@ private fun PracticeStep(
 }
 
 @Composable
-private fun DoneStep() {
-    Text(
-        stringResource(R.string.onboarding_done_title),
-        style = MaterialTheme.typography.headlineMedium,
-    )
-    Spacer(Modifier.height(16.dp))
-    Text(
-        stringResource(R.string.onboarding_done_description),
-        style = MaterialTheme.typography.bodyLarge,
-    )
-}
-
-@Composable
 private fun TipsStep() {
     Text(
         stringResource(R.string.onboarding_tips_title),
@@ -437,6 +422,12 @@ private fun TipsStep() {
             modifier = Modifier.padding(vertical = 6.dp),
         )
     }
+    Spacer(Modifier.height(16.dp))
+    Text(
+        stringResource(R.string.onboarding_done_description),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
 }
 
 @Composable
@@ -454,7 +445,6 @@ private fun NavigationButtons(
             OnboardingStep.GRANT_PERMISSION -> state.hasMicPermission
             OnboardingStep.PRACTICE -> state.hasPracticed
             OnboardingStep.TIPS -> true
-            OnboardingStep.DONE -> true
         }
 
     Row(
@@ -468,7 +458,7 @@ private fun NavigationButtons(
         } else {
             Spacer(Modifier.width(1.dp))
         }
-        if (state.currentStep == OnboardingStep.DONE) {
+        if (state.currentStep == OnboardingStep.TIPS) {
             Button(onClick = onDone) {
                 Text(stringResource(R.string.onboarding_finish))
             }

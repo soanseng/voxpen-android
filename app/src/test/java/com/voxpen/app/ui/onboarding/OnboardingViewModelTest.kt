@@ -87,9 +87,6 @@ class OnboardingViewModelTest {
 
             viewModel.nextStep() // PRACTICE -> TIPS
             assertThat(viewModel.uiState.value.currentStep).isEqualTo(OnboardingStep.TIPS)
-
-            viewModel.nextStep() // TIPS -> DONE
-            assertThat(viewModel.uiState.value.currentStep).isEqualTo(OnboardingStep.DONE)
         }
 
     @Test
@@ -162,8 +159,6 @@ class OnboardingViewModelTest {
             .isEqualTo(OnboardingStep.GRANT_PERMISSION.ordinal + 1)
         assertThat(OnboardingStep.TIPS.ordinal)
             .isEqualTo(OnboardingStep.PRACTICE.ordinal + 1)
-        assertThat(OnboardingStep.DONE.ordinal)
-            .isEqualTo(OnboardingStep.TIPS.ordinal + 1)
     }
 
     @Test

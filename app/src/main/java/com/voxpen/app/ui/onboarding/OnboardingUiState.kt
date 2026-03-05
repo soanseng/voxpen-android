@@ -19,5 +19,4 @@ enum class OnboardingStep {
     GRANT_PERMISSION,
     PRACTICE,
     TIPS,
-    DONE,
 }
