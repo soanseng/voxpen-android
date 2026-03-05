@@ -227,7 +227,7 @@
     <string name="tone_email">電子郵件</string>
     <string name="tone_note">筆記</string>
     <string name="tone_social">社群貼文</string>
-    <string name="tone_custom">自訂</string>
+    <string name="tone_custom">使用自訂模式</string>
 
     <!-- Tone quick-select (IME) -->
     <string name="keyboard_tone">語氣</string>
@@ -236,7 +236,7 @@
     <string name="tone_popup_email">\uD83D\uDCE7 電子郵件</string>
     <string name="tone_popup_note">\uD83D\uDCDD 筆記</string>
     <string name="tone_popup_social">\uD83D\uDCF1 社群貼文</string>
-    <string name="tone_popup_custom">⚙ 自訂</string>
+    <string name="tone_popup_custom">⚙ 使用自訂模式</string>
 
     <!-- Auto Tone -->
     <string name="settings_auto_tone_section">自動語氣</string>

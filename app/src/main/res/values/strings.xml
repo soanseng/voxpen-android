@@ -227,7 +227,7 @@
     <string name="tone_email">Email</string>
     <string name="tone_note">Note</string>
     <string name="tone_social">Social</string>
-    <string name="tone_custom">Custom</string>
+    <string name="tone_custom">Custom Mode</string>
 
     <!-- Tone quick-select (IME) -->
     <string name="keyboard_tone">Tone</string>
@@ -236,7 +236,7 @@
     <string name="tone_popup_email">\uD83D\uDCE7 Email</string>
     <string name="tone_popup_note">\uD83D\uDCDD Note</string>
     <string name="tone_popup_social">\uD83D\uDCF1 Social</string>
-    <string name="tone_popup_custom">⚙ Custom</string>
+    <string name="tone_popup_custom">⚙ Custom Mode</string>
 
     <!-- Auto Tone -->
     <string name="settings_auto_tone_section">Auto Tone</string>
