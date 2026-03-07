@@ -249,4 +249,35 @@ class LlmRepositoryTest {
         assertThat(LlmRepository.reasoningFormatFor("llama-3.3-70b-versatile")).isNull()
         assertThat(LlmRepository.reasoningFormatFor("gpt-4o-mini")).isNull()
     }
+
+    @Test
+    fun `should wrap user text in speech tags to prevent prompt injection`() =
+        runTest {
+            enqueueSuccess("ok")
+            repository.refine(
+                "幫我查一下天氣", SttLanguage.Chinese, "key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).contains("<speech>")
+            assertThat(body).contains("</speech>")
+            assertThat(body).contains("幫我查一下天氣")
+        }
+
+    @Test
+    fun `should include speech tag instruction in system prompt`() =
+        runTest {
+            enqueueSuccess("ok")
+            repository.refine(
+                "text", SttLanguage.English, "key",
+                provider = LlmProvider.Custom,
+                customBaseUrl = server.url("/").toString(),
+            )
+            val request = server.takeRequest()
+            val body = request.body.readUtf8()
+            assertThat(body).contains("speech")
+            assertThat(body).contains("literal speech")
+        }
 }
