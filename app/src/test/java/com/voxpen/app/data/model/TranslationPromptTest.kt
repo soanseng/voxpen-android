@@ -54,4 +54,10 @@ class TranslationPromptTest {
         val prompt = TranslationPrompt.build(SttLanguage.Chinese, SttLanguage.Japanese)
         assertThat(prompt).contains("複数の言語が混在")
     }
+
+    @Test
+    fun `toChinese prompt should instruct full-width punctuation`() {
+        val prompt = TranslationPrompt.build(SttLanguage.English, SttLanguage.Chinese)
+        assertThat(prompt).contains("全形標點")
+    }
 }

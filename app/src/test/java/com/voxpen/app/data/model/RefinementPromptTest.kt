@@ -217,4 +217,27 @@ class RefinementPromptTest {
         )
         assertThat(prompt).contains("email")
     }
+
+    // --- Full-width punctuation tests ---
+
+    @Test
+    fun `all Chinese prompts should instruct full-width punctuation`() {
+        val chinesePrompts = listOf(
+            RefinementPrompt.forLanguage(SttLanguage.Chinese),
+            RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Casual),
+            RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Professional),
+            RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Email),
+            RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Note),
+            RefinementPrompt.forLanguageAndTone(SttLanguage.Chinese, ToneStyle.Social),
+        )
+        chinesePrompts.forEach { prompt ->
+            assertThat(prompt).contains("全形標點")
+        }
+    }
+
+    @Test
+    fun `mixed-language prompt should instruct full-width punctuation for Chinese parts`() {
+        val prompt = RefinementPrompt.forLanguage(SttLanguage.Auto)
+        assertThat(prompt).contains("全形標點")
+    }
 }

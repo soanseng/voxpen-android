@@ -2,6 +2,9 @@ package com.voxpen.app.ime
 
 import android.content.Intent
 import android.inputmethodservice.InputMethodService
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
+import android.media.AudioManager
 import android.os.Build
 import android.view.Gravity
 import android.view.HapticFeedbackConstants
@@ -69,6 +72,10 @@ class VoxPenIME : InputMethodService() {
     @Volatile private var translationTargetLanguage: SttLanguage = PreferencesManager.DEFAULT_TRANSLATION_TARGET_LANGUAGE
     @Volatile private var currentSttLanguage: SttLanguage = SttLanguage.Auto
 
+    // Audio focus for ducking other apps during recording
+    private var audioManager: AudioManager? = null
+    private var audioFocusRequest: AudioFocusRequest? = null
+
     // Mic pulse animation
     private var micPulseAnimator: android.animation.AnimatorSet? = null
 
@@ -106,6 +113,7 @@ class VoxPenIME : InputMethodService() {
             )
 
         audioRecorder = AudioRecorder(this)
+        audioManager = getSystemService(AudioManager::class.java)
         preferencesManager = entryPoint.preferencesManager()
         proStatusResolver = entryPoint.proStatusResolver()
         editTextUseCase = entryPoint.editTextUseCase()
@@ -278,10 +286,12 @@ class VoxPenIME : InputMethodService() {
             candidateProgress?.visibility = View.GONE
             return
         }
+        requestAudioDucking()
         recordingController.onStartRecording { audioRecorder.startRecording() }
     }
 
     private fun stopRecording() {
+        abandonAudioDucking()
         serviceScope.launch {
             val language = preferencesManager.languageFlow.first()
             recordingController.onStopRecording(
@@ -291,6 +301,27 @@ class VoxPenIME : InputMethodService() {
                 toneOverride = effectiveTone,
             )
         }
+    }
+
+    private fun requestAudioDucking() {
+        val request = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_MAY_DUCK)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .build(),
+            )
+            .build()
+        audioFocusRequest = request
+        val result = audioManager?.requestAudioFocus(request)
+        if (result != AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+            Timber.w("Audio focus request not granted: %d", result)
+        }
+    }
+
+    private fun abandonAudioDucking() {
+        audioFocusRequest?.let { audioManager?.abandonAudioFocusRequest(it) }
+        audioFocusRequest = null
     }
 
     private fun observeUiState() {
@@ -944,6 +975,7 @@ class VoxPenIME : InputMethodService() {
     override fun onDestroy() {
         stopMicPulse()
         timerHandler.removeCallbacks(timerRunnable)
+        abandonAudioDucking()
         audioRecorder.release()
         recordingController.destroy()
         serviceScope.cancel()
