@@ -10,6 +10,7 @@ import com.voxpen.app.data.model.ToneStyle
 import com.voxpen.app.data.repository.DictionaryRepository
 import com.voxpen.app.domain.usecase.RefineTextUseCase
 import com.voxpen.app.domain.usecase.TranscribeAudioUseCase
+import com.voxpen.app.util.AudioSilenceDetector
 import com.voxpen.app.util.VocabularyPromptBuilder
 import com.voxpen.app.data.model.VoiceCommand
 import kotlinx.coroutines.CoroutineDispatcher
@@ -79,6 +80,12 @@ class RecordingController(
         toneOverride: ToneStyle? = null,
     ) {
         val pcmData = stopRecording()
+
+        if (AudioSilenceDetector.isSilent(pcmData)) {
+            _uiState.value = ImeUiState.Idle
+            return
+        }
+
         val apiKey = apiKeyManager.getApiKey(llmProvider)
             ?: apiKeyManager.getGroqApiKey()  // fallback to Groq key for backward compat
 

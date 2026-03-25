@@ -28,6 +28,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import com.voxpen.app.util.AudioSilenceDetectorTest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -59,7 +60,7 @@ class RecordingControllerTest {
     private val customSttBaseUrlFlow = MutableStateFlow("")
     private val translationEnabledFlow = MutableStateFlow(false)
     private val translationTargetLanguageFlow = MutableStateFlow<SttLanguage>(SttLanguage.English)
-    private var fakeRecordedAudio: ByteArray = ByteArray(100) { it.toByte() }
+    private var fakeRecordedAudio: ByteArray = AudioSilenceDetectorTest.generateSineWave(durationMs = 500)
     private var isRecording = false
     private val startRecording: () -> Unit = { isRecording = true }
     private val stopRecording: () -> ByteArray = {
@@ -414,6 +415,44 @@ class RecordingControllerTest {
                         }
                     },
                 )
+            }
+        }
+
+    @Test
+    fun `should return to Idle without calling STT when audio is silent`() =
+        runTest {
+            fakeRecordedAudio = ByteArray(32000) // 1 second of silence (all zeros)
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1) // Recording
+
+                controller.onStopRecording(stopRecording, SttLanguage.Chinese)
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+            }
+
+            coVerify(exactly = 0) {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+            }
+        }
+
+    @Test
+    fun `should return to Idle without calling STT when audio is too short`() =
+        runTest {
+            fakeRecordedAudio = ByteArray(1000) // way too short
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1) // Recording
+
+                controller.onStopRecording(stopRecording, SttLanguage.Auto)
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+            }
+
+            coVerify(exactly = 0) {
+                groqApi.transcribe(any(), any(), any(), any(), any(), any())
             }
         }
 
