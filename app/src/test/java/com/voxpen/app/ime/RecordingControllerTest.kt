@@ -7,8 +7,10 @@ import com.voxpen.app.billing.ProStatus
 import com.voxpen.app.billing.UsageLimiter
 import com.voxpen.app.data.local.ApiKeyManager
 import com.voxpen.app.data.local.PreferencesManager
+import com.voxpen.app.data.local.RecordingStore
 import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.SttLanguage
+import com.voxpen.app.data.model.SttProvider
 import com.voxpen.app.data.model.ToneStyle
 import com.voxpen.app.data.model.VoiceCommand
 import com.voxpen.app.data.remote.ChatChoice
@@ -16,22 +18,25 @@ import com.voxpen.app.data.remote.ChatCompletionApi
 import com.voxpen.app.data.remote.ChatCompletionApiFactory
 import com.voxpen.app.data.remote.ChatCompletionResponse
 import com.voxpen.app.data.remote.ChatMessage
-import com.voxpen.app.data.remote.GroqApi
+import com.voxpen.app.data.remote.SttApi
 import com.voxpen.app.data.remote.SttApiFactory
 import com.voxpen.app.data.remote.WhisperResponse
 import com.voxpen.app.data.repository.DictionaryRepository
 import com.voxpen.app.data.repository.LlmRepository
 import com.voxpen.app.data.repository.SttRepository
+import com.voxpen.app.data.repository.TranscriptionRepository
 import com.voxpen.app.domain.usecase.RefineTextUseCase
 import com.voxpen.app.domain.usecase.TranscribeAudioUseCase
+import com.voxpen.app.util.AudioSilenceDetectorTest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import com.voxpen.app.util.AudioSilenceDetectorTest
+import io.mockk.slot
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -39,13 +44,15 @@ import java.io.IOException
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RecordingControllerTest {
-    private val groqApi: GroqApi = mockk()
+    private val sttApi: SttApi = mockk()
     private val sttApiFactory: SttApiFactory = mockk()
     private val chatCompletionApi: ChatCompletionApi = mockk()
     private val apiFactory: ChatCompletionApiFactory = mockk()
     private val apiKeyManager: ApiKeyManager = mockk()
     private val preferencesManager: PreferencesManager = mockk()
     private val dictionaryRepository: DictionaryRepository = mockk()
+    private val transcriptionRepository: TranscriptionRepository = mockk(relaxed = true)
+    private val recordingStore: RecordingStore = mockk(relaxed = true)
     private val testDispatcher = UnconfinedTestDispatcher()
     private val usageLimiter = UsageLimiter()
     private var proStatus: ProStatus = ProStatus.Free
@@ -53,6 +60,7 @@ class RecordingControllerTest {
 
     private val refinementEnabledFlow = MutableStateFlow(true)
     private val sttModelFlow = MutableStateFlow(PreferencesManager.DEFAULT_STT_MODEL)
+    private val sttProviderFlow = MutableStateFlow<SttProvider>(SttProvider.Groq)
     private val llmModelFlow = MutableStateFlow(PreferencesManager.DEFAULT_LLM_MODEL)
     private val toneStyleFlow = MutableStateFlow<ToneStyle>(ToneStyle.Casual)
     private val llmProviderFlow = MutableStateFlow<LlmProvider>(LlmProvider.Groq)
@@ -72,8 +80,10 @@ class RecordingControllerTest {
     fun setUp() {
         every { apiKeyManager.getGroqApiKey() } returns "test-key"
         every { apiKeyManager.getApiKey(any()) } returns "test-key"
+        every { apiKeyManager.getSttApiKey(any()) } returns "test-key"
         every { preferencesManager.refinementEnabledFlow } returns refinementEnabledFlow
         every { preferencesManager.sttModelFlow } returns sttModelFlow
+        every { preferencesManager.sttProviderFlow } returns sttProviderFlow
         every { preferencesManager.llmModelFlow } returns llmModelFlow
         every { preferencesManager.toneStyleFlow } returns toneStyleFlow
         every { preferencesManager.llmProviderFlow } returns llmProviderFlow
@@ -85,7 +95,8 @@ class RecordingControllerTest {
         coEvery { dictionaryRepository.getWords(any()) } returns listOf("語墨", "Claude")
         every { apiFactory.create(any()) } returns chatCompletionApi
 
-        val sttRepository = SttRepository(groqApi, sttApiFactory)
+        every { sttApiFactory.createForProvider(any()) } returns sttApi
+        val sttRepository = SttRepository(sttApiFactory)
         val llmRepository = LlmRepository(apiFactory)
         val transcribeUseCase = TranscribeAudioUseCase(sttRepository)
         val refineTextUseCase = RefineTextUseCase(llmRepository)
@@ -97,6 +108,8 @@ class RecordingControllerTest {
                 apiKeyManager = apiKeyManager,
                 preferencesManager = preferencesManager,
                 dictionaryRepository = dictionaryRepository,
+                transcriptionRepository = transcriptionRepository,
+                recordingStore = recordingStore,
                 usageLimiter = usageLimiter,
                 proStatusProvider = { proStatus },
                 ioDispatcher = testDispatcher,
@@ -125,7 +138,7 @@ class RecordingControllerTest {
     fun `should transition through Refining to Refined when enabled`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "嗯那個明天開會")
             coEvery {
                 chatCompletionApi.chatCompletion(any(), any())
@@ -148,11 +161,40 @@ class RecordingControllerTest {
         }
 
     @Test
+    fun `should use LLM provider API key for refinement when STT provider differs`() =
+        runTest {
+            sttProviderFlow.value = SttProvider.OpenAI
+            llmProviderFlow.value = LlmProvider.Groq
+            every { apiKeyManager.getSttApiKey(SttProvider.OpenAI) } returns "stt-openai-key"
+            every { apiKeyManager.getApiKey(LlmProvider.Groq) } returns "llm-groq-key"
+            val authSlot = slot<String>()
+            coEvery {
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "raw text")
+            coEvery {
+                chatCompletionApi.chatCompletion(capture(authSlot), any())
+            } returns chatResponse("refined text")
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1)
+
+                controller.onStopRecording(stopRecording, SttLanguage.English)
+                val states = mutableListOf(awaitItem())
+                states.add(awaitItem())
+                assertThat(states.last()).isEqualTo(ImeUiState.Refined("raw text", "refined text"))
+            }
+
+            assertThat(authSlot.captured).isEqualTo("Bearer llm-groq-key")
+        }
+
+    @Test
     fun `should go to Result when refinement disabled`() =
         runTest {
             refinementEnabledFlow.value = false
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "hello world")
 
             controller.uiState.test {
@@ -170,7 +212,7 @@ class RecordingControllerTest {
     fun `should fall back to Result when refinement fails`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "raw text")
             coEvery {
                 chatCompletionApi.chatCompletion(any(), any())
@@ -194,7 +236,7 @@ class RecordingControllerTest {
     fun `should transition to Error on transcription failure`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } throws IOException("API error")
 
             controller.uiState.test {
@@ -203,10 +245,14 @@ class RecordingControllerTest {
                 skipItems(1)
 
                 controller.onStopRecording(stopRecording, SttLanguage.Auto)
-                skipItems(1)
-                val error = awaitItem()
-                assertThat(error).isInstanceOf(ImeUiState.Error::class.java)
-                assertThat((error as ImeUiState.Error).message).contains("API error")
+                advanceUntilIdle()
+                val states = mutableListOf(awaitItem())
+                if (states.last() == ImeUiState.Processing) {
+                    states.add(awaitItem())
+                }
+                val finalState = states.last()
+                assertThat(finalState).isInstanceOf(ImeUiState.Error::class.java)
+                assertThat((finalState as ImeUiState.Error).message).contains("API error")
             }
         }
 
@@ -214,6 +260,7 @@ class RecordingControllerTest {
     fun `should show error when API key not configured`() =
         runTest {
             every { apiKeyManager.getApiKey(any()) } returns null
+            every { apiKeyManager.getSttApiKey(any()) } returns null
             every { apiKeyManager.getGroqApiKey() } returns null
 
             controller.uiState.test {
@@ -225,6 +272,29 @@ class RecordingControllerTest {
                 val state = awaitItem()
                 assertThat(state).isInstanceOf(ImeUiState.Error::class.java)
                 assertThat((state as ImeUiState.Error).message).contains("API key")
+            }
+        }
+
+    @Test
+    fun `should not use Groq key when selected STT provider key is missing`() =
+        runTest {
+            sttProviderFlow.value = SttProvider.OpenAI
+            every { apiKeyManager.getSttApiKey(SttProvider.OpenAI) } returns null
+            every { apiKeyManager.getGroqApiKey() } returns "legacy-groq-key"
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1)
+
+                controller.onStopRecording(stopRecording, SttLanguage.Auto)
+                val state = awaitItem()
+                assertThat(state).isInstanceOf(ImeUiState.Error::class.java)
+                assertThat((state as ImeUiState.Error).message).contains("API key")
+            }
+
+            coVerify(exactly = 0) {
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             }
         }
 
@@ -271,7 +341,7 @@ class RecordingControllerTest {
     fun `should skip refinement when refinement limit reached for Free users`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "hello")
 
             repeat(UsageLimiter.FREE_REFINEMENT_LIMIT) { usageLimiter.incrementRefinement() }
@@ -291,7 +361,7 @@ class RecordingControllerTest {
     fun `should fetch vocabulary and pass to transcription and refinement`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "語末你好")
             coEvery {
                 chatCompletionApi.chatCompletion(any(), any())
@@ -317,7 +387,7 @@ class RecordingControllerTest {
     fun `should emit CommandDetected when transcribed text is a voice command`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "送出")
 
             controller.uiState.test {
@@ -338,7 +408,7 @@ class RecordingControllerTest {
     fun `should emit EditInstruction when editMode is true`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "讓它更正式")
 
             controller.uiState.test {
@@ -360,7 +430,7 @@ class RecordingControllerTest {
             translationEnabledFlow.value = true
             translationTargetLanguageFlow.value = SttLanguage.English
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "你好世界")
             coEvery {
                 chatCompletionApi.chatCompletion(any(), any())
@@ -387,7 +457,7 @@ class RecordingControllerTest {
         runTest {
             toneStyleFlow.value = ToneStyle.Casual
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "let's schedule a meeting")
             coEvery {
                 chatCompletionApi.chatCompletion(any(), any())
@@ -419,7 +489,7 @@ class RecordingControllerTest {
         }
 
     @Test
-    fun `should return to Idle without calling STT when audio is silent`() =
+    fun `should show error without calling STT when audio is silent`() =
         runTest {
             fakeRecordedAudio = ByteArray(32000) // 1 second of silence (all zeros)
 
@@ -429,16 +499,18 @@ class RecordingControllerTest {
                 skipItems(1) // Recording
 
                 controller.onStopRecording(stopRecording, SttLanguage.Chinese)
-                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                val state = awaitItem()
+                assertThat(state).isInstanceOf(ImeUiState.Error::class.java)
+                assertThat((state as ImeUiState.Error).message).contains("too quiet")
             }
 
             coVerify(exactly = 0) {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             }
         }
 
     @Test
-    fun `should return to Idle without calling STT when audio is too short`() =
+    fun `should show error without calling STT when audio is too short`() =
         runTest {
             fakeRecordedAudio = ByteArray(1000) // way too short
 
@@ -448,11 +520,13 @@ class RecordingControllerTest {
                 skipItems(1) // Recording
 
                 controller.onStopRecording(stopRecording, SttLanguage.Auto)
-                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                val state = awaitItem()
+                assertThat(state).isInstanceOf(ImeUiState.Error::class.java)
+                assertThat((state as ImeUiState.Error).message).contains("too short")
             }
 
             coVerify(exactly = 0) {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             }
         }
 

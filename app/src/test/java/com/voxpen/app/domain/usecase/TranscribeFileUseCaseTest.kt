@@ -9,7 +9,7 @@ import com.voxpen.app.data.remote.ChatCompletionApi
 import com.voxpen.app.data.remote.ChatCompletionApiFactory
 import com.voxpen.app.data.remote.ChatCompletionResponse
 import com.voxpen.app.data.remote.ChatMessage
-import com.voxpen.app.data.remote.GroqApi
+import com.voxpen.app.data.remote.SttApi
 import com.voxpen.app.data.remote.SttApiFactory
 import com.voxpen.app.data.remote.WhisperResponse
 import com.voxpen.app.data.repository.LlmRepository
@@ -26,7 +26,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 class TranscribeFileUseCaseTest {
-    private lateinit var groqApi: GroqApi
+    private lateinit var sttApi: SttApi
     private lateinit var sttApiFactory: SttApiFactory
     private lateinit var sttRepository: SttRepository
     private lateinit var transcriptionRepository: TranscriptionRepository
@@ -42,9 +42,10 @@ class TranscribeFileUseCaseTest {
 
     @BeforeEach
     fun setUp() {
-        groqApi = mockk()
+        sttApi = mockk()
         sttApiFactory = mockk()
-        sttRepository = SttRepository(groqApi, sttApiFactory)
+        every { sttApiFactory.createForProvider(any()) } returns sttApi
+        sttRepository = SttRepository(sttApiFactory)
         transcriptionRepository = mockk(relaxed = true)
         chatCompletionApi = mockk()
         apiFactory = mockk()
@@ -60,7 +61,7 @@ class TranscribeFileUseCaseTest {
             val pcmData = ByteArray(1000) { (it % 256).toByte() }
             val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
 
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
                 WhisperResponse(text = "Hello world")
             coEvery { transcriptionRepository.insert(any()) } returns 1L
 
@@ -83,7 +84,7 @@ class TranscribeFileUseCaseTest {
             val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
 
             var callCount = 0
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } answers {
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } answers {
                 callCount++
                 WhisperResponse(text = "Part $callCount")
             }
@@ -110,7 +111,7 @@ class TranscribeFileUseCaseTest {
             val pcmData = ByteArray(100) { (it % 256).toByte() }
             val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
 
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
                 WhisperResponse(text = "Saved text")
             val entitySlot = slot<TranscriptionEntity>()
             coEvery { transcriptionRepository.insert(capture(entitySlot)) } returns 5L
@@ -134,7 +135,7 @@ class TranscribeFileUseCaseTest {
             val pcmData = ByteArray(100) { (it % 256).toByte() }
             val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
 
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } throws
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } throws
                 java.io.IOException("Network error")
 
             val result =
@@ -146,7 +147,7 @@ class TranscribeFileUseCaseTest {
                 )
 
             assertThat(result.isFailure).isTrue()
-            assertThat(result.exceptionOrNull()?.message).isEqualTo("Network error")
+            assertThat(result.exceptionOrNull()?.message).contains("Network error")
         }
 
     @Test
@@ -154,7 +155,7 @@ class TranscribeFileUseCaseTest {
         runTest {
             val rawBytes = ByteArray(100) { it.toByte() }
 
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
                 WhisperResponse(text = "Transcribed")
             coEvery { transcriptionRepository.insert(any()) } returns 1L
 
@@ -175,7 +176,7 @@ class TranscribeFileUseCaseTest {
             val pcmData = ByteArray(500) { (it % 256).toByte() }
             val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
 
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
                 WhisperResponse(text = "text")
             val entitySlot = slot<TranscriptionEntity>()
             coEvery { transcriptionRepository.insert(capture(entitySlot)) } returns 1L
@@ -196,7 +197,7 @@ class TranscribeFileUseCaseTest {
             val pcmData = ByteArray(100) { (it % 256).toByte() }
             val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
 
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
                 WhisperResponse(text = "raw text")
             coEvery { chatCompletionApi.chatCompletion(any(), any()) } returns
                 chatResponse("polished text")
@@ -224,7 +225,7 @@ class TranscribeFileUseCaseTest {
             val pcmData = ByteArray(100) { (it % 256).toByte() }
             val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
 
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
                 WhisperResponse(text = "raw text")
             val entitySlot = slot<TranscriptionEntity>()
             coEvery { transcriptionRepository.insert(capture(entitySlot)) } returns 1L

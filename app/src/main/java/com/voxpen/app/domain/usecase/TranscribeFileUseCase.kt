@@ -4,6 +4,7 @@ import com.voxpen.app.data.local.PreferencesManager
 import com.voxpen.app.data.local.TranscriptionEntity
 import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.SttLanguage
+import com.voxpen.app.data.model.SttProvider
 import com.voxpen.app.data.model.ToneStyle
 import com.voxpen.app.data.repository.SttRepository
 import com.voxpen.app.data.repository.TranscriptionRepository
@@ -27,6 +28,9 @@ class TranscribeFileUseCase
             language: SttLanguage,
             apiKey: String,
             maxChunkBytes: Int = DEFAULT_MAX_CHUNK_BYTES,
+            sttProvider: SttProvider = SttProvider.DEFAULT,
+            sttModel: String = sttProvider.defaultModelId,
+            customSttBaseUrl: String? = null,
             refinementApiKey: String? = null,
             llmModel: String? = null,
             llmProvider: LlmProvider? = null,
@@ -47,7 +51,15 @@ class TranscribeFileUseCase
             var segmentOffsetMs = 0L
 
             for (chunk in chunks) {
-                val result = sttRepository.transcribe(chunk, language, apiKey)
+                val result =
+                    sttRepository.transcribe(
+                        wavBytes = chunk,
+                        language = language,
+                        apiKey = apiKey,
+                        model = sttModel,
+                        provider = sttProvider,
+                        customSttBaseUrl = customSttBaseUrl,
+                    )
                 result.fold(
                     onSuccess = { tr ->
                         transcriptions.add(tr.text)
@@ -99,6 +111,8 @@ class TranscribeFileUseCase
                     language = languageKey,
                     fileSizeBytes = fileBytes.size.toLong(),
                     segmentsJson = segmentsJson,
+                    status = TranscriptionEntity.STATUS_COMPLETED,
+                    provider = sttProvider.key,
                     createdAt = System.currentTimeMillis(),
                 )
             val id = transcriptionRepository.insert(entity)

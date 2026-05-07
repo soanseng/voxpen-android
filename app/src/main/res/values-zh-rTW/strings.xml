@@ -65,6 +65,9 @@
 
     <!-- Custom STT -->
     <string name="settings_custom_stt_url_hint">自訂語音辨識伺服器網址（相容 OpenAI API）</string>
+    <string name="provider_key_required">尚未設定 API 金鑰</string>
+    <string name="recording_error_too_short">錄音太短。請說久一點後再試一次。</string>
+    <string name="recording_error_too_quiet">錄音音量太小。請靠近麥克風後再試一次。</string>
 
     <!-- Transcription Screen -->
     <string name="transcribe_audio">音檔轉逐字稿</string>
@@ -82,6 +85,10 @@
     <string name="transcription_cancel">取消</string>
     <string name="transcription_export_srt">匯出 SRT 字幕</string>
     <string name="transcription_language">語言</string>
+    <string name="transcription_failed">轉錄失敗</string>
+    <string name="transcription_failed_status">轉錄失敗</string>
+    <string name="transcription_retry">重試</string>
+    <string name="transcription_retrying">重試中…</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome_title">歡迎使用語墨</string>

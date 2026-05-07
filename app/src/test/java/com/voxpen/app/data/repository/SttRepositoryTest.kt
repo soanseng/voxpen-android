@@ -2,7 +2,8 @@ package com.voxpen.app.data.repository
 
 import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.model.SttLanguage
-import com.voxpen.app.data.remote.GroqApi
+import com.voxpen.app.data.model.SttProvider
+import com.voxpen.app.data.remote.SttApi
 import com.voxpen.app.data.remote.SttApiFactory
 import com.voxpen.app.data.remote.WhisperResponse
 import com.voxpen.app.data.remote.WhisperSegment
@@ -11,6 +12,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import okhttp3.RequestBody
 import org.junit.jupiter.api.BeforeEach
@@ -18,21 +20,22 @@ import org.junit.jupiter.api.Test
 import java.io.IOException
 
 class SttRepositoryTest {
-    private val groqApi: GroqApi = mockk()
+    private val sttApi: SttApi = mockk()
     private lateinit var sttApiFactory: SttApiFactory
     private lateinit var repository: SttRepository
 
     @BeforeEach
     fun setUp() {
         sttApiFactory = mockk()
-        repository = SttRepository(groqApi, sttApiFactory)
+        every { sttApiFactory.createForProvider(any()) } returns sttApi
+        repository = SttRepository(sttApiFactory)
     }
 
     @Test
     fun `should return transcription text on successful API call`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "你好世界")
 
             val result =
@@ -51,7 +54,7 @@ class SttRepositoryTest {
         runTest {
             val authSlot = slot<String>()
             coEvery {
-                groqApi.transcribe(capture(authSlot), any(), any(), any(), any(), any())
+                sttApi.transcribe(capture(authSlot), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "test")
 
             repository.transcribe(ByteArray(10), SttLanguage.Auto, "my-api-key")
@@ -64,7 +67,7 @@ class SttRepositoryTest {
         runTest {
             val langSlot = slot<RequestBody?>()
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), captureNullable(langSlot), any())
+                sttApi.transcribe(any(), any(), any(), any(), captureNullable(langSlot), any())
             } returns WhisperResponse(text = "test")
 
             repository.transcribe(ByteArray(10), SttLanguage.Auto, "key")
@@ -76,13 +79,13 @@ class SttRepositoryTest {
     fun `should pass language code for specific language`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(text = "test")
 
             repository.transcribe(ByteArray(10), SttLanguage.Chinese, "key")
 
             coVerify {
-                groqApi.transcribe(any(), any(), any(), any(), isNull(inverse = true), any())
+                sttApi.transcribe(any(), any(), any(), any(), isNull(inverse = true), any())
             }
         }
 
@@ -90,7 +93,7 @@ class SttRepositoryTest {
     fun `should return failure on IOException`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } throws IOException("Network error")
 
             val result = repository.transcribe(ByteArray(10), SttLanguage.Auto, "key")
@@ -113,7 +116,7 @@ class SttRepositoryTest {
         runTest {
             val modelSlot = slot<RequestBody>()
             coEvery {
-                groqApi.transcribe(any(), any(), capture(modelSlot), any(), any(), any())
+                sttApi.transcribe(any(), any(), capture(modelSlot), any(), any(), any())
             } returns WhisperResponse(text = "test")
 
             repository.transcribe(
@@ -131,7 +134,7 @@ class SttRepositoryTest {
     @Test
     fun `should use custom API when customSttBaseUrl is provided`() =
         runTest {
-            val customApi: GroqApi = mockk()
+            val customApi: SttApi = mockk()
             every { sttApiFactory.createForCustom("https://my-whisper.example.com/") } returns customApi
             coEvery { customApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
                 WhisperResponse(text = "custom result")
@@ -141,17 +144,18 @@ class SttRepositoryTest {
                     wavBytes = ByteArray(10),
                     language = SttLanguage.Auto,
                     apiKey = "key",
+                    provider = SttProvider.Custom,
                     customSttBaseUrl = "https://my-whisper.example.com/",
                 )
 
             assertThat(result.getOrNull()?.text).isEqualTo("custom result")
-            coVerify(exactly = 0) { groqApi.transcribe(any(), any(), any(), any(), any(), any()) }
+            coVerify(exactly = 0) { sttApi.transcribe(any(), any(), any(), any(), any(), any()) }
         }
 
     @Test
     fun `should use Groq API when customSttBaseUrl is null`() =
         runTest {
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
                 WhisperResponse(text = "groq result")
 
             val result =
@@ -169,7 +173,7 @@ class SttRepositoryTest {
     fun `should return segments from Whisper response`() =
         runTest {
             coEvery {
-                groqApi.transcribe(any(), any(), any(), any(), any(), any())
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
             } returns WhisperResponse(
                 text = "Hello",
                 segments = listOf(
@@ -182,5 +186,53 @@ class SttRepositoryTest {
             assertThat(result.getOrNull()?.segments).hasSize(1)
             assertThat(result.getOrNull()?.segments?.first()?.startMs).isEqualTo(0L)
             assertThat(result.getOrNull()?.segments?.first()?.endMs).isEqualTo(1500L)
+        }
+
+    @Test
+    fun `should route OpenAI through provider factory`() =
+        runTest {
+            val openAiApi: SttApi = mockk()
+            every { sttApiFactory.createForProvider(SttProvider.OpenAI) } returns openAiApi
+            coEvery { openAiApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(text = "openai result")
+
+            val result =
+                repository.transcribe(
+                    wavBytes = ByteArray(10),
+                    language = SttLanguage.Auto,
+                    apiKey = "key",
+                    provider = SttProvider.OpenAI,
+                    model = "whisper-1",
+                )
+
+            assertThat(result.getOrNull()?.text).isEqualTo("openai result")
+            coVerify(exactly = 0) { sttApi.transcribe(any(), any(), any(), any(), any(), any()) }
+        }
+
+    @Test
+    fun `should retry IOException once`() =
+        runTest {
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } throws
+                IOException("temporary") andThen WhisperResponse(text = "retried")
+
+            val result = repository.transcribe(ByteArray(10), SttLanguage.Auto, "key")
+
+            assertThat(result.getOrNull()?.text).isEqualTo("retried")
+            coVerify(exactly = 2) { sttApi.transcribe(any(), any(), any(), any(), any(), any()) }
+        }
+
+    @Test
+    fun `should not retry CancellationException`() =
+        runTest {
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } throws
+                CancellationException("cancelled")
+
+            try {
+                repository.transcribe(ByteArray(10), SttLanguage.Auto, "key")
+            } catch (e: CancellationException) {
+                assertThat(e.message).isEqualTo("cancelled")
+            }
+
+            coVerify(exactly = 1) { sttApi.transcribe(any(), any(), any(), any(), any(), any()) }
         }
 }

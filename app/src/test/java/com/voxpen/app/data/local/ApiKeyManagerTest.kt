@@ -3,6 +3,7 @@ package com.voxpen.app.data.local
 import android.content.SharedPreferences
 import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.model.LlmProvider
+import com.voxpen.app.data.model.SttProvider
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -142,6 +143,29 @@ class ApiKeyManagerTest {
     fun `isKeyConfigured for Groq delegates to legacy key`() {
         every { sharedPreferences.getString("groq_api_key", null) } returns "gsk_key"
         assertThat(manager.isKeyConfigured(LlmProvider.Groq)).isTrue()
+    }
+
+    @Test
+    fun `getSttApiKey for OpenAI uses STT-specific key first`() {
+        every { sharedPreferences.getString("stt_api_key_openai", null) } returns "stt_openai"
+
+        assertThat(manager.getSttApiKey(SttProvider.OpenAI)).isEqualTo("stt_openai")
+    }
+
+    @Test
+    fun `getSttApiKey for OpenAI falls back to LLM provider key`() {
+        every { sharedPreferences.getString("stt_api_key_openai", null) } returns null
+        every { sharedPreferences.getString("api_key_openai", null) } returns "llm_openai"
+
+        assertThat(manager.getSttApiKey(SttProvider.OpenAI)).isEqualTo("llm_openai")
+    }
+
+    @Test
+    fun `setSttApiKey for OpenAI stores STT-specific key`() {
+        manager.setSttApiKey(SttProvider.OpenAI, "sk_new")
+
+        verify { editor.putString("stt_api_key_openai", "sk_new") }
+        verify { editor.apply() }
     }
 
     // --- Custom base URL tests ---

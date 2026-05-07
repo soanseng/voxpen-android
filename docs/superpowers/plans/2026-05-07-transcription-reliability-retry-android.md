@@ -8,6 +8,8 @@
 
 **Tech Stack:** Kotlin, Android IME, Hilt, Coroutines/Flow, Retrofit + OkHttp, Room, DataStore, Jetpack Compose, MockK, Turbine, JUnit 5.
 
+**Review hardening added 2026-05-07:** This plan must implement failed-recording persistence as an atomic user-visible reliability flow, not as a best-effort side effect. Save private audio before inserting the failed history row, clean up audio on successful retry and delete, chunk saved WAVs during retry, route file transcription through the selected STT provider, add Room migration tests, add structured logs without API keys, and hide export/copy actions for failed rows.
+
 ---
 
 ## Problem Mapping
@@ -28,6 +30,73 @@ Android has the same risk surfaces:
 - `TranscribeAudioUseCase` encodes and sends the full live PCM buffer as one WAV.
 - `TranscriptionEntity` has no `status`, `errorMessage`, `audioPath`, or `provider`.
 - `TranscriptionScreen` can display history rows but has no failed-row retry action.
+- File transcription currently still uses the Groq key/path, so OpenAI STT would be first-class for live recording but not for batch transcription unless this plan updates that flow too.
+
+## Reliability Invariants
+
+- Failed live recording rows are only inserted after the WAV has been written successfully. No retry button should appear for a row without a readable private audio file.
+- Saved failed-recording WAVs are deleted after successful retry and when the history row is deleted. Orphaned files are cleaned up on repository startup or by an explicit cleanup helper.
+- Retry uses the same provider, response-format, retry, and chunking behavior as initial transcription. A long recording must not become a single large upload on retry.
+- User-visible errors are localized through string resources or a UI-message mapper. Internal provider detail is preserved in history/logs without exposing API keys.
+- All new provider, persistence, retry, and UI state transitions have tests before implementation.
+
+## Data Flow Diagrams
+
+### Live Recording Success
+
+```text
+AudioRecorder PCM
+  -> RecordingValidator
+  -> TranscribeAudioUseCase
+       -> LiveAudioChunker
+       -> AudioEncoder.pcmToWav(each chunk)
+       -> SttRepository(provider/model/format/retry)
+  -> RecordingController
+       -> command/edit/refine decision
+       -> ImeUiState.Result or ImeUiState.Refined
+```
+
+### Live Recording Failure Saved For Retry
+
+```text
+AudioRecorder PCM
+  -> RecordingValidator.Valid
+  -> TranscribeAudioUseCase
+       -> SttRepository final failure
+  -> RecordingStore.saveLiveRecording(pcm)
+       -> private files/recordings/live-{uuid}.wav
+  -> TranscriptionRepository.insertFailedLive(audioPath, provider, error)
+  -> ImeUiState.Error(readable message)
+  -> History failed row with Retry
+```
+
+### History Retry
+
+```text
+History failed row
+  -> RetryTranscriptionUseCase(id, current provider/model/key)
+  -> TranscriptionRepository.getById(id)
+  -> RecordingStore.read(audioPath)
+  -> AudioChunker.chunkWav(saved wav)
+  -> SttRepository(provider/model/format/retry per chunk)
+  -> TranscriptionRepository.markCompletedAfterRetry(id, text)
+  -> RecordingStore.delete(audioPath)
+  -> History same row becomes completed
+```
+
+### Cleanup
+
+```text
+Delete history row
+  -> TranscriptionRepository.getById(id)
+  -> RecordingStore.delete(audioPath if present)
+  -> TranscriptionDao.deleteById(id)
+
+Orphan cleanup
+  -> RecordingStore.listRecordingPaths()
+  -> TranscriptionDao.getAllOnce().mapNotNull(audioPath)
+  -> delete files not referenced by any row
+```
 
 ## File Structure
 
@@ -52,8 +121,11 @@ Android has the same risk surfaces:
 - Modify `app/src/main/java/com/voxpen/app/domain/usecase/TranscribeAudioUseCase.kt`
   - Chunk live PCM, encode each chunk, transcribe sequentially, and join non-empty texts.
 
+- Modify `app/src/main/java/com/voxpen/app/domain/usecase/TranscribeFileUseCase.kt`
+  - Route batch transcription through selected `SttProvider`, selected STT model, and custom STT base URL.
+
 - Create `app/src/main/java/com/voxpen/app/data/local/RecordingStore.kt`
-  - Save/read/delete failed live WAV files under private app storage.
+  - Save/read/delete failed live WAV files under private app storage using collision-resistant filenames.
 
 - Modify `app/src/main/java/com/voxpen/app/data/local/TranscriptionEntity.kt`
   - Add `status`, `errorMessage`, `audioPath`, and `provider`.
@@ -62,10 +134,10 @@ Android has the same risk surfaces:
   - Bump Room version to 4 and add `MIGRATION_3_4`.
 
 - Modify `app/src/main/java/com/voxpen/app/data/repository/TranscriptionRepository.kt`
-  - Add failed insert and update-after-retry helpers.
+  - Add atomic failed insert, update-after-retry, delete-with-audio-cleanup, and orphan cleanup helpers.
 
 - Create `app/src/main/java/com/voxpen/app/domain/usecase/RetryTranscriptionUseCase.kt`
-  - Load failed row, read saved WAV, resend with current STT provider, update the same row.
+  - Load failed row, read saved WAV, chunk/resend with current STT provider, update the same row, and delete saved audio on success.
 
 - Modify `app/src/main/java/com/voxpen/app/data/local/PreferencesManager.kt`
   - Persist `stt_provider`.
@@ -87,7 +159,7 @@ Android has the same risk surfaces:
 - Modify `app/src/main/java/com/voxpen/app/ui/transcription/TranscriptionViewModel.kt`
 - Modify `app/src/main/java/com/voxpen/app/ui/transcription/TranscriptionScreen.kt`
 - Modify `app/src/main/java/com/voxpen/app/ui/transcription/TranscriptionEntryPoint.kt`
-  - Display failed rows with full error text and retry button.
+  - Display failed rows with full error text and retry button; hide copy, SRT, and share actions until the row is completed.
 
 - Modify `app/src/main/res/values/strings.xml`
 - Modify `app/src/main/res/values-zh-rTW/strings.xml`
@@ -292,8 +364,11 @@ git commit -m "feat: add STT provider settings"
 - Create: `app/src/main/java/com/voxpen/app/data/remote/SttApi.kt`
 - Modify: `app/src/main/java/com/voxpen/app/data/remote/SttApiFactory.kt`
 - Modify: `app/src/main/java/com/voxpen/app/data/repository/SttRepository.kt`
+- Modify: `app/src/main/java/com/voxpen/app/domain/usecase/TranscribeFileUseCase.kt`
+- Modify: `app/src/main/java/com/voxpen/app/ui/transcription/TranscriptionScreen.kt`
 - Test: `app/src/test/java/com/voxpen/app/data/remote/SttApiFactoryTest.kt`
 - Test: `app/src/test/java/com/voxpen/app/data/repository/SttRepositoryTest.kt`
+- Test: `app/src/test/java/com/voxpen/app/domain/usecase/TranscribeFileUseCaseTest.kt`
 
 - [ ] **Step 1: Add failing factory tests**
 
@@ -473,10 +548,48 @@ Replace `groqApi.transcribe(...)` expectations in `SttRepositoryTest` with `groq
 
 Expected: PASS.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 9: Route file transcription through the same STT provider path**
+
+Update `TranscribeFileUseCase` to accept:
+
+```kotlin
+provider: SttProvider = SttProvider.Groq,
+sttModel: String = provider.defaultModelId,
+customSttBaseUrl: String? = null,
+```
+
+When transcribing each file chunk, call:
+
+```kotlin
+sttRepository.transcribe(
+    wavBytes = chunk,
+    language = language,
+    apiKey = apiKey,
+    provider = provider,
+    model = sttModel,
+    customSttBaseUrl = customSttBaseUrl,
+)
+```
+
+Add a `TranscribeFileUseCaseTest` that selects `SttProvider.OpenAI`, verifies the OpenAI `SttApi` is called, and verifies the Groq API is not called.
+
+- [ ] **Step 10: Wire file transcription UI to selected STT provider**
+
+In `TranscriptionScreenContent`, read:
+
+```kotlin
+val sttProvider = prefsManager.sttProviderFlow.first()
+val sttApiKey = apiKeyManager.getSttApiKey(sttProvider).orEmpty()
+val sttModel = prefsManager.sttModelFlow.first()
+val customSttBaseUrl = prefsManager.customSttBaseUrlFlow.first().ifBlank { null }
+```
+
+Pass those values into `TranscribeFileUseCase`. This keeps live recording, retry, and file transcription on the same provider model.
+
+- [ ] **Step 11: Commit**
 
 ```bash
-git add app/src/main/java/com/voxpen/app/data/remote/SttApi.kt app/src/main/java/com/voxpen/app/data/remote/SttApiFactory.kt app/src/main/java/com/voxpen/app/data/repository/SttRepository.kt app/src/test/java/com/voxpen/app/data/remote/SttApiFactoryTest.kt app/src/test/java/com/voxpen/app/data/repository/SttRepositoryTest.kt
+git add app/src/main/java/com/voxpen/app/data/remote/SttApi.kt app/src/main/java/com/voxpen/app/data/remote/SttApiFactory.kt app/src/main/java/com/voxpen/app/data/repository/SttRepository.kt app/src/main/java/com/voxpen/app/domain/usecase/TranscribeFileUseCase.kt app/src/main/java/com/voxpen/app/ui/transcription/TranscriptionScreen.kt app/src/test/java/com/voxpen/app/data/remote/SttApiFactoryTest.kt app/src/test/java/com/voxpen/app/data/repository/SttRepositoryTest.kt app/src/test/java/com/voxpen/app/domain/usecase/TranscribeFileUseCaseTest.kt
 git commit -m "feat: route STT providers through neutral API"
 ```
 
@@ -550,6 +663,20 @@ fun `should return readable provider error`() =
         assertThat(result.exceptionOrNull()?.message).contains("openai")
         assertThat(result.exceptionOrNull()?.message).contains("connection refused")
     }
+
+@Test
+fun `should not retry coroutine cancellation`() =
+    runTest {
+        val api: SttApi = mockk()
+        every { sttApiFactory.create(SttProvider.Groq) } returns api
+        coEvery { api.transcribe(any(), any(), any(), any(), any(), any()) } throws
+            kotlinx.coroutines.CancellationException("cancelled")
+
+        val result = repository.transcribe(ByteArray(10), SttLanguage.Auto, "key")
+
+        assertThat(result.exceptionOrNull()).isInstanceOf(kotlinx.coroutines.CancellationException::class.java)
+        coVerify(exactly = 1) { api.transcribe(any(), any(), any(), any(), any(), any()) }
+    }
 ```
 
 - [ ] **Step 2: Run tests and verify failure**
@@ -594,7 +721,11 @@ private suspend fun transcribeWithRetry(
         )
         if (result.isSuccess) return result
         val error = result.exceptionOrNull()!!
+        if (error is kotlinx.coroutines.CancellationException) {
+            return Result.failure(error)
+        }
         if (attempt == 0 && isRetryable(error)) {
+            kotlinx.coroutines.delay(retryDelayMillis(error))
             firstFailure = error
         } else {
             return Result.failure(IllegalStateException(formatProviderError(provider, error), error))
@@ -605,6 +736,8 @@ private suspend fun transcribeWithRetry(
 
 private fun isRetryable(error: Throwable): Boolean =
     error is java.net.SocketTimeoutException || error is IOException
+
+private fun retryDelayMillis(error: Throwable): Long = 500L
 
 private fun formatProviderError(
     provider: SttProvider,
@@ -622,7 +755,7 @@ Then have public `transcribe(...)` call `transcribeWithRetry(...)`.
 
 - [ ] **Step 4: Add HTTP status handling**
 
-Catch Retrofit `HttpException` in `transcribeWithRetry` and use status-aware retry:
+Catch Retrofit `HttpException` in `transcribeWithRetry`, preserve provider error detail, and use status-aware retry. If the provider returns `Retry-After` on 429, respect it up to a small cap so the IME does not look frozen:
 
 ```kotlin
 private fun isRetryable(error: Throwable): Boolean {
@@ -630,6 +763,14 @@ private fun isRetryable(error: Throwable): Boolean {
         return error.code() == 408 || error.code() == 429 || error.code() in 500..599
     }
     return error is java.net.SocketTimeoutException || error is IOException
+}
+
+private fun retryDelayMillis(error: Throwable): Long {
+    if (error is retrofit2.HttpException && error.code() == 429) {
+        val seconds = error.response()?.headers()?.get("Retry-After")?.toLongOrNull()
+        if (seconds != null) return (seconds * 1000).coerceAtMost(3_000)
+    }
+    return 500L
 }
 
 private fun formatProviderError(
@@ -644,7 +785,17 @@ private fun formatProviderError(
 }
 ```
 
-- [ ] **Step 5: Run tests**
+- [ ] **Step 5: Add structured logging without secrets**
+
+Add `Timber.w(...)` lines for retryable failures and final failures. Include provider key, model, HTTP status if present, retry attempt, and audio byte size. Never log authorization headers, API keys, prompt text, or full transcript text.
+
+Expected log context:
+
+```kotlin
+Timber.w(error, "STT failed provider=%s model=%s attempt=%d retryable=%s status=%s bytes=%d", ...)
+```
+
+- [ ] **Step 6: Run tests**
 
 ```bash
 ./gradlew testDebugUnitTest --tests com.voxpen.app.data.repository.SttRepositoryTest
@@ -652,7 +803,7 @@ private fun formatProviderError(
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add app/src/main/java/com/voxpen/app/data/repository/SttRepository.kt app/src/test/java/com/voxpen/app/data/repository/SttRepositoryTest.kt
@@ -719,12 +870,19 @@ object LiveAudioChunker {
     fun split(pcmData: ByteArray): List<ByteArray> {
         if (pcmData.isEmpty()) return emptyList()
         val frameAlignedChunkBytes = CHUNK_BYTES - (CHUNK_BYTES % BYTES_PER_SAMPLE)
-        return pcmData.asList()
-            .chunked(frameAlignedChunkBytes)
-            .map { it.toByteArray() }
+        val chunks = mutableListOf<ByteArray>()
+        var offset = 0
+        while (offset < pcmData.size) {
+            val end = minOf(offset + frameAlignedChunkBytes, pcmData.size)
+            chunks += pcmData.copyOfRange(offset, end)
+            offset = end
+        }
+        return chunks
     }
 }
 ```
+
+Do not use `pcmData.asList().chunked(...)`; it boxes every byte and creates avoidable memory pressure for long recordings.
 
 - [ ] **Step 3: Add failing use case test**
 
@@ -797,6 +955,8 @@ git commit -m "fix: chunk live recordings before STT"
 - Test: `app/src/test/java/com/voxpen/app/util/RecordingValidatorTest.kt`
 - Modify: `app/src/main/java/com/voxpen/app/ime/RecordingController.kt`
 - Test: `app/src/test/java/com/voxpen/app/ime/RecordingControllerTest.kt`
+- Modify: `app/src/main/res/values/strings.xml`
+- Modify: `app/src/main/res/values-zh-rTW/strings.xml`
 
 - [ ] **Step 1: Add validator tests**
 
@@ -867,21 +1027,23 @@ assertThat(awaitItem()).isEqualTo(ImeUiState.Error("Recording is too short. Plea
 
 - [ ] **Step 4: Update `RecordingController`**
 
-Replace the `AudioSilenceDetector.isSilent(pcmData)` branch with:
+Replace the `AudioSilenceDetector.isSilent(pcmData)` branch with a validation branch. The exact user-facing text should come from string resources or a small `RecordingValidationMessageMapper`; tests can assert the mapper output while the controller asserts the correct `ImeUiState.Error`:
 
 ```kotlin
 when (RecordingValidator.validate(pcmData)) {
     RecordingValidation.Valid -> Unit
     RecordingValidation.TooShort -> {
-        _uiState.value = ImeUiState.Error("Recording is too short. Please try again.")
+        _uiState.value = ImeUiState.Error(messages.recordingTooShort())
         return
     }
     RecordingValidation.Silent -> {
-        _uiState.value = ImeUiState.Error("Recording is too quiet. Please try again.")
+        _uiState.value = ImeUiState.Error(messages.recordingTooQuiet())
         return
     }
 }
 ```
+
+Add English and Traditional Chinese strings for short and quiet recordings. Do not leave these hardcoded in the controller.
 
 - [ ] **Step 5: Run tests**
 
@@ -894,7 +1056,7 @@ Expected: PASS.
 - [ ] **Step 6: Commit**
 
 ```bash
-git add app/src/main/java/com/voxpen/app/util/RecordingValidator.kt app/src/main/java/com/voxpen/app/ime/RecordingController.kt app/src/test/java/com/voxpen/app/util/RecordingValidatorTest.kt app/src/test/java/com/voxpen/app/ime/RecordingControllerTest.kt
+git add app/src/main/java/com/voxpen/app/util/RecordingValidator.kt app/src/main/java/com/voxpen/app/ime/RecordingController.kt app/src/main/res/values/strings.xml app/src/main/res/values-zh-rTW/strings.xml app/src/test/java/com/voxpen/app/util/RecordingValidatorTest.kt app/src/test/java/com/voxpen/app/ime/RecordingControllerTest.kt
 git commit -m "fix: show visible recording validation errors"
 ```
 
@@ -908,8 +1070,10 @@ git commit -m "fix: show visible recording validation errors"
 - Modify: `app/src/main/java/com/voxpen/app/data/local/TranscriptionEntity.kt`
 - Test: `app/src/test/java/com/voxpen/app/data/local/TranscriptionEntityTest.kt`
 - Modify: `app/src/main/java/com/voxpen/app/data/local/AppDatabase.kt`
+- Test: `app/src/androidTest/java/com/voxpen/app/data/local/AppDatabaseMigrationTest.kt`
 - Modify: `app/src/main/java/com/voxpen/app/di/AppModule.kt`
 - Modify: `app/src/main/java/com/voxpen/app/data/repository/TranscriptionRepository.kt`
+- Test: `app/src/test/java/com/voxpen/app/data/repository/TranscriptionRepositoryTest.kt`
 - Modify: `app/src/main/java/com/voxpen/app/ime/RecordingController.kt`
 - Modify: `app/src/main/java/com/voxpen/app/ime/VoxPenIMEEntryPoint.kt`
 
@@ -979,7 +1143,25 @@ In `AppModule`, add the migration:
 .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
 ```
 
-- [ ] **Step 4: Create `RecordingStore`**
+- [ ] **Step 4: Add migration test**
+
+Create `AppDatabaseMigrationTest` with `MigrationTestHelper` and verify a v3 transcription row survives migration with:
+
+- `status = "completed"`
+- `errorMessage = null`
+- `audioPath = null`
+- `provider = null`
+- existing `segmentsJson` still readable
+
+Run:
+
+```bash
+./gradlew connectedDebugAndroidTest --tests com.voxpen.app.data.local.AppDatabaseMigrationTest
+```
+
+Expected: PASS on emulator/device.
+
+- [ ] **Step 5: Create `RecordingStore`**
 
 ```kotlin
 package com.voxpen.app.data.local
@@ -988,6 +1170,7 @@ import android.content.Context
 import com.voxpen.app.util.AudioEncoder
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.File
+import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -998,11 +1181,10 @@ class RecordingStore
         @ApplicationContext private val context: Context,
     ) {
         fun saveLiveRecording(
-            entryId: Long,
             pcmData: ByteArray,
         ): String {
             val dir = File(context.filesDir, "recordings").apply { mkdirs() }
-            val file = File(dir, "live-$entryId.wav")
+            val file = File(dir, "live-${UUID.randomUUID()}.wav")
             file.writeBytes(AudioEncoder.pcmToWav(pcmData, 16_000, 1, 16))
             return file.absolutePath
         }
@@ -1012,16 +1194,36 @@ class RecordingStore
         fun delete(path: String) {
             File(path).delete()
         }
+
+        fun exists(path: String): Boolean = File(path).exists()
+
+        fun listRecordingPaths(): Set<String> {
+            val dir = File(context.filesDir, "recordings")
+            return dir.listFiles()?.map { it.absolutePath }?.toSet().orEmpty()
+        }
     }
 ```
 
-- [ ] **Step 5: Add repository helpers**
+- [ ] **Step 6: Add repository helpers**
+
+Inject `RecordingStore` into `TranscriptionRepository` so existing delete callers get cleanup automatically:
+
+```kotlin
+@Singleton
+class TranscriptionRepository
+    @Inject
+    constructor(
+        private val dao: TranscriptionDao,
+        private val recordingStore: RecordingStore,
+    )
+```
 
 ```kotlin
 suspend fun insertFailedLive(
     language: SttLanguage,
     provider: SttProvider,
     errorMessage: String,
+    audioPath: String,
 ): Long =
     dao.insert(
         TranscriptionEntity(
@@ -1031,17 +1233,10 @@ suspend fun insertFailedLive(
             createdAt = System.currentTimeMillis(),
             status = TranscriptionEntity.STATUS_FAILED,
             errorMessage = errorMessage,
+            audioPath = audioPath,
             provider = provider.key,
         ),
     )
-
-suspend fun updateAudioPath(
-    id: Long,
-    audioPath: String,
-) {
-    val entity = dao.getById(id) ?: return
-    dao.update(entity.copy(audioPath = audioPath))
-}
 
 suspend fun markCompletedAfterRetry(
     id: Long,
@@ -1059,10 +1254,34 @@ suspend fun markCompletedAfterRetry(
             provider = provider.key,
         ),
     )
+suspend fun deleteById(id: Long) {
+    val entity = dao.getById(id)
+    entity?.audioPath?.let(recordingStore::delete)
+    dao.deleteById(id)
+}
+
+suspend fun cleanupOrphanedRecordings() {
+    val referenced = dao.getAllOnce().mapNotNull { it.audioPath }.toSet()
+    recordingStore.listRecordingPaths()
+        .filterNot { it in referenced }
+        .forEach(recordingStore::delete)
 }
 ```
 
-- [ ] **Step 6: Save failed live recordings in `RecordingController`**
+Add `TranscriptionDao.getAllOnce()`:
+
+```kotlin
+@Query("SELECT * FROM transcriptions")
+suspend fun getAllOnce(): List<TranscriptionEntity>
+```
+
+Add repository tests for:
+
+- failed row is inserted with an existing `audioPath`
+- deleting a failed row deletes its private audio file
+- orphan cleanup deletes unreferenced recordings and keeps referenced recordings
+
+- [ ] **Step 7: Save failed live recordings in `RecordingController`**
 
 Add constructor dependencies:
 
@@ -1076,14 +1295,19 @@ In STT failure branch:
 ```kotlin
 onFailure = { error ->
     val message = error.message ?: "Transcription failed"
-    val id = transcriptionRepository.insertFailedLive(language, sttProvider, message)
-    val audioPath = recordingStore.saveLiveRecording(id, pcmData)
-    transcriptionRepository.updateAudioPath(id, audioPath)
+    val audioPath = runCatching { recordingStore.saveLiveRecording(pcmData) }.getOrNull()
+    if (audioPath != null) {
+        transcriptionRepository.insertFailedLive(language, sttProvider, message, audioPath)
+    } else {
+        Timber.w(error, "STT failed and failed recording could not be saved provider=%s", sttProvider.key)
+    }
     _uiState.value = ImeUiState.Error(message)
 }
 ```
 
-- [ ] **Step 7: Update IME entry point and controller construction**
+This avoids creating a retryable history row without a readable recording file. If the save fails, the user still sees the IME error, and logs carry the failed-save context.
+
+- [ ] **Step 8: Update IME entry point and controller construction**
 
 Add to `VoxPenIMEEntryPoint`:
 
@@ -1095,18 +1319,18 @@ fun recordingStore(): RecordingStore
 
 Pass those dependencies where `RecordingController` is constructed in `VoxPenIME.kt`.
 
-- [ ] **Step 8: Run tests**
+- [ ] **Step 9: Run tests**
 
 ```bash
-./gradlew testDebugUnitTest --tests com.voxpen.app.data.local.TranscriptionEntityTest --tests com.voxpen.app.ime.RecordingControllerTest
+./gradlew testDebugUnitTest --tests com.voxpen.app.data.local.TranscriptionEntityTest --tests com.voxpen.app.data.repository.TranscriptionRepositoryTest --tests com.voxpen.app.ime.RecordingControllerTest
 ```
 
 Expected: PASS.
 
-- [ ] **Step 9: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
-git add app/src/main/java/com/voxpen/app/data/local/RecordingStore.kt app/src/main/java/com/voxpen/app/data/local/TranscriptionEntity.kt app/src/main/java/com/voxpen/app/data/local/AppDatabase.kt app/src/main/java/com/voxpen/app/di/AppModule.kt app/src/main/java/com/voxpen/app/data/repository/TranscriptionRepository.kt app/src/main/java/com/voxpen/app/ime/RecordingController.kt app/src/main/java/com/voxpen/app/ime/VoxPenIMEEntryPoint.kt app/src/test/java/com/voxpen/app/data/local/TranscriptionEntityTest.kt
+git add app/src/main/java/com/voxpen/app/data/local/RecordingStore.kt app/src/main/java/com/voxpen/app/data/local/TranscriptionEntity.kt app/src/main/java/com/voxpen/app/data/local/AppDatabase.kt app/src/main/java/com/voxpen/app/di/AppModule.kt app/src/main/java/com/voxpen/app/data/repository/TranscriptionRepository.kt app/src/main/java/com/voxpen/app/data/local/TranscriptionDao.kt app/src/main/java/com/voxpen/app/ime/RecordingController.kt app/src/main/java/com/voxpen/app/ime/VoxPenIMEEntryPoint.kt app/src/test/java/com/voxpen/app/data/local/TranscriptionEntityTest.kt app/src/test/java/com/voxpen/app/data/repository/TranscriptionRepositoryTest.kt app/src/androidTest/java/com/voxpen/app/data/local/AppDatabaseMigrationTest.kt
 git commit -m "feat: persist failed live recordings"
 ```
 
@@ -1150,6 +1374,22 @@ fun `should retry failed row and update same entity`() =
 
         assertThat(result.getOrNull()?.originalText).isEqualTo("retried text")
     }
+
+@Test
+fun `should retry saved long wav in chunks`() =
+    runTest {
+        val failed = failedEntity(audioPath = "/recordings/live-long.wav")
+        val longWav = makeWavLargerThanOneLiveChunk()
+        coEvery { transcriptionRepository.getById(7) } returns failed
+        every { recordingStore.read("/recordings/live-long.wav") } returns longWav
+        coEvery { sttRepository.transcribe(any(), any(), any(), any(), any(), any(), any()) }
+            .returnsMany(Result.success(TranscriptionResult("first")), Result.success(TranscriptionResult("second")))
+
+        val result = useCase(id = 7, provider = SttProvider.OpenAI, apiKey = "sk", model = "whisper-1")
+
+        assertThat(result.getOrNull()?.originalText).isEqualTo("first second")
+        coVerify(exactly = 2) { sttRepository.transcribe(any(), any(), any(), any(), any(), any(), any()) }
+    }
 ```
 
 - [ ] **Step 2: Implement `RetryTranscriptionUseCase`**
@@ -1175,26 +1415,39 @@ class RetryTranscriptionUseCase
                 ?: return Result.failure(IllegalStateException("Saved recording not found"))
             val language = PreferencesManager.languageFromKey(entity.language)
             val wavBytes = recordingStore.read(audioPath)
-            val result = sttRepository.transcribe(
-                wavBytes = wavBytes,
-                language = language,
-                apiKey = apiKey,
-                provider = provider,
-                model = model,
-                customSttBaseUrl = customSttBaseUrl,
-            )
-            return result.map { tr ->
-                transcriptionRepository.markCompletedAfterRetry(id, tr.text, null, provider)
+            val texts = mutableListOf<String>()
+            val chunks = AudioChunker.chunkWav(wavBytes, maxChunkBytes = LiveAudioChunker.CHUNK_BYTES)
+            for (chunk in chunks) {
+                val chunkResult = sttRepository.transcribe(
+                    wavBytes = chunk,
+                    language = language,
+                    apiKey = apiKey,
+                    provider = provider,
+                    model = model,
+                    customSttBaseUrl = customSttBaseUrl,
+                )
+                chunkResult.fold(
+                    onSuccess = { texts += it.text.trim() },
+                    onFailure = { return Result.failure(it) },
+                )
+            }
+            val text = texts.filter { it.isNotBlank() }.joinToString(" ")
+            transcriptionRepository.markCompletedAfterRetry(id, text, null, provider)
+            recordingStore.delete(audioPath)
+            return Result.success(
                 entity.copy(
-                    originalText = tr.text,
+                    originalText = text,
                     status = TranscriptionEntity.STATUS_COMPLETED,
                     errorMessage = null,
                     provider = provider.key,
-                )
-            }
+                    audioPath = null,
+                ),
+            )
         }
     }
 ```
+
+Use the same provider/model/error path as initial transcription. Do not send the saved WAV as one upload; long retry must be chunked so retry does not repeat the original failure mode.
 
 - [ ] **Step 3: Expose retry use case to history screen**
 
@@ -1233,6 +1486,13 @@ Show retry for failed rows:
 
 ```kotlin
 if (entity.isFailed) {
+    AssistChip(
+        onClick = {},
+        label = { Text(stringResource(R.string.transcription_failed)) },
+        colors = AssistChipDefaults.assistChipColors(
+            labelColor = MaterialTheme.colorScheme.error,
+        ),
+    )
     Text(entity.errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error)
     Button(
         enabled = !retrying && entity.audioPath != null,
@@ -1242,6 +1502,8 @@ if (entity.isFailed) {
     }
 }
 ```
+
+For failed rows, hide copy, SRT, and share actions. A failed row is not transcript content yet; export actions create empty or misleading output.
 
 - [ ] **Step 6: Wire retry from Compose**
 
@@ -1284,6 +1546,7 @@ git commit -m "feat: retry failed transcriptions from history"
 - Modify: `app/src/main/res/values/strings.xml`
 - Modify: `app/src/main/res/values-zh-rTW/strings.xml`
 - Test: `app/src/test/java/com/voxpen/app/ui/settings/SettingsViewModelTest.kt`
+- Test: `app/src/test/java/com/voxpen/app/ui/transcription/TranscriptionScreenTest.kt`
 
 - [ ] **Step 1: Add settings state**
 
@@ -1368,7 +1631,16 @@ models.forEach { model ->
 
 For custom provider, keep the custom STT base URL field and allow free-form model through the existing `sttModel` setter if a model text field is added.
 
-- [ ] **Step 5: Add strings**
+- [ ] **Step 5: Add failed-row UI regression tests**
+
+Add `TranscriptionScreenTest` coverage for failed detail rows:
+
+- failed row shows `transcription_failed`, full `errorMessage`, and retry button
+- retry button is disabled when `audioPath == null`
+- copy, SRT, and share actions are not shown for failed rows
+- completed row still shows copy/SRT/share according to existing rules
+
+- [ ] **Step 6: Add strings**
 
 `values/strings.xml`:
 
@@ -1376,6 +1648,8 @@ For custom provider, keep the custom STT base URL field and allow free-form mode
 <string name="settings_stt_provider_section">Speech-to-text provider</string>
 <string name="transcription_retry">Retry</string>
 <string name="transcription_failed">Failed</string>
+<string name="recording_error_too_short">Recording is too short. Please try again.</string>
+<string name="recording_error_too_quiet">Recording is too quiet. Please try again.</string>
 ```
 
 `values-zh-rTW/strings.xml`:
@@ -1384,20 +1658,22 @@ For custom provider, keep the custom STT base URL field and allow free-form mode
 <string name="settings_stt_provider_section">語音辨識服務</string>
 <string name="transcription_retry">重送</string>
 <string name="transcription_failed">失敗</string>
+<string name="recording_error_too_short">錄音太短，請再試一次。</string>
+<string name="recording_error_too_quiet">錄音太小聲，請再試一次。</string>
 ```
 
-- [ ] **Step 6: Run tests**
+- [ ] **Step 7: Run tests**
 
 ```bash
-./gradlew testDebugUnitTest --tests com.voxpen.app.ui.settings.SettingsViewModelTest
+./gradlew testDebugUnitTest --tests com.voxpen.app.ui.settings.SettingsViewModelTest --tests com.voxpen.app.ui.transcription.TranscriptionScreenTest
 ```
 
 Expected: PASS.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add app/src/main/java/com/voxpen/app/ui/settings/SettingsUiState.kt app/src/main/java/com/voxpen/app/ui/settings/SettingsViewModel.kt app/src/main/java/com/voxpen/app/ui/settings/SettingsScreen.kt app/src/main/java/com/voxpen/app/data/local/ApiKeyManager.kt app/src/main/res/values/strings.xml app/src/main/res/values-zh-rTW/strings.xml app/src/test/java/com/voxpen/app/ui/settings/SettingsViewModelTest.kt
+git add app/src/main/java/com/voxpen/app/ui/settings/SettingsUiState.kt app/src/main/java/com/voxpen/app/ui/settings/SettingsViewModel.kt app/src/main/java/com/voxpen/app/ui/settings/SettingsScreen.kt app/src/main/java/com/voxpen/app/data/local/ApiKeyManager.kt app/src/main/res/values/strings.xml app/src/main/res/values-zh-rTW/strings.xml app/src/test/java/com/voxpen/app/ui/settings/SettingsViewModelTest.kt app/src/test/java/com/voxpen/app/ui/transcription/TranscriptionScreenTest.kt
 git commit -m "feat: add STT provider settings"
 ```
 
@@ -1421,7 +1697,10 @@ Document these shipped Android behaviors:
 - Live recordings are chunked into 60-second PCM chunks.
 - Transient STT failures retry once.
 - Failed live recordings are stored privately and can be retried from history.
+- Saved failed-recording WAVs are deleted after successful retry or row deletion.
 - Short/silent recordings show readable IME errors instead of disappearing.
+- Batch file transcription uses the same selected STT provider as live recording.
+- STT errors are logged with provider/model/status/retry metadata, without API keys or transcript text.
 
 - [ ] **Step 2: Run unit tests**
 
@@ -1446,11 +1725,15 @@ Use a debug build on a device or emulator:
 1. Select Groq STT, record a normal phrase, confirm result appears.
 2. Select OpenAI STT with `whisper-1`, record a normal phrase, confirm result appears.
 3. Select OpenAI STT with `gpt-4o-mini-transcribe`, record a normal phrase, confirm result appears.
-4. Clear the OpenAI key, record with OpenAI selected, confirm the IME shows a complete provider/key error.
-5. Record silence, confirm a readable quiet-recording error appears.
-6. Record a very short tap, confirm a readable short-recording error appears.
-7. Force STT failure with a bad key, open history, confirm a failed row with full error and Retry.
-8. Fix the key, tap Retry, confirm the same row becomes completed.
+4. Select OpenAI STT and transcribe an audio file from the history screen, confirm OpenAI is used instead of Groq.
+5. Clear the OpenAI key, record with OpenAI selected, confirm the IME shows a complete provider/key error.
+6. Record silence, confirm a readable quiet-recording error appears.
+7. Record a very short tap, confirm a readable short-recording error appears.
+8. Force STT failure with a bad key, open history, confirm a failed row with full error and Retry.
+9. Confirm failed detail rows hide Copy, SRT, and Share actions.
+10. Fix the key, tap Retry, confirm the same row becomes completed.
+11. Confirm the saved private WAV is deleted after successful retry.
+12. Delete a failed row, confirm its saved private WAV is deleted.
 
 - [ ] **Step 5: Commit docs**
 
@@ -1461,6 +1744,6 @@ git commit -m "docs: document Android transcription retry support"
 
 ## Self-Review
 
-- Spec coverage: OpenAI first-class STT, response format, retry, chunking, short/silent errors, failed-row persistence, manual retry, settings, and docs each have a task.
+- Spec coverage: OpenAI first-class STT, file transcription provider routing, response format, retry, retry backoff, cancellation handling, live and saved-WAV chunking, short/silent errors, atomic failed-row persistence, audio cleanup, manual retry, failed-row UI, settings, migration tests, observability, QA, and docs each have a task.
 - Placeholder scan: This plan contains concrete files, test names, commands, and code snippets for each behavior.
 - Type consistency: `SttProvider`, `SttApi`, `RecordingStore`, `RecordingValidator`, and `RetryTranscriptionUseCase` names are used consistently across tasks.

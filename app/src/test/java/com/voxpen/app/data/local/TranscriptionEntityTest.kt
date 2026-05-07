@@ -70,4 +70,22 @@ class TranscriptionEntityTest {
 
         assertThat(entity.displayText).isEqualTo("Hello")
     }
+
+    @Test
+    fun `failed entity displays error and exposes failed status`() {
+        val entity =
+            TranscriptionEntity(
+                fileName = "Failed voice recording",
+                originalText = "",
+                language = "en",
+                status = TranscriptionEntity.STATUS_FAILED,
+                errorMessage = "Network failed",
+                audioPath = "/recordings/live.wav",
+                provider = "groq",
+                createdAt = 1000L,
+            )
+
+        assertThat(entity.isFailed).isTrue()
+        assertThat(entity.displayText).isEqualTo("Network failed")
+    }
 }

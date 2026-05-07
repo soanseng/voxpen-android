@@ -5,6 +5,7 @@ import com.voxpen.app.data.local.PreferencesManager
 import com.voxpen.app.data.model.RecordingMode
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.model.LlmProvider
+import com.voxpen.app.data.model.SttProvider
 import com.voxpen.app.data.model.ToneStyle
 
 data class SettingsUiState(
@@ -13,6 +14,7 @@ data class SettingsUiState(
     val language: SttLanguage = SttLanguage.Auto,
     val recordingMode: RecordingMode = RecordingMode.TAP_TO_TOGGLE,
     val refinementEnabled: Boolean = true,
+    val sttProvider: SttProvider = SttProvider.DEFAULT,
     val sttModel: String = PreferencesManager.DEFAULT_STT_MODEL,
     val llmModel: String = PreferencesManager.DEFAULT_LLM_MODEL,
     val toneStyle: ToneStyle = ToneStyle.DEFAULT,
@@ -21,6 +23,7 @@ data class SettingsUiState(
     val customBaseUrl: String = "",
     val customSttBaseUrl: String = "",
     val providerApiKeys: Map<String, Boolean> = emptyMap(),
+    val sttProviderApiKeys: Map<String, Boolean> = emptyMap(),
     val proStatus: ProStatus = ProStatus.Free,
     val remainingVoiceInputs: Int = 0,
     val remainingRefinements: Int = 0,

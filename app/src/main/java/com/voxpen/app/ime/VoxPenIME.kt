@@ -125,9 +125,19 @@ class VoxPenIME : InputMethodService() {
                 apiKeyManager = entryPoint.apiKeyManager(),
                 preferencesManager = preferencesManager,
                 dictionaryRepository = entryPoint.dictionaryRepository(),
+                transcriptionRepository = entryPoint.transcriptionRepository(),
+                recordingStore = entryPoint.recordingStore(),
                 usageLimiter = entryPoint.usageLimiter(),
                 proStatusProvider = { proStatusResolver.proStatus.value },
                 ioDispatcher = Dispatchers.IO,
+                messages =
+                    object : RecordingMessages {
+                        override fun apiKeyNotConfigured(): String = getString(R.string.provider_key_required)
+                        override fun recordingTooShort(): String = getString(R.string.recording_error_too_short)
+                        override fun recordingTooQuiet(): String = getString(R.string.recording_error_too_quiet)
+                        override fun transcriptionFailed(message: String?): String =
+                            message ?: getString(R.string.transcription_failed)
+                    },
             )
 
         actionHandler =

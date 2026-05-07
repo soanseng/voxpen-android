@@ -21,6 +21,9 @@ interface TranscriptionDao {
     @Query("SELECT * FROM transcriptions ORDER BY createdAt DESC")
     fun getAll(): Flow<List<TranscriptionEntity>>
 
+    @Query("SELECT * FROM transcriptions ORDER BY createdAt DESC")
+    suspend fun getAllOnce(): List<TranscriptionEntity>
+
     @Query("SELECT * FROM transcriptions WHERE id = :id")
     suspend fun getById(id: Long): TranscriptionEntity?
 

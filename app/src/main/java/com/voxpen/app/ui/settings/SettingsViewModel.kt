@@ -13,6 +13,7 @@ import com.voxpen.app.data.model.RecordingMode
 import com.voxpen.app.data.model.RefinementPrompt
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.model.LlmProvider
+import com.voxpen.app.data.model.SttProvider
 import com.voxpen.app.data.model.ToneStyle
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -49,6 +50,9 @@ class SettingsViewModel
                     providerApiKeys = LlmProvider.all.associate { p ->
                         p.key to apiKeyManager.isKeyConfigured(p)
                     },
+                    sttProviderApiKeys = SttProvider.all.associate { p ->
+                        p.key to apiKeyManager.isSttKeyConfigured(p)
+                    },
                     customBaseUrl = apiKeyManager.getCustomBaseUrl() ?: "",
                 )
             }
@@ -71,6 +75,11 @@ class SettingsViewModel
             viewModelScope.launch {
                 preferencesManager.sttModelFlow.collect { model ->
                     _uiState.update { it.copy(sttModel = model) }
+                }
+            }
+            viewModelScope.launch {
+                preferencesManager.sttProviderFlow.collect { provider ->
+                    _uiState.update { it.copy(sttProvider = provider) }
                 }
             }
             viewModelScope.launch {
@@ -151,6 +160,13 @@ class SettingsViewModel
             viewModelScope.launch { preferencesManager.setSttModel(model) }
         }
 
+        fun setSttProvider(provider: SttProvider) {
+            viewModelScope.launch {
+                preferencesManager.setSttProvider(provider)
+                preferencesManager.setSttModel(provider.defaultModelId)
+            }
+        }
+
         fun setLlmModel(model: String) {
             viewModelScope.launch { preferencesManager.setLlmModel(model) }
         }
@@ -173,6 +189,17 @@ class SettingsViewModel
                     providerApiKeys = it.providerApiKeys + (provider.key to key.isNotBlank()),
                     isApiKeyConfigured = if (provider == LlmProvider.Groq) key.isNotBlank() else it.isApiKeyConfigured,
                     apiKeyDisplay = if (provider == LlmProvider.Groq) maskApiKey(key) else it.apiKeyDisplay,
+                )
+            }
+        }
+
+        fun saveSttProviderApiKey(provider: SttProvider, key: String) {
+            apiKeyManager.setSttApiKey(provider, key)
+            _uiState.update {
+                it.copy(
+                    sttProviderApiKeys = it.sttProviderApiKeys + (provider.key to key.isNotBlank()),
+                    isApiKeyConfigured = if (provider == SttProvider.Groq) key.isNotBlank() else it.isApiKeyConfigured,
+                    apiKeyDisplay = if (provider == SttProvider.Groq) maskApiKey(key) else it.apiKeyDisplay,
                 )
             }
         }

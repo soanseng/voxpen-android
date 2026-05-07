@@ -25,6 +25,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
@@ -59,6 +60,7 @@ import com.voxpen.app.data.local.PreferencesManager
 import com.voxpen.app.data.local.TranscriptionEntity
 import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.SttLanguage
+import com.voxpen.app.data.model.SttProvider
 import com.voxpen.app.util.ExportHelper
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.Dispatchers
@@ -109,25 +111,35 @@ fun TranscriptionScreenContent(
                     val prefsManager = entryPoint.preferencesManager()
                     val dictRepo = entryPoint.dictionaryRepository()
 
-                    val groqKey = apiKeyManager.getGroqApiKey() ?: ""
+                    val sttProvider = prefsManager.sttProviderFlow.first()
+                    val sttApiKey = apiKeyManager.getSttApiKey(sttProvider).orEmpty()
+                    val sttModel = prefsManager.sttModelFlow.first().ifBlank { sttProvider.defaultModelId }
+                    val customSttBaseUrl =
+                        if (sttProvider == SttProvider.Custom) {
+                            prefsManager.customSttBaseUrlFlow.first().ifBlank { null }
+                        } else {
+                            null
+                        }
                     val llmProvider = prefsManager.llmProviderFlow.first()
-                    val llmApiKey = apiKeyManager.getApiKey(llmProvider) ?: groqKey
-                    val llmModel = if (llmProvider == LlmProvider.Custom) {
-                        prefsManager.customLlmModelFlow.first().ifBlank { prefsManager.llmModelFlow.first() }
-                    } else {
-                        prefsManager.llmModelFlow.first()
-                    }
+                    val llmApiKey = apiKeyManager.getApiKey(llmProvider) ?: apiKeyManager.getGroqApiKey()
+                    val llmModel =
+                        if (llmProvider == LlmProvider.Custom) {
+                            prefsManager.customLlmModelFlow.first().ifBlank { prefsManager.llmModelFlow.first() }
+                        } else {
+                            prefsManager.llmModelFlow.first()
+                        }
                     val refinementEnabled = prefsManager.refinementEnabledFlow.first()
                     val tone = prefsManager.toneStyleFlow.first()
                     val vocabulary = dictRepo.getWords(500)
                     val language = state.selectedLanguage
                     val langKey = PreferencesManager.languageToKey(language)
                     val customPrompt = prefsManager.customPromptFlow(langKey).first()
-                    val customLlmBaseUrl = if (llmProvider == LlmProvider.Custom) {
-                        apiKeyManager.getCustomBaseUrl()
-                    } else {
-                        null
-                    }
+                    val customLlmBaseUrl =
+                        if (llmProvider == LlmProvider.Custom) {
+                            apiKeyManager.getCustomBaseUrl()
+                        } else {
+                            null
+                        }
 
                     var entity: TranscriptionEntity? = null
                     var errorMsg: String? = null
@@ -137,7 +149,10 @@ fun TranscriptionScreenContent(
                                 fileBytes = fileBytes,
                                 fileName = fileName,
                                 language = language,
-                                apiKey = groqKey,
+                                apiKey = sttApiKey,
+                                sttProvider = sttProvider,
+                                sttModel = sttModel,
+                                customSttBaseUrl = customSttBaseUrl,
                                 refinementApiKey = if (refinementEnabled) llmApiKey else null,
                                 llmModel = llmModel,
                                 llmProvider = llmProvider,
@@ -189,9 +204,13 @@ fun TranscriptionScreenContent(
         TranscriptionDetailScreen(
             entity = state.selectedTranscription!!,
             isPro = state.proStatus.isPro,
+            isRetrying = state.retryingId == state.selectedTranscription!!.id,
             onBack = { viewModel.clearSelection() },
             onDelete = { id ->
                 viewModel.deleteTranscription(id)
+            },
+            onRetry = { id ->
+                viewModel.retryTranscription(id)
             },
         )
     } else {
@@ -234,12 +253,13 @@ fun TranscriptionScreenContent(
                         .padding(horizontal = 16.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    val languages = listOf(
-                        SttLanguage.Auto to R.string.lang_auto,
-                        SttLanguage.Chinese to R.string.lang_zh,
-                        SttLanguage.English to R.string.lang_en,
-                        SttLanguage.Japanese to R.string.lang_ja,
-                    )
+                    val languages =
+                        listOf(
+                            SttLanguage.Auto to R.string.lang_auto,
+                            SttLanguage.Chinese to R.string.lang_zh,
+                            SttLanguage.English to R.string.lang_en,
+                            SttLanguage.Japanese to R.string.lang_ja,
+                        )
                     languages.forEach { (lang, labelRes) ->
                         FilterChip(
                             selected = state.selectedLanguage == lang,
@@ -346,7 +366,11 @@ private fun TranscriptionItem(
         Text(entity.fileName, style = MaterialTheme.typography.titleSmall)
         Spacer(Modifier.height(4.dp))
         Text(
-            entity.displayText,
+            if (entity.isFailed) {
+                stringResource(R.string.transcription_failed_status)
+            } else {
+                entity.displayText
+            },
             style = MaterialTheme.typography.bodyMedium,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -366,11 +390,14 @@ private fun TranscriptionItem(
 private fun TranscriptionDetailScreen(
     entity: TranscriptionEntity,
     isPro: Boolean,
+    isRetrying: Boolean,
     onBack: () -> Unit,
     onDelete: (Long) -> Unit,
+    onRetry: (Long) -> Unit,
 ) {
     val context = LocalContext.current
     var showDeleteDialog by remember { mutableStateOf(false) }
+    val completed = !entity.isFailed
 
     if (showDeleteDialog) {
         AlertDialog(
@@ -403,26 +430,29 @@ private fun TranscriptionDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { copyToClipboard(context, entity) }) {
-                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
-                    }
-                    TextButton(onClick = {
-                        val srtText = ExportHelper.toSrt(entity)
-                        val intent = Intent(Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(Intent.EXTRA_TEXT, srtText)
-                            putExtra(
-                                Intent.EXTRA_SUBJECT,
-                                entity.fileName.substringBeforeLast('.') + ".srt",
-                            )
+                    if (completed) {
+                        IconButton(onClick = { copyToClipboard(context, entity) }) {
+                            Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
                         }
-                        context.startActivity(Intent.createChooser(intent, null))
-                    }) {
-                        Text("SRT", style = MaterialTheme.typography.labelMedium)
-                    }
-                    if (isPro) {
-                        IconButton(onClick = { shareTranscription(context, entity) }) {
-                            Icon(Icons.Default.Share, contentDescription = "Share")
+                        TextButton(onClick = {
+                            val srtText = ExportHelper.toSrt(entity)
+                            val intent =
+                                Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    putExtra(Intent.EXTRA_TEXT, srtText)
+                                    putExtra(
+                                        Intent.EXTRA_SUBJECT,
+                                        entity.fileName.substringBeforeLast('.') + ".srt",
+                                    )
+                                }
+                            context.startActivity(Intent.createChooser(intent, null))
+                        }) {
+                            Text("SRT", style = MaterialTheme.typography.labelMedium)
+                        }
+                        if (isPro) {
+                            IconButton(onClick = { shareTranscription(context, entity) }) {
+                                Icon(Icons.Default.Share, contentDescription = "Share")
+                            }
                         }
                     }
                     IconButton(onClick = { showDeleteDialog = true }) {
@@ -438,7 +468,34 @@ private fun TranscriptionDetailScreen(
                 .padding(innerPadding)
                 .padding(16.dp),
         ) {
-            if (entity.refinedText != null) {
+            if (entity.isFailed) {
+                Text(
+                    stringResource(R.string.transcription_failed_status),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    entity.errorMessage ?: stringResource(R.string.transcription_failed),
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                Spacer(Modifier.height(16.dp))
+                TextButton(
+                    enabled = entity.audioPath != null && !isRetrying,
+                    onClick = { onRetry(entity.id) },
+                ) {
+                    Icon(Icons.Default.Refresh, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        if (isRetrying) {
+                            stringResource(R.string.transcription_retrying)
+                        } else {
+                            stringResource(R.string.transcription_retry)
+                        },
+                    )
+                }
+            } else if (entity.refinedText != null) {
                 Text(
                     stringResource(R.string.transcription_refined),
                     style = MaterialTheme.typography.labelLarge,

@@ -62,6 +62,7 @@ import com.voxpen.app.billing.ProStatus
 import com.voxpen.app.data.model.RecordingMode
 import com.voxpen.app.data.model.SttLanguage
 import com.voxpen.app.data.model.LlmProvider
+import com.voxpen.app.data.model.SttProvider
 import com.voxpen.app.data.model.ToneStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -509,35 +510,89 @@ private fun PermissionSection(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SttModelSection(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
 ) {
     SectionHeader(stringResource(R.string.settings_stt_model_section))
-    RadioRow(
-        stringResource(R.string.settings_stt_model_turbo),
-        state.sttModel == "whisper-large-v3-turbo",
-    ) { viewModel.setSttModel("whisper-large-v3-turbo") }
-    RadioRow(
-        stringResource(R.string.settings_stt_model_v3),
-        state.sttModel == "whisper-large-v3",
-    ) { viewModel.setSttModel("whisper-large-v3") }
-    Text(
-        stringResource(R.string.settings_stt_model_description),
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 4.dp),
-    )
+
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        SttProvider.all.forEach { provider ->
+            FilterChip(
+                selected = provider == state.sttProvider,
+                onClick = { viewModel.setSttProvider(provider) },
+                label = { Text(sttProviderDisplayName(provider)) },
+            )
+        }
+    }
+
     Spacer(Modifier.height(8.dp))
+    SttProviderApiKeyField(state, viewModel)
+    Spacer(Modifier.height(8.dp))
+
+    if (state.sttProvider == SttProvider.Custom) {
+        OutlinedTextField(
+            value = state.customSttBaseUrl,
+            onValueChange = { viewModel.setCustomSttBaseUrl(it) },
+            label = { Text(stringResource(R.string.settings_custom_stt_url_hint)) },
+            placeholder = { Text("https://api.example.com/") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = state.sttModel,
+            onValueChange = { viewModel.setSttModel(it) },
+            label = { Text(stringResource(R.string.provider_custom_model)) },
+            placeholder = { Text("whisper-1") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    } else {
+        state.sttProvider.models.forEach { model ->
+            RadioRow(model.label, state.sttModel == model.id) {
+                viewModel.setSttModel(model.id)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SttProviderApiKeyField(
+    state: SettingsUiState,
+    viewModel: SettingsViewModel,
+) {
+    var keyInput by remember { mutableStateOf("") }
+    val isConfigured = state.sttProviderApiKeys[state.sttProvider.key] == true
+    if (isConfigured) {
+        Text(
+            stringResource(R.string.provider_key_configured),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+        )
+    }
     OutlinedTextField(
-        value = state.customSttBaseUrl,
-        onValueChange = { viewModel.setCustomSttBaseUrl(it) },
-        label = { Text(stringResource(R.string.settings_custom_stt_url_hint)) },
-        placeholder = { Text("https://api.example.com/") },
+        value = keyInput,
+        onValueChange = { keyInput = it },
+        label = { Text(stringResource(R.string.provider_api_key_hint, sttProviderDisplayName(state.sttProvider))) },
+        visualTransformation = PasswordVisualTransformation(),
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
     )
+    Button(
+        onClick = {
+            if (keyInput.isNotBlank()) {
+                viewModel.saveSttProviderApiKey(state.sttProvider, keyInput)
+                keyInput = ""
+            }
+        },
+        modifier = Modifier.padding(top = 4.dp),
+    ) { Text(stringResource(R.string.settings_save)) }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -670,6 +725,13 @@ private fun providerDisplayName(provider: LlmProvider): String =
         LlmProvider.OpenAI -> "OpenAI"
         LlmProvider.OpenRouter -> "OpenRouter"
         LlmProvider.Custom -> "Custom"
+    }
+
+private fun sttProviderDisplayName(provider: SttProvider): String =
+    when (provider) {
+        SttProvider.Groq -> "Groq"
+        SttProvider.OpenAI -> "OpenAI"
+        SttProvider.Custom -> "Custom"
     }
 
 @Composable

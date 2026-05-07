@@ -15,4 +15,5 @@ data class TranscriptionUiState(
     val remainingFileTranscriptions: Int = 0,
     val showUpgradePrompt: Boolean = false,
     val selectedLanguage: SttLanguage = SttLanguage.Auto,
+    val retryingId: Long? = null,
 )

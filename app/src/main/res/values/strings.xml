@@ -65,6 +65,9 @@
 
     <!-- Custom STT -->
     <string name="settings_custom_stt_url_hint">Custom STT Base URL (OpenAI-compatible)</string>
+    <string name="provider_key_required">API key not configured</string>
+    <string name="recording_error_too_short">Recording was too short. Try speaking for a little longer.</string>
+    <string name="recording_error_too_quiet">Recording was too quiet. Try speaking closer to the microphone.</string>
 
     <!-- Transcription Screen -->
     <string name="transcribe_audio">Transcribe Audio File</string>
@@ -82,6 +85,10 @@
     <string name="transcription_cancel">Cancel</string>
     <string name="transcription_export_srt">Export SRT</string>
     <string name="transcription_language">Language</string>
+    <string name="transcription_failed">Transcription failed</string>
+    <string name="transcription_failed_status">Failed transcription</string>
+    <string name="transcription_retry">Retry</string>
+    <string name="transcription_retrying">Retrying…</string>
 
     <!-- Onboarding -->
     <string name="onboarding_welcome_title">Welcome to VoxPen</string>

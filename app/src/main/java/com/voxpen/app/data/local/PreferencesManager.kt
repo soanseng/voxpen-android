@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.RecordingMode
 import com.voxpen.app.data.model.SttLanguage
+import com.voxpen.app.data.model.SttProvider
 import com.voxpen.app.data.model.ToneStyle
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -41,6 +42,16 @@ class PreferencesManager
         val sttModelFlow: Flow<String> =
             dataStore.data.map { prefs ->
                 prefs[STT_MODEL_KEY] ?: DEFAULT_STT_MODEL
+            }
+
+        val sttProviderFlow: Flow<SttProvider> =
+            dataStore.data.map { prefs ->
+                val providerKey = prefs[STT_PROVIDER_KEY]
+                if (providerKey == null && !prefs[CUSTOM_STT_BASE_URL_KEY].isNullOrBlank()) {
+                    SttProvider.Custom
+                } else {
+                    SttProvider.fromKey(providerKey)
+                }
             }
 
         val llmModelFlow: Flow<String> =
@@ -128,6 +139,12 @@ class PreferencesManager
             }
         }
 
+        suspend fun setSttProvider(provider: SttProvider) {
+            dataStore.edit { prefs ->
+                prefs[STT_PROVIDER_KEY] = provider.key
+            }
+        }
+
         suspend fun setLlmModel(model: String) {
             dataStore.edit { prefs ->
                 prefs[LLM_MODEL_KEY] = model
@@ -188,7 +205,10 @@ class PreferencesManager
             }
         }
 
-        suspend fun setCustomAppToneRule(packageName: String, tone: ToneStyle) {
+        suspend fun setCustomAppToneRule(
+            packageName: String,
+            tone: ToneStyle,
+        ) {
             dataStore.edit { prefs ->
                 val existing = prefs[CUSTOM_APP_TONE_RULES_KEY]
                 val raw: MutableMap<String, String> =
@@ -255,6 +275,7 @@ class PreferencesManager
             private val ONBOARDING_COMPLETED_KEY = booleanPreferencesKey("onboarding_completed")
             private val KEYBOARD_TOOLTIPS_SHOWN_KEY = booleanPreferencesKey("keyboard_tooltips_shown")
             private val STT_MODEL_KEY = stringPreferencesKey("stt_model")
+            private val STT_PROVIDER_KEY = stringPreferencesKey("stt_provider")
             private val LLM_MODEL_KEY = stringPreferencesKey("llm_model")
             private val TONE_STYLE_KEY = stringPreferencesKey("tone_style")
             private val LLM_PROVIDER_KEY = stringPreferencesKey("llm_provider")

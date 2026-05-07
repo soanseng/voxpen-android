@@ -4,15 +4,17 @@ import com.voxpen.app.billing.ProStatus
 import com.voxpen.app.billing.UsageLimiter
 import com.voxpen.app.data.local.ApiKeyManager
 import com.voxpen.app.data.local.PreferencesManager
+import com.voxpen.app.data.local.RecordingStore
 import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.SttLanguage
+import com.voxpen.app.data.model.SttProvider
 import com.voxpen.app.data.model.ToneStyle
 import com.voxpen.app.data.repository.DictionaryRepository
+import com.voxpen.app.data.repository.TranscriptionRepository
 import com.voxpen.app.domain.usecase.RefineTextUseCase
 import com.voxpen.app.domain.usecase.TranscribeAudioUseCase
-import com.voxpen.app.util.AudioSilenceDetector
+import com.voxpen.app.util.RecordingValidator
 import com.voxpen.app.util.VocabularyPromptBuilder
-import com.voxpen.app.data.model.VoiceCommand
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
@@ -22,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 class RecordingController(
     private val transcribeUseCase: TranscribeAudioUseCase,
@@ -29,13 +32,17 @@ class RecordingController(
     private val apiKeyManager: ApiKeyManager,
     private val preferencesManager: PreferencesManager,
     private val dictionaryRepository: DictionaryRepository,
+    private val transcriptionRepository: TranscriptionRepository,
+    private val recordingStore: RecordingStore,
     private val usageLimiter: UsageLimiter,
     private val proStatusProvider: () -> ProStatus,
     private val ioDispatcher: CoroutineDispatcher,
+    private val messages: RecordingMessages = RecordingMessages.English,
 ) {
     private val scope = CoroutineScope(SupervisorJob() + ioDispatcher)
     private var refinementEnabled: Boolean = PreferencesManager.DEFAULT_REFINEMENT_ENABLED
     private var sttModel: String = PreferencesManager.DEFAULT_STT_MODEL
+    private var sttProvider: SttProvider = SttProvider.DEFAULT
     private var llmModel: String = PreferencesManager.DEFAULT_LLM_MODEL
     private var toneStyle: ToneStyle = ToneStyle.DEFAULT
     private var llmProvider: LlmProvider = LlmProvider.DEFAULT
@@ -49,6 +56,7 @@ class RecordingController(
             preferencesManager.refinementEnabledFlow.collect { refinementEnabled = it }
         }
         scope.launch { preferencesManager.sttModelFlow.collect { sttModel = it } }
+        scope.launch { preferencesManager.sttProviderFlow.collect { sttProvider = it } }
         scope.launch { preferencesManager.llmModelFlow.collect { llmModel = it } }
         scope.launch { preferencesManager.toneStyleFlow.collect { toneStyle = it } }
         scope.launch { preferencesManager.llmProviderFlow.collect { llmProvider = it } }
@@ -81,16 +89,23 @@ class RecordingController(
     ) {
         val pcmData = stopRecording()
 
-        if (AudioSilenceDetector.isSilent(pcmData)) {
-            _uiState.value = ImeUiState.Idle
-            return
+        when (RecordingValidator.validate(pcmData)) {
+            RecordingValidator.Result.TooShort -> {
+                _uiState.value = ImeUiState.Error(messages.recordingTooShort())
+                return
+            }
+            RecordingValidator.Result.Silent -> {
+                _uiState.value = ImeUiState.Error(messages.recordingTooQuiet())
+                return
+            }
+            RecordingValidator.Result.Valid -> Unit
         }
 
-        val apiKey = apiKeyManager.getApiKey(llmProvider)
-            ?: apiKeyManager.getGroqApiKey()  // fallback to Groq key for backward compat
+        val currentSttProvider = sttProvider
+        val apiKey = apiKeyManager.getSttApiKey(currentSttProvider)
 
         if (apiKey.isNullOrBlank()) {
-            _uiState.value = ImeUiState.Error("API key not configured")
+            _uiState.value = ImeUiState.Error(messages.apiKeyNotConfigured())
             return
         }
 
@@ -107,7 +122,16 @@ class RecordingController(
                     null
                 }
             val sttBaseUrl = customSttBaseUrl.ifBlank { null }
-            val result = transcribeUseCase(pcmData, language, apiKey, sttModel, vocabularyHint = whisperPrompt, customSttBaseUrl = sttBaseUrl)
+            val result =
+                transcribeUseCase(
+                    pcmData = pcmData,
+                    language = language,
+                    apiKey = apiKey,
+                    model = sttModel,
+                    vocabularyHint = whisperPrompt,
+                    provider = currentSttProvider,
+                    customSttBaseUrl = sttBaseUrl,
+                )
             result.fold(
                 onSuccess = { originalText ->
                     if (!proStatus.isPro) {
@@ -139,21 +163,33 @@ class RecordingController(
                     val allVocabulary = dictionaryRepository.getWords(500)
                     val langKey = PreferencesManager.languageToKey(language)
                     val customPrompt = preferencesManager.customPromptFlow(langKey).first()
-                    val resolvedModel = if (llmProvider == LlmProvider.Custom) {
-                        customLlmModel.ifBlank { llmModel }
-                    } else {
-                        llmModel
-                    }
-                    val customBaseUrl = if (llmProvider == LlmProvider.Custom) {
-                        apiKeyManager.getCustomBaseUrl()
-                    } else {
-                        null
-                    }
-                    val refinedResult = refineTextUseCase(
-                        originalText, language, apiKey, resolvedModel, allVocabulary,
-                        customPrompt, effectiveTone, llmProvider, customBaseUrl,
-                        translationEnabled, translationTargetLanguage,
-                    )
+                    val resolvedModel =
+                        if (llmProvider == LlmProvider.Custom) {
+                            customLlmModel.ifBlank { llmModel }
+                        } else {
+                            llmModel
+                        }
+                    val customBaseUrl =
+                        if (llmProvider == LlmProvider.Custom) {
+                            apiKeyManager.getCustomBaseUrl()
+                        } else {
+                            null
+                        }
+                    val llmApiKey = apiKeyManager.getApiKey(llmProvider).orEmpty()
+                    val refinedResult =
+                        refineTextUseCase(
+                            originalText,
+                            language,
+                            llmApiKey,
+                            resolvedModel,
+                            allVocabulary,
+                            customPrompt,
+                            effectiveTone,
+                            llmProvider,
+                            customBaseUrl,
+                            translationEnabled,
+                            translationTargetLanguage,
+                        )
                     _uiState.value =
                         refinedResult.fold(
                             onSuccess = { ImeUiState.Refined(originalText, it) },
@@ -161,7 +197,19 @@ class RecordingController(
                         )
                 },
                 onFailure = {
-                    _uiState.value = ImeUiState.Error(it.message ?: "Transcription failed")
+                    val message = messages.transcriptionFailed(it.message)
+                    runCatching {
+                        val audioPath = recordingStore.saveLiveRecording(pcmData)
+                        transcriptionRepository.insertFailedLive(
+                            audioPath = audioPath,
+                            provider = currentSttProvider,
+                            language = language,
+                            errorMessage = message,
+                        )
+                    }.onFailure { saveError ->
+                        Timber.w(saveError, "failed_recording_save_failed provider=%s", currentSttProvider.key)
+                    }
+                    _uiState.value = ImeUiState.Error(message)
                 },
             )
         }

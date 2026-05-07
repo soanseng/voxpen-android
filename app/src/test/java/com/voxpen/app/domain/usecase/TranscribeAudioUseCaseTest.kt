@@ -2,7 +2,7 @@ package com.voxpen.app.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.model.SttLanguage
-import com.voxpen.app.data.remote.GroqApi
+import com.voxpen.app.data.remote.SttApi
 import com.voxpen.app.data.remote.SttApiFactory
 import com.voxpen.app.data.remote.WhisperResponse
 import com.voxpen.app.data.repository.SttRepository
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test
 import java.io.IOException
 
 class TranscribeAudioUseCaseTest {
-    private val groqApi: GroqApi = mockk()
+    private val sttApi: SttApi = mockk()
     private val sttApiFactory: SttApiFactory = mockk()
     private lateinit var sttRepository: SttRepository
     private lateinit var useCase: TranscribeAudioUseCase
@@ -28,7 +28,8 @@ class TranscribeAudioUseCaseTest {
     @BeforeEach
     fun setUp() {
         mockkObject(AudioEncoder)
-        sttRepository = SttRepository(groqApi, sttApiFactory)
+        every { sttApiFactory.createForProvider(any()) } returns sttApi
+        sttRepository = SttRepository(sttApiFactory)
         useCase = TranscribeAudioUseCase(sttRepository)
     }
 
@@ -43,7 +44,7 @@ class TranscribeAudioUseCaseTest {
             val pcm = ByteArray(100) { 1 }
             val wav = ByteArray(144) { 2 }
             every { AudioEncoder.pcmToWav(pcm, 16000, 1, 16) } returns wav
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
                 WhisperResponse(text = "你好")
 
             val result = useCase(pcm, SttLanguage.Chinese, "key")
@@ -57,7 +58,7 @@ class TranscribeAudioUseCaseTest {
         runTest {
             val pcm = ByteArray(10)
             every { AudioEncoder.pcmToWav(any(), any(), any(), any()) } returns ByteArray(54)
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } throws
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } throws
                 IOException("Network error")
 
             val result = useCase(pcm, SttLanguage.Auto, "key")
@@ -71,7 +72,7 @@ class TranscribeAudioUseCaseTest {
         runTest {
             val pcm = ByteArray(50)
             every { AudioEncoder.pcmToWav(pcm, 16000, 1, 16) } returns ByteArray(94)
-            coEvery { groqApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
                 WhisperResponse(text = "test")
 
             useCase(pcm, SttLanguage.English, "key")

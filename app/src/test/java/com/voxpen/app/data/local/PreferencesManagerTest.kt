@@ -5,6 +5,7 @@ import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.model.RecordingMode
 import com.voxpen.app.data.model.SttLanguage
+import com.voxpen.app.data.model.SttProvider
 import com.voxpen.app.data.model.ToneStyle
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestScope
@@ -55,6 +56,41 @@ class PreferencesManagerTest {
     }
 
     @Test
+    fun `sttProviderFlow defaults to Groq`(
+        @TempDir tempDir: File,
+    ) = runTest {
+        val prefs = createPreferencesManager(tempDir)
+        prefs.sttProviderFlow.test {
+            assertThat(awaitItem()).isEqualTo(SttProvider.Groq)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `setSttProvider persists OpenAI`(
+        @TempDir tempDir: File,
+    ) = runTest {
+        val prefs = createPreferencesManager(tempDir)
+        prefs.setSttProvider(SttProvider.OpenAI)
+        prefs.sttProviderFlow.test {
+            assertThat(awaitItem()).isEqualTo(SttProvider.OpenAI)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `sttProviderFlow infers Custom when legacy custom STT URL exists`(
+        @TempDir tempDir: File,
+    ) = runTest {
+        val prefs = createPreferencesManager(tempDir)
+        prefs.setCustomSttBaseUrl("https://stt.example.com/")
+        prefs.sttProviderFlow.test {
+            assertThat(awaitItem()).isEqualTo(SttProvider.Custom)
+            cancelAndIgnoreRemainingEvents()
+        }
+    }
+
+    @Test
     fun `default LLM model should be llama-3_3-70b-versatile`() {
         assertThat(PreferencesManager.DEFAULT_LLM_MODEL).isEqualTo("llama-3.3-70b-versatile")
     }
@@ -75,15 +111,18 @@ class PreferencesManagerTest {
     private fun createPreferencesManager(tempDir: File): PreferencesManager {
         val testDispatcher = UnconfinedTestDispatcher()
         val testScope = TestScope(testDispatcher)
-        val dataStore = PreferenceDataStoreFactory.create(
-            scope = testScope,
-            produceFile = { File(tempDir, "test_prefs.preferences_pb") },
-        )
+        val dataStore =
+            PreferenceDataStoreFactory.create(
+                scope = testScope,
+                produceFile = { File(tempDir, "test_prefs.preferences_pb") },
+            )
         return PreferencesManager(dataStore)
     }
 
     @Test
-    fun `autoToneEnabled defaults to true`(@TempDir tempDir: File) = runTest {
+    fun `autoToneEnabled defaults to true`(
+        @TempDir tempDir: File,
+    ) = runTest {
         val prefs = createPreferencesManager(tempDir)
         prefs.autoToneEnabledFlow.test {
             assertThat(awaitItem()).isTrue()
@@ -92,7 +131,9 @@ class PreferencesManagerTest {
     }
 
     @Test
-    fun `setAutoToneEnabled persists false`(@TempDir tempDir: File) = runTest {
+    fun `setAutoToneEnabled persists false`(
+        @TempDir tempDir: File,
+    ) = runTest {
         val prefs = createPreferencesManager(tempDir)
         prefs.setAutoToneEnabled(false)
         prefs.autoToneEnabledFlow.test {
@@ -102,7 +143,9 @@ class PreferencesManagerTest {
     }
 
     @Test
-    fun `customAppToneRulesFlow defaults to empty map`(@TempDir tempDir: File) = runTest {
+    fun `customAppToneRulesFlow defaults to empty map`(
+        @TempDir tempDir: File,
+    ) = runTest {
         val prefs = createPreferencesManager(tempDir)
         prefs.customAppToneRulesFlow.test {
             assertThat(awaitItem()).isEmpty()
@@ -111,7 +154,9 @@ class PreferencesManagerTest {
     }
 
     @Test
-    fun `setCustomAppToneRule persists and reads back`(@TempDir tempDir: File) = runTest {
+    fun `setCustomAppToneRule persists and reads back`(
+        @TempDir tempDir: File,
+    ) = runTest {
         val prefs = createPreferencesManager(tempDir)
         prefs.setCustomAppToneRule("com.myapp", ToneStyle.Professional)
         prefs.customAppToneRulesFlow.test {
@@ -122,7 +167,9 @@ class PreferencesManagerTest {
     }
 
     @Test
-    fun `removeCustomAppToneRule removes the entry`(@TempDir tempDir: File) = runTest {
+    fun `removeCustomAppToneRule removes the entry`(
+        @TempDir tempDir: File,
+    ) = runTest {
         val prefs = createPreferencesManager(tempDir)
         prefs.setCustomAppToneRule("com.myapp", ToneStyle.Casual)
         prefs.removeCustomAppToneRule("com.myapp")

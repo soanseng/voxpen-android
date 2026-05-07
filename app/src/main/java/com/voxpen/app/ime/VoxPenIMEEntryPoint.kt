@@ -4,7 +4,9 @@ import com.voxpen.app.billing.ProStatusResolver
 import com.voxpen.app.billing.UsageLimiter
 import com.voxpen.app.data.local.ApiKeyManager
 import com.voxpen.app.data.local.PreferencesManager
+import com.voxpen.app.data.local.RecordingStore
 import com.voxpen.app.data.repository.DictionaryRepository
+import com.voxpen.app.data.repository.TranscriptionRepository
 import com.voxpen.app.domain.usecase.EditTextUseCase
 import com.voxpen.app.domain.usecase.RefineTextUseCase
 import com.voxpen.app.domain.usecase.TranscribeAudioUseCase
@@ -26,6 +28,10 @@ interface VoxPenIMEEntryPoint {
     fun preferencesManager(): PreferencesManager
 
     fun dictionaryRepository(): DictionaryRepository
+
+    fun transcriptionRepository(): TranscriptionRepository
+
+    fun recordingStore(): RecordingStore
 
     fun usageLimiter(): UsageLimiter
 
