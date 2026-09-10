@@ -2,6 +2,7 @@ package com.voxpen.app.util
 
 import com.google.common.truth.Truth.assertThat
 import com.voxpen.app.data.local.TranscriptionEntity
+import com.voxpen.app.data.repository.TranscriptionSegment
 import org.junit.jupiter.api.Test
 
 class ExportHelperTest {
@@ -136,5 +137,61 @@ class ExportHelperTest {
         val srt = ExportHelper.toSrt(entity)
 
         assertThat(srt).contains("00:00:00,000 --> 00:00:05,000")
+    }
+
+    @Test
+    fun `should prefer refined segments for SRT export`() {
+        val entity =
+            TranscriptionEntity(
+                fileName = "test.wav",
+                originalText = "raw",
+                refinedText = "polished",
+                language = "en",
+                segmentsJson = """[{"s":0,"e":1000,"t":"um raw cue"}]""",
+                refinedSegmentsJson = """[{"s":0,"e":1000,"t":"Polished cue."}]""",
+                createdAt = 1000L,
+            )
+
+        val srt = ExportHelper.toSrt(entity)
+
+        assertThat(srt).contains("Polished cue.")
+        assertThat(srt).doesNotContain("um raw cue")
+    }
+
+    @Test
+    fun `should fall back to raw segments when refined segments absent`() {
+        val entity =
+            TranscriptionEntity(
+                fileName = "test.wav",
+                originalText = "raw",
+                language = "en",
+                segmentsJson = """[{"s":0,"e":1000,"t":"raw cue"}]""",
+                createdAt = 1000L,
+            )
+
+        val srt = ExportHelper.toSrt(entity)
+
+        assertThat(srt).contains("raw cue")
+    }
+
+    @Test
+    fun `should format segment list as SRT`() {
+        val srt =
+            ExportHelper.segmentsToSrt(
+                listOf(TranscriptionSegment(1000, 2500, "First cue"), TranscriptionSegment(3000, 4000, "Second")),
+            )
+
+        assertThat(srt).contains("1\n00:00:01,000 --> 00:00:02,500\nFirst cue")
+        assertThat(srt).contains("2\n00:00:03,000 --> 00:00:04,000\nSecond")
+    }
+
+    @Test
+    fun `should join segment texts with single spaces`() {
+        val text =
+            ExportHelper.segmentsToText(
+                listOf(TranscriptionSegment(0, 1000, " First "), TranscriptionSegment(1000, 2000, ""), TranscriptionSegment(2000, 3000, "second")),
+            )
+
+        assertThat(text).isEqualTo("First second")
     }
 }

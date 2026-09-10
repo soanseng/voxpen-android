@@ -85,6 +85,13 @@
     <string name="transcription_delete">Delete</string>
     <string name="transcription_cancel">Cancel</string>
     <string name="transcription_export_srt">Export SRT</string>
+    <string name="transcription_refine_srt">Refine existing SRT</string>
+    <string name="transcription_refine_srt_hint">Clean up cue text with LLM — timestamps stay the same</string>
+    <string name="transcription_refining_srt">Refining SRT…</string>
+    <string name="transcription_srt_invalid">Please select a .srt subtitle file.</string>
+    <string name="transcription_refine_srt_result">Refined subtitles</string>
+    <string name="transcription_share_refined_srt">Share SRT</string>
+    <string name="transcription_share_refined_txt">Share TXT</string>
     <string name="transcription_language">Language</string>
     <string name="transcription_failed">Transcription failed</string>
     <string name="transcription_failed_status">Failed transcription</string>

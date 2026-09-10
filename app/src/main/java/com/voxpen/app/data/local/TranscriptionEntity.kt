@@ -15,6 +15,7 @@ data class TranscriptionEntity(
     val durationMs: Long? = null,
     val fileSizeBytes: Long? = null,
     val segmentsJson: String? = null,
+    val refinedSegmentsJson: String? = null,
     @ColumnInfo(defaultValue = "'completed'")
     val status: String = STATUS_COMPLETED,
     val errorMessage: String? = null,

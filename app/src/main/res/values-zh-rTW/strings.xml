@@ -85,6 +85,13 @@
     <string name="transcription_delete">刪除</string>
     <string name="transcription_cancel">取消</string>
     <string name="transcription_export_srt">匯出 SRT 字幕</string>
+    <string name="transcription_refine_srt">潤飾既有 SRT</string>
+    <string name="transcription_refine_srt_hint">用 LLM 整理字幕文字 — 時間軸保持不變</string>
+    <string name="transcription_refining_srt">正在潤飾 SRT…</string>
+    <string name="transcription_srt_invalid">請選擇 .srt 字幕檔。</string>
+    <string name="transcription_refine_srt_result">潤飾後字幕</string>
+    <string name="transcription_share_refined_srt">分享 SRT</string>
+    <string name="transcription_share_refined_txt">分享 TXT</string>
     <string name="transcription_language">語言</string>
     <string name="transcription_failed">轉錄失敗</string>
     <string name="transcription_failed_status">轉錄失敗</string>

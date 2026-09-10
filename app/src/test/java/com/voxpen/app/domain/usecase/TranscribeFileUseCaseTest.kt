@@ -1,6 +1,8 @@
 package com.voxpen.app.domain.usecase
 
 import com.google.common.truth.Truth.assertThat
+import com.voxpen.app.data.remote.WhisperSegment
+import java.io.IOException
 import com.voxpen.app.data.local.TranscriptionEntity
 import com.voxpen.app.data.model.LlmProvider
 import com.voxpen.app.data.model.SttLanguage
@@ -33,6 +35,7 @@ class TranscribeFileUseCaseTest {
     private lateinit var chatCompletionApi: ChatCompletionApi
     private lateinit var apiFactory: ChatCompletionApiFactory
     private lateinit var refineTextUseCase: RefineTextUseCase
+    private lateinit var refineSegmentsUseCase: RefineSegmentsUseCase
     private lateinit var useCase: TranscribeFileUseCase
 
     private fun chatResponse(content: String) =
@@ -52,7 +55,14 @@ class TranscribeFileUseCaseTest {
         every { apiFactory.create(any()) } returns chatCompletionApi
         val llmRepository = LlmRepository(apiFactory)
         refineTextUseCase = RefineTextUseCase(llmRepository)
-        useCase = TranscribeFileUseCase(sttRepository, transcriptionRepository, refineTextUseCase)
+        refineSegmentsUseCase = RefineSegmentsUseCase(llmRepository)
+        useCase =
+            TranscribeFileUseCase(
+                sttRepository,
+                transcriptionRepository,
+                refineTextUseCase,
+                refineSegmentsUseCase,
+            )
     }
 
     @Test
@@ -269,5 +279,107 @@ class TranscribeFileUseCaseTest {
 
             assertThat(result.isSuccess).isTrue()
             assertThat(entitySlot.captured.refinedText).isEqualTo("polished text")
+        }
+
+    @Test
+    fun `should store refined segments when refinement succeeds`() =
+        runTest {
+            val pcmData = ByteArray(100) { (it % 256).toByte() }
+            val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
+
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(
+                    text = "raw text",
+                    segments =
+                        listOf(
+                            WhisperSegment(id = 0, start = 0.0, end = 2.0, text = "um hello"),
+                            WhisperSegment(id = 1, start = 2.0, end = 4.0, text = "world thing"),
+                        ),
+                )
+            coEvery { chatCompletionApi.chatCompletion(any(), any()) } returns
+                chatResponse("polished text") andThen chatResponse("1|Hello there.\n2|World thing.")
+            val entitySlot = slot<TranscriptionEntity>()
+            coEvery { transcriptionRepository.insert(capture(entitySlot)) } returns 1L
+
+            val result =
+                useCase(
+                    fileBytes = wavBytes,
+                    fileName = "test.wav",
+                    language = SttLanguage.English,
+                    apiKey = "key",
+                    refinementApiKey = "llm-key",
+                    llmModel = "gpt-4o-mini",
+                    llmProvider = LlmProvider.OpenAI,
+                )
+
+            assertThat(result.isSuccess).isTrue()
+            val entity = entitySlot.captured
+            assertThat(entity.refinedText).isEqualTo("polished text")
+            assertThat(entity.refinedSegmentsJson).isNotNull()
+            assertThat(entity.refinedSegmentsJson).contains("Hello there.")
+            assertThat(entity.refinedSegmentsJson).contains("World thing.")
+            assertThat(entity.segmentsJson).contains("um hello")
+        }
+
+    @Test
+    fun `should keep refined segments null when segment refine fails`() =
+        runTest {
+            val pcmData = ByteArray(100) { (it % 256).toByte() }
+            val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
+
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(
+                    text = "raw text",
+                    segments = listOf(WhisperSegment(id = 0, start = 0.0, end = 2.0, text = "um hello")),
+                )
+            coEvery { chatCompletionApi.chatCompletion(any(), any()) } returns
+                chatResponse("polished text") andThenAnswer {
+                    throw IOException("segment refine failed")
+                }
+            val entitySlot = slot<TranscriptionEntity>()
+            coEvery { transcriptionRepository.insert(capture(entitySlot)) } returns 1L
+
+            val result =
+                useCase(
+                    fileBytes = wavBytes,
+                    fileName = "test.wav",
+                    language = SttLanguage.English,
+                    apiKey = "key",
+                    refinementApiKey = "llm-key",
+                    llmModel = "gpt-4o-mini",
+                    llmProvider = LlmProvider.OpenAI,
+                )
+
+            assertThat(result.isSuccess).isTrue()
+            val entity = entitySlot.captured
+            assertThat(entity.refinedText).isEqualTo("polished text")
+            assertThat(entity.refinedSegmentsJson).isNull()
+            assertThat(entity.segmentsJson).isNotNull()
+        }
+
+    @Test
+    fun `should leave refined segments null when refinement disabled`() =
+        runTest {
+            val pcmData = ByteArray(100) { (it % 256).toByte() }
+            val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
+
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(
+                    text = "raw text",
+                    segments = listOf(WhisperSegment(id = 0, start = 0.0, end = 2.0, text = "um hello")),
+                )
+            val entitySlot = slot<TranscriptionEntity>()
+            coEvery { transcriptionRepository.insert(capture(entitySlot)) } returns 1L
+
+            val result =
+                useCase(
+                    fileBytes = wavBytes,
+                    fileName = "test.wav",
+                    language = SttLanguage.English,
+                    apiKey = "key",
+                )
+
+            assertThat(result.isSuccess).isTrue()
+            assertThat(entitySlot.captured.refinedSegmentsJson).isNull()
         }
 }

@@ -1,6 +1,7 @@
 package com.voxpen.app.data.remote
 
 import com.voxpen.app.data.model.SttProvider
+import com.voxpen.app.di.SttClient
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -14,7 +15,7 @@ import javax.inject.Singleton
 class SttApiFactory
     @Inject
     constructor(
-        private val client: OkHttpClient,
+        @SttClient private val client: OkHttpClient,
         private val json: Json,
     ) {
         private val cache = ConcurrentHashMap<String, SttApi>()

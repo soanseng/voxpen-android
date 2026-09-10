@@ -7,7 +7,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [TranscriptionEntity::class, DictionaryEntry::class],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -46,6 +46,13 @@ abstract class AppDatabase : RoomDatabase() {
                     db.execSQL("ALTER TABLE transcriptions ADD COLUMN errorMessage TEXT DEFAULT NULL")
                     db.execSQL("ALTER TABLE transcriptions ADD COLUMN audioPath TEXT DEFAULT NULL")
                     db.execSQL("ALTER TABLE transcriptions ADD COLUMN provider TEXT DEFAULT NULL")
+                }
+            }
+
+        val MIGRATION_4_5 =
+            object : Migration(4, 5) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL("ALTER TABLE transcriptions ADD COLUMN refinedSegmentsJson TEXT DEFAULT NULL")
                 }
             }
     }
