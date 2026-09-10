@@ -196,4 +196,47 @@ class ApiKeyManagerTest {
         verify { editor.remove("custom_llm_base_url") }
         verify { editor.apply() }
     }
+
+    // --- Keyless Custom provider tests (new for BYOK parity) ---
+
+    @Test
+    fun `isKeyRequiredForStt returns false for Custom`() {
+        assertThat(manager.isKeyRequiredForStt(SttProvider.Custom)).isFalse()
+    }
+
+    @Test
+    fun `isKeyRequiredForStt returns true for Groq and OpenAI`() {
+        assertThat(manager.isKeyRequiredForStt(SttProvider.Groq)).isTrue()
+        assertThat(manager.isKeyRequiredForStt(SttProvider.OpenAI)).isTrue()
+    }
+
+    @Test
+    fun `isKeyRequiredForLlm returns false for Custom`() {
+        assertThat(manager.isKeyRequiredForLlm(LlmProvider.Custom)).isFalse()
+    }
+
+    @Test
+    fun `isKeyRequiredForLlm returns true for non-Custom providers`() {
+        assertThat(manager.isKeyRequiredForLlm(LlmProvider.Groq)).isTrue()
+        assertThat(manager.isKeyRequiredForLlm(LlmProvider.OpenAI)).isTrue()
+        assertThat(manager.isKeyRequiredForLlm(LlmProvider.OpenRouter)).isTrue()
+    }
+
+    @Test
+    fun `getEffectiveSttApiKey returns stored key for non-custom`() {
+        every { sharedPreferences.getString("groq_api_key", null) } returns "gsk_123"
+        assertThat(manager.getEffectiveSttApiKey(SttProvider.Groq)).isEqualTo("gsk_123")
+    }
+
+    @Test
+    fun `getEffectiveSttApiKey returns empty string when no key for Custom`() {
+        every { sharedPreferences.getString("stt_api_key_custom", null) } returns null
+        assertThat(manager.getEffectiveSttApiKey(SttProvider.Custom)).isEqualTo("")
+    }
+
+    @Test
+    fun `getEffectiveLlmApiKey returns empty for Custom when blank`() {
+        every { sharedPreferences.getString("api_key_custom", null) } returns "   "
+        assertThat(manager.getEffectiveLlmApiKey(LlmProvider.Custom)).isEqualTo("")
+    }
 }

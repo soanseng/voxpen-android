@@ -35,7 +35,7 @@ VoxPen is an Android AI voice keyboard and transcription app, forked from [Dicta
 ### 2. STT Providers (BYOK)
 - **Groq Whisper** (primary): `whisper-large-v3-turbo` via REST API
 - **OpenAI Whisper**: `whisper-1`, `gpt-4o-transcribe` as alternative
-- **Custom Server**: user-defined endpoint (for self-hosted Whisper, etc.)
+- **Custom Server**: user-defined endpoint (for self-hosted Whisper, etc.). Supports optional / no API key for local servers (keyless mode).
 
 #### Supported Languages (v1)
 - **Mandarin Chinese** (zh): Traditional Chinese output, prompt bias for 繁體
@@ -51,7 +51,7 @@ Whisper does NOT natively support Taiwanese Hokkien (nan-tw). With `language=zh`
 
 ### 3. LLM Refinement (BYOK)
 - **Purpose**: Transform raw speech into polished written text
-- **Providers**: Groq (LLaMA), OpenAI (GPT), Anthropic (Claude), custom endpoint
+- **Providers**: Groq (LLaMA), OpenAI (GPT), Anthropic (Claude), custom endpoint. Custom supports optional/no API key for local/self-hosted LLMs (e.g. Ollama). Model name override supported even on built-in providers.
 - **Features** (Typeless-inspired):
   - Remove filler words (per-language: 嗯/那個/就是 for zh, um/uh/like for en, えーと/あの for ja)
   - Auto-detect and keep only final self-correction

@@ -80,11 +80,13 @@ class TranscribeFileUseCase
 
             val mergedText = transcriptions.joinToString(" ")
 
-            val refinedText = if (!refinementApiKey.isNullOrBlank() && llmProvider != null && llmModel != null) {
+            // Allow refinement with blank key when using Custom LLM provider.
+            val hasRefinementKey = !refinementApiKey.isNullOrBlank() || llmProvider == LlmProvider.Custom
+            val refinedText = if (hasRefinementKey && llmProvider != null && llmModel != null) {
                 refineTextUseCase(
                     text = mergedText,
                     language = language,
-                    apiKey = refinementApiKey,
+                    apiKey = refinementApiKey.orEmpty(),
                     model = llmModel,
                     vocabulary = vocabulary,
                     customPrompt = customPrompt,

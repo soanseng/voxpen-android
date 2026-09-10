@@ -62,6 +62,9 @@ class TranscriptionViewModelTest {
         every { preferencesManager.customSttBaseUrlFlow } returns MutableStateFlow("")
         every { apiKeyManager.getSttApiKey(any()) } returns "stt-key"
         every { apiKeyManager.getGroqApiKey() } returns "stt-key"
+        // Support new keyless helpers introduced for Custom provider
+        every { apiKeyManager.getEffectiveSttApiKey(any()) } returns "stt-key"
+        every { apiKeyManager.isKeyRequiredForStt(any()) } returns true
     }
 
     @AfterEach

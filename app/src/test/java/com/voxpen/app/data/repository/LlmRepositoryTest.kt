@@ -73,6 +73,37 @@ class LlmRepositoryTest {
         }
 
     @Test
+    fun `should succeed without Bearer authorization when Custom key is blank`() =
+        runTest {
+            enqueueSuccess("keyless polished")
+            val result =
+                repository.refine(
+                    "text", SttLanguage.Auto, "",
+                    provider = LlmProvider.Custom,
+                    customBaseUrl = server.url("/").toString(),
+                )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrNull()).isEqualTo("keyless polished")
+            val request = server.takeRequest()
+            assertThat(request.getHeader("Authorization") ?: "").doesNotContain("Bearer")
+        }
+
+    @Test
+    fun `should proceed for Custom provider with blank key in editText`() =
+        runTest {
+            enqueueSuccess("edited")
+            val result =
+                repository.editText(
+                    "make it formal", "",
+                    provider = LlmProvider.Custom,
+                    customBaseUrl = server.url("/").toString(),
+                )
+            assertThat(result.isSuccess).isTrue()
+            assertThat(result.getOrNull()).isEqualTo("edited")
+            assertThat(server.takeRequest().getHeader("Authorization") ?: "").doesNotContain("Bearer")
+        }
+
+    @Test
     fun `should include system prompt and user text in request body`() =
         runTest {
             enqueueSuccess("ok")

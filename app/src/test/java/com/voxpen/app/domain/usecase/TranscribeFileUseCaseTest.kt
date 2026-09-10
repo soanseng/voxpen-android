@@ -242,4 +242,32 @@ class TranscribeFileUseCaseTest {
             assertThat(entitySlot.captured.refinedText).isNull()
             coVerify(exactly = 0) { chatCompletionApi.chatCompletion(any(), any()) }
         }
+
+    @Test
+    fun `should refine with blank key when LLM provider is Custom`() =
+        runTest {
+            val pcmData = ByteArray(100) { (it % 256).toByte() }
+            val wavBytes = AudioEncoder.pcmToWav(pcmData, 16000, 1, 16)
+
+            coEvery { sttApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
+                WhisperResponse(text = "raw text")
+            coEvery { chatCompletionApi.chatCompletion(any(), any()) } returns
+                chatResponse("polished text")
+            val entitySlot = slot<TranscriptionEntity>()
+            coEvery { transcriptionRepository.insert(capture(entitySlot)) } returns 1L
+
+            val result =
+                useCase(
+                    fileBytes = wavBytes,
+                    fileName = "test.wav",
+                    language = SttLanguage.English,
+                    apiKey = "key",
+                    refinementApiKey = "",
+                    llmModel = "llama3.1:8b",
+                    llmProvider = LlmProvider.Custom,
+                )
+
+            assertThat(result.isSuccess).isTrue()
+            assertThat(entitySlot.captured.refinedText).isEqualTo("polished text")
+        }
 }

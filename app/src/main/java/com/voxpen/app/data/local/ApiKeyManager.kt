@@ -72,6 +72,33 @@ class ApiKeyManager
         fun isSttKeyConfigured(provider: SttProvider): Boolean =
             !getSttApiKey(provider).isNullOrBlank()
 
+        /**
+         * Returns true if this STT provider requires a non-blank API key.
+         * Custom providers can work with local/self-hosted servers without a key.
+         */
+        fun isKeyRequiredForStt(provider: SttProvider): Boolean =
+            provider != SttProvider.Custom
+
+        /**
+         * Returns true if this LLM provider requires a non-blank API key.
+         * Custom providers can work with local/self-hosted servers (Ollama, etc.) without a key.
+         */
+        fun isKeyRequiredForLlm(provider: LlmProvider): Boolean =
+            provider != LlmProvider.Custom
+
+        /**
+         * Returns the API key for STT, or empty string for keyless custom providers.
+         * Callers should still respect isKeyRequiredForStt() before erroring.
+         */
+        fun getEffectiveSttApiKey(provider: SttProvider): String =
+            getSttApiKey(provider)?.takeIf { it.isNotBlank() } ?: ""
+
+        /**
+         * Returns the API key for LLM, or empty string for keyless custom providers.
+         */
+        fun getEffectiveLlmApiKey(provider: LlmProvider): String =
+            getApiKey(provider)?.takeIf { it.isNotBlank() } ?: ""
+
         private fun keyFor(provider: LlmProvider): String =
             "${KEY_PREFIX}${provider.key}"
 

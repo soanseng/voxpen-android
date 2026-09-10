@@ -102,9 +102,9 @@ class RecordingController(
         }
 
         val currentSttProvider = sttProvider
-        val apiKey = apiKeyManager.getSttApiKey(currentSttProvider)
+        val apiKey = apiKeyManager.getEffectiveSttApiKey(currentSttProvider)
 
-        if (apiKey.isNullOrBlank() && currentSttProvider != SttProvider.Custom) {
+        if (apiKey.isBlank() && apiKeyManager.isKeyRequiredForStt(currentSttProvider)) {
             _uiState.value = ImeUiState.Error(messages.apiKeyNotConfigured())
             return
         }
@@ -175,7 +175,7 @@ class RecordingController(
                         } else {
                             null
                         }
-                    val llmApiKey = apiKeyManager.getApiKey(llmProvider).orEmpty()
+                    val llmApiKey = apiKeyManager.getEffectiveLlmApiKey(llmProvider)
                     val refinedResult =
                         refineTextUseCase(
                             originalText,

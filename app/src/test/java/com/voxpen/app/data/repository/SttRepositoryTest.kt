@@ -112,12 +112,12 @@ class SttRepositoryTest {
         }
 
     @Test
-    fun `should allow empty API key for custom provider`() =
+    fun `should proceed for Custom provider with blank key`() =
         runTest {
-            val customApi: SttApi = mockk()
-            every { sttApiFactory.createForCustom("http://100.102.183.27:8001/") } returns customApi
-            coEvery { customApi.transcribe(any(), any(), any(), any(), any(), any()) } returns
-                WhisperResponse(text = "local result")
+            every { sttApiFactory.createForCustom(any()) } returns sttApi
+            coEvery {
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "local transcription")
 
             val result =
                 repository.transcribe(
@@ -125,11 +125,29 @@ class SttRepositoryTest {
                     language = SttLanguage.Auto,
                     apiKey = "",
                     provider = SttProvider.Custom,
-                    customSttBaseUrl = "http://100.102.183.27:8001/",
+                    customSttBaseUrl = "http://localhost:9000/v1/",
                 )
 
             assertThat(result.isSuccess).isTrue()
-            assertThat(result.getOrNull()?.text).isEqualTo("local result")
+            assertThat(result.getOrNull()?.text).isEqualTo("local transcription")
+        }
+
+    @Test
+    fun `should send empty authorization for Custom provider with blank key`() =
+        runTest {
+            every { sttApiFactory.createForCustom(any()) } returns sttApi
+            val authSlot = slot<String>()
+            coEvery {
+                sttApi.transcribe(capture(authSlot), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "test")
+
+            repository.transcribe(
+                ByteArray(10), SttLanguage.Auto, "",
+                provider = SttProvider.Custom,
+                customSttBaseUrl = "http://localhost:9000/v1/",
+            )
+
+            assertThat(authSlot.captured).isEmpty()
         }
 
     @Test

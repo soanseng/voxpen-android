@@ -30,6 +30,7 @@ class SttRepository
             provider: SttProvider = SttProvider.DEFAULT,
             customSttBaseUrl: String? = null,
         ): Result<TranscriptionResult> {
+            // Custom providers (self-hosted) may not require a key.
             if (apiKey.isBlank() && provider != SttProvider.Custom) {
                 return Result.failure(IllegalStateException("API key not configured"))
             }
@@ -112,9 +113,12 @@ class SttRepository
                 val langBody = language.code?.toRequestBody(TEXT_PLAIN)
                 val promptBody = (vocabularyHint ?: language.prompt).toRequestBody(TEXT_PLAIN)
 
+                // For Custom (local servers), allow empty key. Send empty auth header if blank.
+                val authorization = if (apiKey.isNotBlank()) "Bearer $apiKey" else ""
+
                 val response =
                     api.transcribe(
-                        authorization = "Bearer $apiKey",
+                        authorization = authorization,
                         file = filePart,
                         model = modelBody,
                         responseFormat = format,

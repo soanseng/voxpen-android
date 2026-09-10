@@ -65,6 +65,7 @@
 
     <!-- Custom STT -->
     <string name="settings_custom_stt_url_hint">Custom STT Base URL (OpenAI-compatible)</string>
+    <string name="custom_provider_key_optional_hint">API key is optional for local or self-hosted servers without authentication.</string>
     <string name="provider_key_required">API key not configured</string>
     <string name="recording_error_too_short">Recording was too short. Try speaking for a little longer.</string>
     <string name="recording_error_too_quiet">Recording was too quiet. Try speaking closer to the microphone.</string>
@@ -275,6 +276,7 @@
     <string name="model_tag_cheapest">Cheapest</string>
     <string name="model_tag_quality">Quality</string>
     <string name="model_tag_best_chinese">Best for Chinese</string>
+    <string name="model_override_hint">Enter a custom model name to override the selection above.</string>
 
     <!-- Custom Prompt -->
     <string name="settings_custom_prompt_section">Refinement Prompt</string>

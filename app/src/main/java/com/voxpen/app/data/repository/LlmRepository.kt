@@ -31,6 +31,7 @@ class LlmRepository
             translationEnabled: Boolean = false,
             targetLanguage: SttLanguage = SttLanguage.English,
         ): Result<String> {
+            // Custom providers may operate without an API key (e.g. local Ollama, vLLM).
             if (apiKey.isBlank() && provider != LlmProvider.Custom) {
                 return Result.failure(IllegalStateException("API key not configured"))
             }
@@ -66,7 +67,8 @@ class LlmRepository
                         maxTokens = MAX_TOKENS,
                         reasoningFormat = reasoningFormatFor(model),
                     )
-                val response = api.chatCompletion("Bearer $apiKey", request)
+                val authHeader = if (apiKey.isNotBlank()) "Bearer $apiKey" else ""
+                val response = api.chatCompletion(authHeader, request)
                 val raw =
                     response.choices.firstOrNull()?.message?.content
                         ?: return Result.failure(IllegalStateException("No response content"))
@@ -86,6 +88,7 @@ class LlmRepository
             provider: LlmProvider = LlmProvider.Groq,
             customBaseUrl: String? = null,
         ): Result<String> {
+            // Custom providers may operate without an API key.
             if (apiKey.isBlank() && provider != LlmProvider.Custom) {
                 return Result.failure(IllegalStateException("API key not configured"))
             }
@@ -100,6 +103,7 @@ class LlmRepository
                 } else {
                     apiFactory.create(provider)
                 }
+                val authHeader = if (apiKey.isNotBlank()) "Bearer $apiKey" else ""
                 val request = ChatCompletionRequest(
                     model = model,
                     messages = listOf(ChatMessage(role = "user", content = userMessage)),
@@ -107,7 +111,7 @@ class LlmRepository
                     maxTokens = MAX_TOKENS,
                     reasoningFormat = reasoningFormatFor(model),
                 )
-                val response = api.chatCompletion("Bearer $apiKey", request)
+                val response = api.chatCompletion(authHeader, request)
                 val raw = response.choices.firstOrNull()?.message?.content
                     ?: return Result.failure(IllegalStateException("No response content"))
                 Result.success(stripThinkingTags(raw))

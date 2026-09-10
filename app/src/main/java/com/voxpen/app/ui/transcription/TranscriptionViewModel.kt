@@ -140,8 +140,8 @@ class TranscriptionViewModel
                     } else {
                         null
                     }
-                val apiKey = apiKeyManager.getSttApiKey(provider)
-                if (apiKey.isNullOrBlank()) {
+                val apiKey = apiKeyManager.getEffectiveSttApiKey(provider)
+                if (apiKey.isBlank() && apiKeyManager.isKeyRequiredForStt(provider)) {
                     _uiState.update {
                         it.copy(retryingId = null, error = "API key not configured")
                     }

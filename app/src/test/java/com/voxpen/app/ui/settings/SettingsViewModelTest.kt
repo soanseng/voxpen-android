@@ -211,12 +211,12 @@ class SettingsViewModelTest {
         }
 
     @Test
-    fun `setLlmProvider should set default model for provider with presets`() =
+    fun `setLlmProvider should not reset llm model`() =
         runTest {
             val vm = createViewModel()
-            vm.setLlmProvider(LlmProvider.Groq)
-            coVerify { preferencesManager.setLlmModel(LlmProvider.Groq.defaultModelId) }
-        }
+            vm.setLlmProvider(LlmProvider.OpenAI)
+            coVerify { preferencesManager.setLlmProvider(LlmProvider.OpenAI) }
+            coVerify(exactly = 0) { preferencesManager.setLlmModel(any()) }
 
     @Test
     fun `testLlmProvider reports success with provider reply`() =
@@ -270,5 +270,6 @@ class SettingsViewModelTest {
 
             assertThat(vm.uiState.value.llmTestStatus).isEqualTo(LlmTestStatus.NoBaseUrl)
             verify(exactly = 0) { apiFactory.createForCustom(any()) }
+||||||| parent of 70b7fb5 (feat(byok): custom provider parity — keyless Custom, model override, keyless-aware UI)
         }
 }

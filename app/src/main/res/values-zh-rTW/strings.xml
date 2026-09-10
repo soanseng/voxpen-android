@@ -65,6 +65,7 @@
 
     <!-- Custom STT -->
     <string name="settings_custom_stt_url_hint">自訂語音辨識伺服器網址（相容 OpenAI API）</string>
+    <string name="custom_provider_key_optional_hint">本地或自架伺服器若無需驗證，可留空 API Key。</string>
     <string name="provider_key_required">尚未設定 API 金鑰</string>
     <string name="recording_error_too_short">錄音太短。請說久一點後再試一次。</string>
     <string name="recording_error_too_quiet">錄音音量太小。請靠近麥克風後再試一次。</string>
@@ -275,6 +276,7 @@
     <string name="model_tag_cheapest">最省錢</string>
     <string name="model_tag_quality">品質最佳</string>
     <string name="model_tag_best_chinese">中文最強</string>
+    <string name="model_override_hint">可在此輸入自訂模型名稱，覆蓋上方選擇。</string>
 
     <!-- Custom Prompt -->
     <string name="settings_custom_prompt_section">潤稿 Prompt</string>

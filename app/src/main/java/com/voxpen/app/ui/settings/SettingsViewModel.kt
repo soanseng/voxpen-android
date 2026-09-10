@@ -180,11 +180,9 @@ class SettingsViewModel
         fun setLlmProvider(provider: LlmProvider) {
             viewModelScope.launch {
                 preferencesManager.setLlmProvider(provider)
-                // Custom has no preset models; overwriting would erase the last
-                // selected model and break the customLlmModel fallback.
-                if (provider.defaultModelId.isNotBlank()) {
-                    preferencesManager.setLlmModel(provider.defaultModelId)
-                }
+                // Do not force-reset model here. This allows users to type/override
+                // a custom model name even for built-in providers (see Task 3).
+                // The UI will show radios for known models + free-text override.
             }
         }
 

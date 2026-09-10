@@ -112,7 +112,7 @@ fun TranscriptionScreenContent(
                     val dictRepo = entryPoint.dictionaryRepository()
 
                     val sttProvider = prefsManager.sttProviderFlow.first()
-                    val sttApiKey = apiKeyManager.getSttApiKey(sttProvider).orEmpty()
+                    val sttApiKey = apiKeyManager.getEffectiveSttApiKey(sttProvider)
                     val sttModel = prefsManager.sttModelFlow.first().ifBlank { sttProvider.defaultModelId }
                     val customSttBaseUrl =
                         if (sttProvider == SttProvider.Custom) {
@@ -121,7 +121,7 @@ fun TranscriptionScreenContent(
                             null
                         }
                     val llmProvider = prefsManager.llmProviderFlow.first()
-                    val llmApiKey = apiKeyManager.getApiKey(llmProvider) ?: apiKeyManager.getGroqApiKey()
+                    val llmApiKey = apiKeyManager.getEffectiveLlmApiKey(llmProvider)
                     val llmModel =
                         if (llmProvider == LlmProvider.Custom) {
                             prefsManager.customLlmModelFlow.first().ifBlank { prefsManager.llmModelFlow.first() }

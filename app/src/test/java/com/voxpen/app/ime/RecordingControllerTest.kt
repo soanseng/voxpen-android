@@ -81,6 +81,11 @@ class RecordingControllerTest {
         every { apiKeyManager.getGroqApiKey() } returns "test-key"
         every { apiKeyManager.getApiKey(any()) } returns "test-key"
         every { apiKeyManager.getSttApiKey(any()) } returns "test-key"
+        // New keyless helpers (Task 1)
+        every { apiKeyManager.getEffectiveSttApiKey(any()) } returns "test-key"
+        every { apiKeyManager.getEffectiveLlmApiKey(any()) } returns "test-key"
+        every { apiKeyManager.isKeyRequiredForStt(any()) } returns true
+        every { apiKeyManager.isKeyRequiredForLlm(any()) } returns true
         every { preferencesManager.refinementEnabledFlow } returns refinementEnabledFlow
         every { preferencesManager.sttModelFlow } returns sttModelFlow
         every { preferencesManager.sttProviderFlow } returns sttProviderFlow
@@ -167,6 +172,7 @@ class RecordingControllerTest {
             llmProviderFlow.value = LlmProvider.Groq
             every { apiKeyManager.getSttApiKey(SttProvider.OpenAI) } returns "stt-openai-key"
             every { apiKeyManager.getApiKey(LlmProvider.Groq) } returns "llm-groq-key"
+            every { apiKeyManager.getEffectiveLlmApiKey(LlmProvider.Groq) } returns "llm-groq-key"
             val authSlot = slot<String>()
             coEvery {
                 sttApi.transcribe(any(), any(), any(), any(), any(), any())
@@ -262,6 +268,8 @@ class RecordingControllerTest {
             every { apiKeyManager.getApiKey(any()) } returns null
             every { apiKeyManager.getSttApiKey(any()) } returns null
             every { apiKeyManager.getGroqApiKey() } returns null
+            every { apiKeyManager.getEffectiveSttApiKey(any()) } returns ""
+            every { apiKeyManager.isKeyRequiredForStt(any()) } returns true
 
             controller.uiState.test {
                 assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
@@ -281,6 +289,8 @@ class RecordingControllerTest {
             sttProviderFlow.value = SttProvider.OpenAI
             every { apiKeyManager.getSttApiKey(SttProvider.OpenAI) } returns null
             every { apiKeyManager.getGroqApiKey() } returns "legacy-groq-key"
+            every { apiKeyManager.getEffectiveSttApiKey(SttProvider.OpenAI) } returns ""
+            every { apiKeyManager.isKeyRequiredForStt(SttProvider.OpenAI) } returns true
 
             controller.uiState.test {
                 assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
@@ -295,6 +305,37 @@ class RecordingControllerTest {
 
             coVerify(exactly = 0) {
                 sttApi.transcribe(any(), any(), any(), any(), any(), any())
+            }
+        }
+
+    @Test
+    fun `should allow recording with keyless Custom STT provider`() =
+        runTest {
+            sttProviderFlow.value = SttProvider.Custom
+            customSttBaseUrlFlow.value = "http://localhost:9000/v1/"
+            every { sttApiFactory.createForCustom(any()) } returns sttApi
+            every { apiKeyManager.getEffectiveSttApiKey(SttProvider.Custom) } returns ""
+            every { apiKeyManager.isKeyRequiredForStt(SttProvider.Custom) } returns false
+            coEvery {
+                sttApi.transcribe(any(), any(), any(), any(), any(), any())
+            } returns WhisperResponse(text = "本地轉錄結果")
+            coEvery {
+                chatCompletionApi.chatCompletion(any(), any())
+            } returns chatResponse("本地潤飾結果")
+
+            controller.uiState.test {
+                assertThat(awaitItem()).isEqualTo(ImeUiState.Idle)
+                controller.onStartRecording(startRecording)
+                skipItems(1)
+
+                controller.onStopRecording(stopRecording, SttLanguage.Chinese)
+                // StateFlow conflates intermediate states; Refining may be skipped
+                val states = mutableListOf(awaitItem())
+                states.add(awaitItem())
+                val finalState = states.last()
+                assertThat(finalState).isEqualTo(
+                    ImeUiState.Refined("本地轉錄結果", "本地潤飾結果"),
+                )
             }
         }
 

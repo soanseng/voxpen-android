@@ -532,8 +532,11 @@ private fun SttModelSection(
     }
 
     Spacer(Modifier.height(8.dp))
-    SttProviderApiKeyField(state, viewModel)
-    Spacer(Modifier.height(8.dp))
+    // Hide key input for Custom (keyless local servers supported)
+    if (state.sttProvider != SttProvider.Custom) {
+        SttProviderApiKeyField(state, viewModel)
+        Spacer(Modifier.height(8.dp))
+    }
 
     if (state.sttProvider == SttProvider.Custom) {
         OutlinedTextField(
@@ -552,6 +555,12 @@ private fun SttModelSection(
             placeholder = { Text("whisper-1") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            stringResource(R.string.custom_provider_key_optional_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 4.dp),
         )
     } else {
         state.sttProvider.models.forEach { model ->
@@ -624,7 +633,8 @@ private fun LlmProviderSection(
 
     Spacer(Modifier.height(12.dp))
 
-    if (state.llmProvider != LlmProvider.Groq) {
+    // Hide key field for Custom (supports keyless local servers like Ollama)
+    if (state.llmProvider != LlmProvider.Groq && state.llmProvider != LlmProvider.Custom) {
         ProviderApiKeyField(state, viewModel)
         Spacer(Modifier.height(8.dp))
     }
@@ -633,6 +643,23 @@ private fun LlmProviderSection(
         CustomProviderFields(state, viewModel)
     } else {
         ProviderModelList(state, viewModel)
+
+        // Allow free-text model override for built-in providers (BYOK flexibility, matches desktop)
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = state.llmModel,
+            onValueChange = { viewModel.setLlmModel(it) },
+            label = { Text(stringResource(R.string.provider_custom_model) + " (override)") },
+            placeholder = { Text("e.g. some-experimental-model") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Text(
+            stringResource(R.string.model_override_hint),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, top = 2.dp),
+        )
     }
 }
 
@@ -717,6 +744,12 @@ private fun CustomProviderFields(
         placeholder = { Text("llama3.1:8b") },
         singleLine = true,
         modifier = Modifier.fillMaxWidth(),
+    )
+    Text(
+        stringResource(R.string.custom_provider_key_optional_hint),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = 4.dp),
     )
     Spacer(Modifier.height(8.dp))
     OutlinedButton(
