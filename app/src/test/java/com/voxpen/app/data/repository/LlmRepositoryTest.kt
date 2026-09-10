@@ -430,19 +430,6 @@ class LlmRepositoryTest {
             assertThat(result.isFailure).isTrue()
         }
 
-    @Test
-    fun `should allow empty API key for custom provider`() =
-        runTest {
-            enqueueSuccess("ok")
-            val result = repository.refine(
-                "text", SttLanguage.Auto, "",
-                provider = LlmProvider.Custom,
-                customBaseUrl = server.url("/").toString(),
-            )
-            assertThat(result.isSuccess).isTrue()
-            // OkHttp trims trailing whitespace: "Bearer " arrives as "Bearer".
-            assertThat(server.takeRequest().getHeader("Authorization")).isEqualTo("Bearer")
-        }
 
     @Test
     fun `should fail gracefully when custom provider has no base URL`() =

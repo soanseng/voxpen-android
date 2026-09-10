@@ -53,6 +53,7 @@ class TranscribeFileUseCaseTest {
         chatCompletionApi = mockk()
         apiFactory = mockk()
         every { apiFactory.create(any()) } returns chatCompletionApi
+        every { apiFactory.createForCustom(any()) } returns chatCompletionApi
         val llmRepository = LlmRepository(apiFactory)
         refineTextUseCase = RefineTextUseCase(llmRepository)
         refineSegmentsUseCase = RefineSegmentsUseCase(llmRepository)
@@ -275,6 +276,7 @@ class TranscribeFileUseCaseTest {
                     refinementApiKey = "",
                     llmModel = "llama3.1:8b",
                     llmProvider = LlmProvider.Custom,
+                    customLlmBaseUrl = "http://localhost:4000",
                 )
 
             assertThat(result.isSuccess).isTrue()

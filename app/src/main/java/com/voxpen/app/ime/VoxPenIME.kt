@@ -708,7 +708,7 @@ class VoxPenIME : InputMethodService() {
         serviceScope.launch {
             val llmProvider = preferencesManager.llmProviderFlow.first()
             val apiKey = apiKeyManager.getEffectiveLlmApiKey(llmProvider)
-            if (apiKey.isBlank() && apiKeyManager.isKeyRequiredForLlm(llmProvider)) { (feat(byok): custom provider parity — keyless Custom, model override, keyless-aware UI)
+            if (apiKey.isBlank() && apiKeyManager.isKeyRequiredForLlm(llmProvider)) {
                 showStatusRow("API key not configured", showProgress = false)
                 candidateBar?.postDelayed({ recordingController.dismiss() }, 2000)
                 return@launch
@@ -720,7 +720,7 @@ class VoxPenIME : InputMethodService() {
             val resolvedModel = if (llmProvider == com.voxpen.app.data.model.LlmProvider.Custom) {
                 customLlmModel.ifBlank { llmModel }
             } else {
-                llmModel (feat(byok): custom provider parity — keyless Custom, model override, keyless-aware UI)
+                llmModel
             }
             val customBaseUrl = if (llmProvider == com.voxpen.app.data.model.LlmProvider.Custom) {
                 apiKeyManager.getCustomBaseUrl()
@@ -733,7 +733,7 @@ class VoxPenIME : InputMethodService() {
                 instruction = instruction,
                 language = language,
                 apiKey = apiKey,
-                model = resolvedModel, (feat(byok): custom provider parity — keyless Custom, model override, keyless-aware UI)
+                model = resolvedModel,
                 provider = llmProvider,
                 customBaseUrl = customBaseUrl,
             )

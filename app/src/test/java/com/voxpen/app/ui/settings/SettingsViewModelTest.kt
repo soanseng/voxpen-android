@@ -217,6 +217,8 @@ class SettingsViewModelTest {
             vm.setLlmProvider(LlmProvider.OpenAI)
             coVerify { preferencesManager.setLlmProvider(LlmProvider.OpenAI) }
             coVerify(exactly = 0) { preferencesManager.setLlmModel(any()) }
+        }
+
 
     @Test
     fun `testLlmProvider reports success with provider reply`() =
@@ -270,6 +272,5 @@ class SettingsViewModelTest {
 
             assertThat(vm.uiState.value.llmTestStatus).isEqualTo(LlmTestStatus.NoBaseUrl)
             verify(exactly = 0) { apiFactory.createForCustom(any()) }
-||||||| parent of 70b7fb5 (feat(byok): custom provider parity — keyless Custom, model override, keyless-aware UI)
         }
 }

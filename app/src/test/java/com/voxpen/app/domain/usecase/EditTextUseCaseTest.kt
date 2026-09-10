@@ -60,27 +60,6 @@ class EditTextUseCaseTest {
             assertThat(result.isFailure).isTrue()
         }
 
-    @Test
-    fun `should proceed for Custom provider with blank key`() =
-        runTest {
-            coEvery { chatCompletionApi.chatCompletion(any(), any()) } returns
-                ChatCompletionResponse(
-                    choices = listOf(
-                        ChatChoice(message = ChatMessage(role = "assistant", content = "Edited.")),
-                    ),
-                )
-
-            val result = useCase(
-                selectedText = "hello",
-                instruction = "make it formal",
-                language = SttLanguage.English,
-                apiKey = "",
-                provider = LlmProvider.Custom,
-            )
-
-            assertThat(result.isSuccess).isTrue()
-            assertThat(result.getOrNull()).isEqualTo("Edited.")
-        }
 
     @Test
     fun `should allow blank api key for custom provider`() =
